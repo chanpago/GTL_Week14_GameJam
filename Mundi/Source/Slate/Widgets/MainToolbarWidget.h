@@ -101,7 +101,7 @@ private:
     UTexture* IconStop = nullptr;
     UTexture* IconAddActor = nullptr;
     UTexture* IconPrefab = nullptr;
-    UTexture* LogoTexture = nullptr;
+    //UTexture* LogoTexture = nullptr;
 
     // 아이콘 설정
     float IconSize = 25.0f;
