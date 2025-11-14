@@ -7,8 +7,8 @@
 
 USkeletalMeshComponent::USkeletalMeshComponent()
 {
-    // 테스트용 기본 메시 설정
-    SetSkeletalMesh(GDataDir + "/Test.fbx"); 
+    // 테스트용 기본 메시 설정 - 애니메이션과 동일한 FBX 사용
+    //SetSkeletalMesh("Data/James/James.fbx");
 }
 
 
@@ -16,15 +16,27 @@ void USkeletalMeshComponent::BeginPlay()
 {
     Super::BeginPlay();
 
+    // TEST: Load and play animation
     // 1. ResourceManager에서 애니메이션 가져오기
-    UAnimSequence* WalkAnim = RESOURCE.Get<UAnimSequence>("Data/Walking.fbx");
+    UAnimSequence* WalkAnim = RESOURCE.Get<UAnimSequence>("Data/JamesWalking.fbx_mixamo.com");
 
-    // 2. SkeletalMeshComponent에 설정
-    SetAnimation(WalkAnim);
+    if (WalkAnim)
+    {
+        UE_LOG("Animation loaded successfully! Duration: %.2f seconds", WalkAnim->GetPlayLength());
 
-    // 3. 재생 시작
-    SetPlaying(true);
-    SetLooping(true);
+
+        // 2. SkeletalMeshComponent에 설정
+        SetAnimation(WalkAnim);
+
+        // 3. 재생 시작
+        SetPlaying(true);
+        SetLooping(true);
+        SetPlayRate(1.0f);
+    }
+    else
+    {
+        UE_LOG("Failed to load animation: Data/James/James.fbx_Take 001");
+    }
 }
 
 void USkeletalMeshComponent::TickComponent(float DeltaTime)
@@ -284,6 +296,12 @@ void USkeletalMeshComponent::TickAnimation(float DeltaTime)
 {
     if (!ShouldTickAnimation())
     {
+        static bool bLoggedOnce = false;
+        if (!bLoggedOnce)
+        {
+            UE_LOG("TickAnimation skipped - CurrentAnimation: %p, bIsPlaying: %d", CurrentAnimation, bIsPlaying);
+            bLoggedOnce = true;
+        }
         return;
     }
 
@@ -308,7 +326,15 @@ void USkeletalMeshComponent::TickAnimInstances(float DeltaTime)
 
     CurrentAnimationTime += DeltaTime * PlayRate;
 
+    //UE_LOG("CurrentAnimationTime %.2f", CurrentAnimationTime);
+
     float PlayLength = CurrentAnimation->GetPlayLength();
+
+    static int FrameCount = 0;
+    if (FrameCount++ % 60 == 0) // 매 60프레임마다 로그
+    {
+        UE_LOG("Animation Playing - Time: %.2f / %.2f, Looping: %d", CurrentAnimationTime, PlayLength, bIsLooping);
+    }
 
     // 2. 루핑 처리
     if (bIsLooping)
@@ -336,6 +362,9 @@ void USkeletalMeshComponent::TickAnimInstances(float DeltaTime)
     }
 
     const FSkeleton& Skeleton = SkeletalMesh->GetSkeletalMeshData()->Skeleton;
+    //CurrentAnimation->SetSkeleton(Skeleton);
+
+
     int32 NumBones = DataModel->GetNumBoneTracks();
 
     // 4. 각 본의 애니메이션 포즈 적용
@@ -346,6 +375,11 @@ void USkeletalMeshComponent::TickAnimInstances(float DeltaTime)
 
     // 5. 추출된 포즈를 CurrentLocalSpacePose에 적용
     const TArray<FBoneAnimationTrack>& BoneTracks = DataModel->GetBoneAnimationTracks();
+
+    static bool bLoggedBoneMatching = false;
+    static bool bLoggedAnimData = false;
+    int32 MatchedBones = 0;
+    int32 TotalBones = BoneTracks.Num();
 
     for (int32 TrackIdx = 0; TrackIdx < BoneTracks.Num(); ++TrackIdx)
     {
@@ -358,7 +392,49 @@ void USkeletalMeshComponent::TickAnimInstances(float DeltaTime)
         {
             // 애니메이션 포즈 적용
             CurrentLocalSpacePose[BoneIndex] = PoseContext.Pose[TrackIdx];
+            MatchedBones++;
+
+            // 첫 5개 본의 애니메이션 데이터 로그
+            if (!bLoggedAnimData && BoneIndex < 5)
+            {
+                const FTransform& AnimTransform = PoseContext.Pose[TrackIdx];
+                UE_LOG("[AnimData] Bone[%d] %s: T(%.3f,%.3f,%.3f) R(%.3f,%.3f,%.3f,%.3f) S(%.3f,%.3f,%.3f)",
+                    BoneIndex, Track.Name.ToString().c_str(),
+                    AnimTransform.Translation.X, AnimTransform.Translation.Y, AnimTransform.Translation.Z,
+                    AnimTransform.Rotation.X, AnimTransform.Rotation.Y, AnimTransform.Rotation.Z, AnimTransform.Rotation.W,
+                    AnimTransform.Scale3D.X, AnimTransform.Scale3D.Y, AnimTransform.Scale3D.Z);
+            }
         }
+        else if (!bLoggedBoneMatching)
+        {
+            UE_LOG("Bone not found in skeleton: %s (TrackIdx: %d)", Track.Name.ToString().c_str(), TrackIdx);
+        }
+    }
+
+    if (!bLoggedAnimData && MatchedBones > 0)
+    {
+        bLoggedAnimData = true;
+    }
+
+    if (!bLoggedBoneMatching)
+    {
+        UE_LOG("Bone matching: %d / %d bones matched", MatchedBones, TotalBones);
+        UE_LOG("Skeleton has %d bones, Animation has %d tracks", Skeleton.Bones.Num(), TotalBones);
+
+        // Print first 5 bone names from each
+        UE_LOG("=== Skeleton Bones (first 5) ===");
+        for (int32 i = 0; i < FMath::Min(5, (int32)Skeleton.Bones.Num()); ++i)
+        {
+            UE_LOG("  [%d] %s", i, Skeleton.Bones[i].Name.c_str());
+        }
+
+        UE_LOG("=== Animation Tracks (first 5) ===");
+        for (int32 i = 0; i < FMath::Min(5, (int32)BoneTracks.Num()); ++i)
+        {
+            UE_LOG("  [%d] %s", i, BoneTracks[i].Name.ToString().c_str());
+        }
+
+        bLoggedBoneMatching = true;
     }
 
     // 6. 포즈 변경 사항을 스키닝에 반영

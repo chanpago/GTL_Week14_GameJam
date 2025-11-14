@@ -19,7 +19,7 @@ public:
 	FSkeletalMeshData* LoadFbxMeshAsset(const FString& FilePath);
 
 	// Animation loading
-	void LoadAnimationsFromFbx(const FString& FilePath, TArray<UAnimSequence*>& OutAnimations);
+	//void LoadAnimationsFromFbx(const FString& FilePath, TArray<UAnimSequence*>& OutAnimations);
 
 	// Animation caching
 	bool SaveAnimationToCache(UAnimSequence* Animation, const FString& CachePath);
