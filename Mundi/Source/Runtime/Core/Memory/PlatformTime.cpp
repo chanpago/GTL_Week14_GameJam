@@ -42,5 +42,6 @@ const FTimeProfile& FScopeCycleCounter::GetTimeProfile(const FString& Key)
 {
 	return TimeProfileMap[Key];
 }
+
 double FWindowsPlatformTime::GSecondsPerCycle = 0.0;
 bool FWindowsPlatformTime::bInitialized = false;

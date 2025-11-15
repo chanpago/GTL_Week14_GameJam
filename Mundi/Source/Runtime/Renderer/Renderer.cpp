@@ -55,6 +55,7 @@ void URenderer::BeginFrame()
 
 	// 프레임별 데칼 통계를 추적하기 위해 초기화
 	FDecalStatManager::GetInstance().ResetFrameStats();
+	GPU_PROFILING_START;
 
 	RHIDevice->ClearAllBuffer();
 }

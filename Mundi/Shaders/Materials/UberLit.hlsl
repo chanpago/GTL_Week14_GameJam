@@ -9,6 +9,10 @@
 // #define LIGHTING_MODEL_LAMBERT 1
 // #define LIGHTING_MODEL_PHONG 1
 
+#ifndef USE_GPU_SKINNING
+#define USE_GPU_SKINNING 0
+#endif
+
 // --- Material 구조체 (OBJ 머티리얼 정보) ---
 // 주의: SPECULAR_COLOR 매크로에서 사용하므로 include 전에 정의 필요
 struct FMaterial
@@ -86,6 +90,11 @@ Texture2D g_ShadowAtlas2D : register(t9);
 Texture2D<float2> g_VSMShadowAtlas : register(t10);
 TextureCubeArray<float2> g_VSMShadowCube : register(t11);   // TODO: 지금은 전달 안 되고, 안 쓰는 중
 
+#if USE_GPU_SKINNING
+StructuredBuffer<float4x4> g_SkinnedMatrices : register(t12);
+StructuredBuffer<float4x4> g_SkinnedNormalMatrices : register(t13);
+#endif
+
 SamplerState g_Sample : register(s0);
 SamplerState g_Sample2 : register(s1);
 SamplerComparisonState g_ShadowSample : register(s2);
@@ -96,6 +105,40 @@ SamplerState g_VSMSampler : register(s3);
 #include "../Common/LightingBuffers.hlsl"
 #include "../Common/LightingCommon.hlsl"
 
+#if USE_GPU_SKINNING
+float3 SkinPosition(float3 Position, uint4 BoneIndices, float4 BoneWeights)
+{
+    float4 SkinnedPos = 0.0f;
+    [unroll]
+    for (uint i = 0; i < 4; i++)
+    {
+        if (BoneWeights[i] > 0.0f)
+        {
+            float4x4 BoneMatrix = g_SkinnedMatrices[BoneIndices[i]];
+            SkinnedPos += mul(BoneMatrix, float4(Position, 1.0f)) * BoneWeights[i];
+        }
+    }
+    return SkinnedPos.xyz;
+}
+
+float3 SkinVector(float3 Vector, uint4 BoneIndices, float4 BoneWeights, StructuredBuffer<float4x4> MatrixBuffer)
+{
+    float3 SkinnedVector = 0.0f;
+    [unroll]
+    for (uint i = 0; i < 4; i++)
+    {
+        if (BoneWeights[i] > 0.0f)
+        {
+            float4x4 BoneMatrix4x4 = MatrixBuffer[BoneIndices[i]];
+            float3x3 BoneMatrix = (float3x3)BoneMatrix4x4;
+            SkinnedVector += mul(BoneMatrix, Vector) * BoneWeights[i];
+        }
+    }
+
+    return normalize(SkinnedVector);
+}
+#endif
+
 // --- 셰이더 입출력 구조체 ---
 struct VS_INPUT
 {
@@ -104,6 +147,10 @@ struct VS_INPUT
     float2 TexCoord : TEXCOORD0;
     float4 Tangent : TANGENT0;
     float4 Color : COLOR;
+#if USE_GPU_SKINNING
+    uint4 BoneIndices : BLENDINDICES0;
+    float4 BoneWeights : BLENDWEIGHT0;
+#endif        
 };
 
 struct PS_INPUT
@@ -128,28 +175,32 @@ struct PS_OUTPUT
 PS_INPUT mainVS(VS_INPUT Input)
 {
     PS_INPUT Out;
-    
-    // 위치를 월드 공간으로 먼저 변환
-    float4 worldPos = mul(float4(Input.Position, 1.0f), WorldMatrix);
-    Out.WorldPos = worldPos.xyz;
-    
-    // 뷰 공간으로 변환
-    float4 viewPos = mul(worldPos, ViewMatrix);
 
-    // 최종적으로 클립 공간으로 변환
-    Out.Position = mul(viewPos, ProjectionMatrix);
+#if USE_GPU_SKINNING
+    float3 ModelPosition = SkinPosition(Input.Position, Input.BoneIndices, Input.BoneWeights);
+    float3 ModelNormal = SkinVector(Input.Normal, Input.BoneIndices, Input.BoneWeights, g_SkinnedNormalMatrices);
+    float3 ModelTangent = SkinVector(Input.Tangent.xyz, Input.BoneIndices, Input.BoneWeights, g_SkinnedMatrices);
+#else
+    float3 ModelPosition = Input.Position.xyz;
+    float3 ModelNormal = Input.Normal.xyz;
+    float3 ModelTangent = Input.Tangent.xyz;
+#endif
 
-    // 노멀을 월드 공간으로 변환
-    // 비균등 스케일에서 올바른 노멀 변환을 위해 WorldInverseTranspose 사용
-    // 노멀 벡터는 transpose(inverse(WorldMatrix))로 변환됨
-    float3 worldNormal = normalize(mul(Input.Normal, (float3x3) WorldInverseTranspose));
-    Out.Normal = worldNormal;
-    float3 Tangent = normalize(mul(Input.Tangent.xyz, (float3x3) WorldMatrix));
-    float3 BiTangent = normalize(cross(Tangent, worldNormal) * Input.Tangent.w);
+    float4 WorldPos = mul(float4(ModelPosition, 1.0f), WorldMatrix);
+    Out.WorldPos = WorldPos.xyz;
+
+    float4 ViewPos = mul(WorldPos, ViewMatrix);
+    Out.Position = mul(ViewPos, ProjectionMatrix);
+
+    float3 WorldNormal = normalize(mul(ModelNormal, (float3x3)WorldInverseTranspose));
+    Out.Normal = WorldNormal;
+
+    float3 Tangent = normalize(mul(ModelTangent, (float3x3)WorldMatrix));
+    float3 BiTangent = normalize(cross(WorldNormal, Tangent) * Input.Tangent.w);
     row_major float3x3 TBN;
     TBN._m00_m01_m02 = Tangent;
     TBN._m10_m11_m12 = BiTangent;
-    TBN._m20_m21_m22 = worldNormal;
+    TBN._m20_m21_m22 = WorldNormal;
 
     Out.TBN = TBN;
 

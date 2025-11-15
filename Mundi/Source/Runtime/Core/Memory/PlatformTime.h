@@ -4,12 +4,8 @@
 #define TIME_PROFILE(Key)\
 FScopeCycleCounter Key##Counter(#Key); //현재 스코프 단위로 측정
 
-
 #define TIME_PROFILE_END(Key)\
 Key##Counter.Finish();
-
-
-
 
 class FWindowsPlatformTime
 {
@@ -102,6 +98,11 @@ struct FTimeProfile
 		swprintf_s(buffer, _countof(buffer), L"%s : %.3fms, Call : %d", std::wstring(Key.begin(), Key.end()).c_str(), Milliseconds, CallCount);
 		return buffer;
 	}
+
+	const double GetTime() const
+	{
+		return Milliseconds;
+	}
 };
 
 typedef FWindowsPlatformTime FPlatformTime;
@@ -158,6 +159,4 @@ private:
 	bool bIsFinish = false;
 	uint64 StartCycles;
 	TStatId UsedStatId;
-
 };
-

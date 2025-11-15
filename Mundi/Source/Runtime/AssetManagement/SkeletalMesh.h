@@ -22,15 +22,18 @@ public:
     uint32 GetVertexCount() const { return VertexCount; }
     uint32 GetIndexCount() const { return IndexCount; }
 
-    uint32 GetVertexStride() const { return VertexStride; }
+    uint32 GetCPUSkinnedVertexStride() const { return CPUSkinnedVertexStride; }
+    uint32 GetGPUSkinnedVertexStride() const { return GPUSkinnedVertexStride; }
     
     const TArray<FGroupInfo>& GetMeshGroupInfo() const { static TArray<FGroupInfo> EmptyGroup; return Data ? Data->GroupInfos : EmptyGroup; }
     bool HasMaterial() const { return Data ? Data->bHasMaterial : false; }
 
     uint64 GetMeshGroupCount() const { return Data ? Data->GroupInfos.size() : 0; }
 
-    void CreateVertexBuffer(ID3D11Buffer** InVertexBuffer);
+    void CreateCPUSkinnedVertexBuffer(ID3D11Buffer** InVertexBuffer);
+    void CreateGPUSkinnedVertexBuffer(ID3D11Buffer** InVertexBuffer);
     void UpdateVertexBuffer(const TArray<FNormalVertex>& SkinnedVertices, ID3D11Buffer* InVertexBuffer);
+    void CreateStructuredBuffer(ID3D11Buffer** InStructuredBuffer, ID3D11ShaderResourceView** InShaderResourceView, UINT ElementCount);
     
 private:
     void CreateIndexBuffer(FSkeletalMeshData* InSkeletalMesh, ID3D11Device* InDevice);
@@ -42,7 +45,8 @@ private:
     ID3D11Buffer* IndexBuffer = nullptr;
     uint32 VertexCount = 0;     // 정점 개수
     uint32 IndexCount = 0;     // 버텍스 점의 개수 
-    uint32 VertexStride = 0;
+    uint32 CPUSkinnedVertexStride = 0;
+    uint32 GPUSkinnedVertexStride = 0;
     
     // CPU 리소스
     FSkeletalMeshData* Data = nullptr;

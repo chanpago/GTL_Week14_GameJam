@@ -74,6 +74,9 @@ public:
 	static HRESULT CreateVertexBufferImpl(ID3D11Device* Device, const std::vector<FNormalVertex>& SrcVertices, ID3D11Buffer** OutBuffer, D3D11_USAGE Usage, UINT CpuAccessFlags);
 
 	template<typename TVertex>
+	static HRESULT CreateVertexBufferImpl(ID3D11Device* Device, const std::vector<FSkinnedVertex>& SrcVertices, ID3D11Buffer** OutBuffer, D3D11_USAGE Usage, UINT CpuAccessFlags);
+
+	template<typename TVertex>
 	static HRESULT CreateVertexBuffer(ID3D11Device* device, const std::vector<FNormalVertex>& srcVertices, ID3D11Buffer** outBuffer);
 	
 	template<typename TVertex>
@@ -367,6 +370,32 @@ inline HRESULT D3D11RHI::CreateVertexBufferImpl(ID3D11Device* Device, const std:
 	return Device->CreateBuffer(&BufferDesc, &InitData, OutBuffer);
 }
 
+template <typename TVertex>
+HRESULT D3D11RHI::CreateVertexBufferImpl(ID3D11Device* Device, const std::vector<FSkinnedVertex>& SrcVertices,
+	ID3D11Buffer** OutBuffer, D3D11_USAGE Usage, UINT CpuAccessFlags)
+{
+	std::vector<TVertex> VertexArray;
+	VertexArray.reserve(SrcVertices.size());
+
+	for (size_t i = 0; i < SrcVertices.size(); ++i)
+	{
+		TVertex Vertex{};
+		Vertex.FillFrom(SrcVertices[i]); // 각 TVertex에서 FillFrom 구현 필요
+		VertexArray.push_back(Vertex);
+	}
+
+	D3D11_BUFFER_DESC BufferDesc = {};
+	BufferDesc.Usage = Usage;
+	BufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	BufferDesc.CPUAccessFlags = CpuAccessFlags;
+	BufferDesc.ByteWidth = static_cast<UINT>(sizeof(TVertex) * VertexArray.size());
+
+	D3D11_SUBRESOURCE_DATA InitData = {};
+	InitData.pSysMem = VertexArray.data();
+
+	return Device->CreateBuffer(&BufferDesc, &InitData, OutBuffer);
+}
+
 template<>
 inline HRESULT D3D11RHI::CreateVertexBuffer<FVertexSimple>(ID3D11Device* device, const std::vector<FNormalVertex>& srcVertices, ID3D11Buffer** outBuffer)
 {
@@ -416,4 +445,10 @@ inline HRESULT D3D11RHI::CreateVertexBuffer<FVertexDynamic>(ID3D11Device* Device
 	InitData.pSysMem = VertexArray.data();
 
 	return Device->CreateBuffer(&BufferDesc, &InitData, OutBuffer);
+}
+
+template<>
+inline HRESULT D3D11RHI::CreateVertexBuffer<FSkinnedVertex>(ID3D11Device* Device, const std::vector<FSkinnedVertex>& SrcVertices, ID3D11Buffer** OutBuffer)
+{
+	return CreateVertexBufferImpl<FSkinnedVertex>(Device, SrcVertices, OutBuffer, D3D11_USAGE_DEFAULT, 0);
 }

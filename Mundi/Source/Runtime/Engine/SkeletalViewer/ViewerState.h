@@ -48,7 +48,7 @@ public:
     
     bool bIsPlaying = false;
     bool bIsPlayingReverse = false;
-    bool bRefreshAnimation = false; // 애니메이션이 강제로 업데이트 되어야 하는 상태
+    bool bTimeChanged = false;
     bool bIsRecording = false;
-    bool bAnimLoop = true;
+    bool bIsLooping = true;
 };

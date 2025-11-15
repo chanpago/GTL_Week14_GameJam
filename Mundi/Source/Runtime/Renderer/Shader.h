@@ -58,6 +58,8 @@ public:
 	bool IsOutdated() const;
 	bool Reload(ID3D11Device* InDevice);
 	//const TArray<FShaderMacro>& GetMacros() const { return Macros; }
+
+	static bool HasMacro(const TArray<FShaderMacro>& InMacros, const FString& InMacroName);
 	
 protected:
 	virtual ~UShader();

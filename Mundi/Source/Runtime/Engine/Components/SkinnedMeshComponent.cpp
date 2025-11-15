@@ -1,6 +1,7 @@
 ﻿#include "pch.h"
 #include "SkinnedMeshComponent.h"
 #include "MeshBatchElement.h"
+#include "PlatformTime.h"
 #include "SceneView.h"
 
 USkinnedMeshComponent::USkinnedMeshComponent() : SkeletalMesh(nullptr)
@@ -10,10 +11,34 @@ USkinnedMeshComponent::USkinnedMeshComponent() : SkeletalMesh(nullptr)
 
 USkinnedMeshComponent::~USkinnedMeshComponent()
 {
-   if (VertexBuffer)
+   if (CPUSkinnedVertexBuffer)
    {
-      VertexBuffer->Release();
-      VertexBuffer = nullptr;
+      CPUSkinnedVertexBuffer->Release();
+      CPUSkinnedVertexBuffer = nullptr;
+   }
+
+   if (SkinningMatrixSRV)
+   {
+      SkinningMatrixSRV->Release();
+      SkinningMatrixSRV = nullptr;
+   }
+   
+   if (SkinningMatrixBuffer)
+   {
+      SkinningMatrixBuffer->Release();
+      SkinningMatrixBuffer = nullptr;
+   }
+
+   if (SkinningNormalMatrixSRV)
+   {
+      SkinningNormalMatrixSRV->Release();
+      SkinningNormalMatrixSRV = nullptr;
+   }
+   
+   if (SkinningNormalMatrixBuffer)
+   {
+      SkinningNormalMatrixBuffer->Release();
+      SkinningNormalMatrixBuffer = nullptr;
    }
 }
 
@@ -41,107 +66,146 @@ void USkinnedMeshComponent::Serialize(const bool bInIsLoading, JSON& InOutHandle
 void USkinnedMeshComponent::DuplicateSubObjects()
 {
    Super::DuplicateSubObjects();
-   SkeletalMesh->CreateVertexBuffer(&VertexBuffer);
+   SkeletalMesh->CreateCPUSkinnedVertexBuffer(&CPUSkinnedVertexBuffer);
+   SkeletalMesh->CreateStructuredBuffer(&SkinningMatrixBuffer, &SkinningMatrixSRV, FinalSkinningMatrices.Num());
+   SkeletalMesh->CreateStructuredBuffer(&SkinningNormalMatrixBuffer, &SkinningNormalMatrixSRV, FinalSkinningNormalMatrices.Num());
 }
 
 void USkinnedMeshComponent::CollectMeshBatches(TArray<FMeshBatchElement>& OutMeshBatchElements, const FSceneView* View)
 {
-    if (!SkeletalMesh || !SkeletalMesh->GetSkeletalMeshData()) { return; }
+   if (!SkeletalMesh || !SkeletalMesh->GetSkeletalMeshData()) { return; }
 
-   if (bSkinningMatricesDirty)
+   bForceGPUSkinning = GetWorld()->GetRenderSettings().IsShowFlagEnabled(EEngineShowFlags::SF_GPUSkinning);         
+
+   if (bSkinningMatricesDirty && !bForceGPUSkinning)
    {
+      TIME_PROFILE(CPUSkinning)
       bSkinningMatricesDirty = false;
-      SkeletalMesh->UpdateVertexBuffer(SkinnedVertices, VertexBuffer);
+      SkeletalMesh->UpdateVertexBuffer(SkinnedVertices, CPUSkinnedVertexBuffer);
+      TIME_PROFILE_END(CPUSkinning)
    }
 
-    const TArray<FGroupInfo>& MeshGroupInfos = SkeletalMesh->GetMeshGroupInfo();
-    auto DetermineMaterialAndShader = [&](uint32 SectionIndex) -> TPair<UMaterialInterface*, UShader*>
-    {
-       UMaterialInterface* Material = GetMaterial(SectionIndex);
-       UShader* Shader = nullptr;
+   if (bForceGPUSkinning &&
+      SkinningMatrixBuffer && SkinningNormalMatrixBuffer &&
+      !FinalSkinningMatrices.IsEmpty())
+   {
+      D3D11RHI* RHIDevice = GEngine.GetRHIDevice();
+      RHIDevice->UpdateStructuredBuffer(SkinningMatrixBuffer,
+                                        FinalSkinningMatrices.data(),
+                                        sizeof(FMatrix) *
+                                        FinalSkinningMatrices.Num());
 
-       if (Material && Material->GetShader())
-       {
-          Shader = Material->GetShader();
-       }
-       else
-       {
-          // UE_LOG("USkinnedMeshComponent: 머티리얼이 없거나 셰이더가 없어서 기본 머티리얼 사용 section %u.", SectionIndex);
-          Material = UResourceManager::GetInstance().GetDefaultMaterial();
-          if (Material)
-          {
-             Shader = Material->GetShader();
-          }
-          if (!Material || !Shader)
-          {
-             UE_LOG("USkinnedMeshComponent: 기본 머티리얼이 없습니다.");
-             return { nullptr, nullptr };
-          }
-       }
-       return { Material, Shader };
-    };
+      RHIDevice->UpdateStructuredBuffer(SkinningNormalMatrixBuffer,
+                                        FinalSkinningNormalMatrices.data(),
+                                        sizeof(FMatrix) *
+                                        FinalSkinningNormalMatrices.Num());
+   }
 
-    const bool bHasSections = !MeshGroupInfos.IsEmpty();
-    const uint32 NumSectionsToProcess = bHasSections ? static_cast<uint32>(MeshGroupInfos.size()) : 1;
+   const TArray<FGroupInfo>& MeshGroupInfos = SkeletalMesh->GetMeshGroupInfo();
+   auto DetermineMaterialAndShader = [&](uint32 SectionIndex) -> TPair<UMaterialInterface*, UShader*>
+   {
+      UMaterialInterface* Material = GetMaterial(SectionIndex);
+      UShader* Shader = nullptr;
 
-    for (uint32 SectionIndex = 0; SectionIndex < NumSectionsToProcess; ++SectionIndex)
-    {
-       uint32 IndexCount = 0;
-       uint32 StartIndex = 0;
+      if (Material && Material->GetShader())
+      {
+         Shader = Material->GetShader();
+      }
+      else
+      {
+         // UE_LOG("USkinnedMeshComponent: 머티리얼이 없거나 셰이더가 없어서 기본 머티리얼 사용 section %u.", SectionIndex);
+         Material = UResourceManager::GetInstance().GetDefaultMaterial();
+         if (Material)
+         {
+            Shader = Material->GetShader();
+         }
+         if (!Material || !Shader)
+         {
+            UE_LOG("USkinnedMeshComponent: 기본 머티리얼이 없습니다.");
+            return {nullptr, nullptr};
+         }
+      }
+      return {Material, Shader};
+   };
 
-       if (bHasSections)
-       {
-          const FGroupInfo& Group = MeshGroupInfos[SectionIndex];
-          IndexCount = Group.IndexCount;
-          StartIndex = Group.StartIndex;
-       }
-       else
-       {
-          IndexCount = SkeletalMesh->GetIndexCount();
-          StartIndex = 0;
-       }
+   const bool bHasSections = !MeshGroupInfos.IsEmpty();
+   const uint32 NumSectionsToProcess = bHasSections ? static_cast<uint32>(MeshGroupInfos.size()) : 1;
 
-       if (IndexCount == 0)
-       {
-          continue;
-       }
+   for (uint32 SectionIndex = 0; SectionIndex < NumSectionsToProcess; ++SectionIndex)
+   {
+      uint32 IndexCount = 0;
+      uint32 StartIndex = 0;
 
-       auto [MaterialToUse, ShaderToUse] = DetermineMaterialAndShader(SectionIndex);
-       if (!MaterialToUse || !ShaderToUse)
-       {
-          continue;
-       }
+      if (bHasSections)
+      {
+         const FGroupInfo& Group = MeshGroupInfos[SectionIndex];
+         IndexCount = Group.IndexCount;
+         StartIndex = Group.StartIndex;
+      }
+      else
+      {
+         IndexCount = SkeletalMesh->GetIndexCount();
+         StartIndex = 0;
+      }
 
-       FMeshBatchElement BatchElement;
-       TArray<FShaderMacro> ShaderMacros = View->ViewShaderMacros;
-       if (0 < MaterialToUse->GetShaderMacros().Num())
-       {
-          ShaderMacros.Append(MaterialToUse->GetShaderMacros());
-       }
-       FShaderVariant* ShaderVariant = ShaderToUse->GetOrCompileShaderVariant(ShaderMacros);
+      if (IndexCount == 0)
+      {
+         continue;
+      }
 
-       if (ShaderVariant)
-       {
-          BatchElement.VertexShader = ShaderVariant->VertexShader;
-          BatchElement.PixelShader = ShaderVariant->PixelShader;
-          BatchElement.InputLayout = ShaderVariant->InputLayout;
-       }
-       
-       BatchElement.Material = MaterialToUse;
-       
-       BatchElement.VertexBuffer = VertexBuffer;
-       BatchElement.IndexBuffer = SkeletalMesh->GetIndexBuffer();
-       BatchElement.VertexStride = SkeletalMesh->GetVertexStride();
-       
-       BatchElement.IndexCount = IndexCount;
-       BatchElement.StartIndex = StartIndex;
-       BatchElement.BaseVertexIndex = 0;
-       BatchElement.WorldMatrix = GetWorldMatrix();
-       BatchElement.ObjectID = InternalIndex;
-       BatchElement.PrimitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+      auto [MaterialToUse, ShaderToUse] = DetermineMaterialAndShader(SectionIndex);
+      if (!MaterialToUse || !ShaderToUse)
+      {
+         continue;
+      }
 
-       OutMeshBatchElements.Add(BatchElement);
-    }
+      FMeshBatchElement BatchElement;
+      TArray<FShaderMacro> ShaderMacros = View->ViewShaderMacros;
+      if (bForceGPUSkinning)
+      {
+         ShaderMacros.Add(FShaderMacro("USE_GPU_SKINNING", "1"));
+      }
+
+      if (0 < MaterialToUse->GetShaderMacros().Num())
+      {
+         ShaderMacros.Append(MaterialToUse->GetShaderMacros());
+      }
+      FShaderVariant* ShaderVariant = ShaderToUse->GetOrCompileShaderVariant(ShaderMacros);
+
+      if (ShaderVariant)
+      {
+         BatchElement.VertexShader = ShaderVariant->VertexShader;
+         BatchElement.PixelShader = ShaderVariant->PixelShader;
+         BatchElement.InputLayout = ShaderVariant->InputLayout;
+      }
+
+      BatchElement.Material = MaterialToUse;
+
+      if (bForceGPUSkinning)
+      {
+         BatchElement.VertexBuffer = GPUSkinnedVertexBuffer;
+         BatchElement.VertexStride = SkeletalMesh->GetGPUSkinnedVertexStride();
+         BatchElement.GPUSkinMatrixSRV = SkinningMatrixSRV;
+         BatchElement.GPUSkinNormalMatrixSRV = SkinningNormalMatrixSRV;
+      }
+      else
+      {
+         BatchElement.VertexBuffer = CPUSkinnedVertexBuffer;
+         BatchElement.VertexStride = SkeletalMesh->GetCPUSkinnedVertexStride();
+         BatchElement.GPUSkinMatrixSRV = nullptr;
+         BatchElement.GPUSkinNormalMatrixSRV = nullptr;
+      }
+
+      BatchElement.IndexBuffer = SkeletalMesh->GetIndexBuffer();
+      BatchElement.IndexCount = IndexCount;
+      BatchElement.StartIndex = StartIndex;
+      BatchElement.BaseVertexIndex = 0;
+      BatchElement.WorldMatrix = GetWorldMatrix();
+      BatchElement.ObjectID = InternalIndex;
+      BatchElement.PrimitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+
+      OutMeshBatchElements.Add(BatchElement);
+   }   
 }
 
 FAABB USkinnedMeshComponent::GetWorldAABB() const
@@ -192,23 +256,54 @@ void USkinnedMeshComponent::OnTransformUpdated()
    Super::OnTransformUpdated();
    MarkWorldPartitionDirty();
 }
-
 void USkinnedMeshComponent::SetSkeletalMesh(const FString& PathFileName)
 {
    ClearDynamicMaterials();
 
    SkeletalMesh = UResourceManager::GetInstance().Load<USkeletalMesh>(PathFileName);
 
-   if (VertexBuffer)
+   if (CPUSkinnedVertexBuffer)
    {
-      VertexBuffer->Release();
-      VertexBuffer = nullptr;
+      CPUSkinnedVertexBuffer->Release();
+      CPUSkinnedVertexBuffer = nullptr;
    }
-    
+
+   if (SkinningMatrixSRV)
+   {
+      SkinningMatrixSRV->Release();
+      SkinningMatrixSRV = nullptr;
+   }
+   
+   if (SkinningMatrixBuffer)
+   {
+      SkinningMatrixBuffer->Release();
+      SkinningMatrixBuffer = nullptr;
+   }
+
+   if (SkinningNormalMatrixSRV)
+   {
+      SkinningNormalMatrixSRV->Release();
+      SkinningNormalMatrixSRV = nullptr;
+   }
+   
+   if (SkinningNormalMatrixBuffer)
+   {
+      SkinningNormalMatrixBuffer->Release();
+      SkinningNormalMatrixBuffer = nullptr;
+   }
+   
    if (SkeletalMesh && SkeletalMesh->GetSkeletalMeshData())
    {
-      SkeletalMesh->CreateVertexBuffer(&VertexBuffer);
-
+      SkeletalMesh->CreateCPUSkinnedVertexBuffer(&CPUSkinnedVertexBuffer);
+      SkeletalMesh->CreateGPUSkinnedVertexBuffer(&GPUSkinnedVertexBuffer);
+      
+      uint32 BoneCount = SkeletalMesh->GetBoneCount();
+      if (0 < BoneCount && !SkinningMatrixBuffer && !SkinningNormalMatrixBuffer)
+      {
+         SkeletalMesh->CreateStructuredBuffer(&SkinningMatrixBuffer, &SkinningMatrixSRV, BoneCount);
+         SkeletalMesh->CreateStructuredBuffer(&SkinningNormalMatrixBuffer, &SkinningNormalMatrixSRV, BoneCount);
+      }
+      
       const TArray<FMatrix> IdentityMatrices(SkeletalMesh->GetBoneCount(), FMatrix::Identity());
       UpdateSkinningMatrices(IdentityMatrices, IdentityMatrices);
       PerformSkinning();
@@ -220,7 +315,7 @@ void USkinnedMeshComponent::SetSkeletalMesh(const FString& PathFileName)
          // FGroupInfo에 InitialMaterialName이 있다고 가정
          SetMaterialByName(i, GroupInfos[i].InitialMaterialName);
       }
-      MarkWorldPartitionDirty();
+      MarkWorldPartitionDirty();      
    }
    else
    {
@@ -234,7 +329,25 @@ void USkinnedMeshComponent::PerformSkinning()
 {
    if (!SkeletalMesh || FinalSkinningMatrices.IsEmpty()) { return; }
    if (!bSkinningMatricesDirty) { return; }
-   
+
+   if (bForceGPUSkinning &&
+      SkinningMatrixBuffer && SkinningNormalMatrixBuffer &&
+      !FinalSkinningMatrices.IsEmpty())
+   {
+      D3D11RHI* RHIDevice = GEngine.GetRHIDevice();
+      RHIDevice->UpdateStructuredBuffer(SkinningMatrixBuffer,
+                                        FinalSkinningMatrices.data(),
+                                        sizeof(FMatrix) *
+                                        FinalSkinningMatrices.Num());
+
+      RHIDevice->UpdateStructuredBuffer(SkinningNormalMatrixBuffer,
+                                        FinalSkinningNormalMatrices.data(),
+                                        sizeof(FMatrix) *
+                                        FinalSkinningNormalMatrices.Num());
+      return;
+   }
+
+   TIME_PROFILE(CPUSkinning)
    const TArray<FSkinnedVertex>& SrcVertices = SkeletalMesh->GetSkeletalMeshData()->Vertices;
    const int32 NumVertices = SrcVertices.Num();
    SkinnedVertices.SetNum(NumVertices);
@@ -249,13 +362,15 @@ void USkinnedMeshComponent::PerformSkinning()
       DstVert.Tangent = SkinVertexTangent(SrcVert);
       DstVert.tex = SrcVert.UV;
    }
+   TIME_PROFILE_END(CPUSkinning)   
 }
 
 void USkinnedMeshComponent::UpdateSkinningMatrices(const TArray<FMatrix>& InSkinningMatrices, const TArray<FMatrix>& InSkinningNormalMatrices)
 {
    FinalSkinningMatrices = InSkinningMatrices;
    FinalSkinningNormalMatrices = InSkinningNormalMatrices;
-   bSkinningMatricesDirty = true;
+   bSkinningMatricesDirty = true;   
+
 }
 
 FVector USkinnedMeshComponent::SkinVertexPosition(const FSkinnedVertex& InVertex) const

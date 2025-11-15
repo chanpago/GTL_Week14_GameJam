@@ -199,6 +199,8 @@ FShaderVariant* UShader::GetOrCompileShaderVariant(const TArray<FShaderMacro>& I
  */
 bool UShader::CompileVariantInternal(ID3D11Device* InDevice, const FString& InShaderPath, const TArray<FShaderMacro>& InMacros, FShaderVariant& OutVariant)
 {
+	OutVariant.SourceMacros = InMacros;
+	
 	FWideString WFilePath = UTF8ToWide(InShaderPath);
 
 	// --- 1. D3D_SHADER_MACRO* 형태로 변환 ---
@@ -268,7 +270,7 @@ bool UShader::CompileVariantInternal(ID3D11Device* InDevice, const FString& InSh
 	}
 
 	// 4. 핫 리로드용 매크로 저장
-	OutVariant.SourceMacros = InMacros;
+	//OutVariant.SourceMacros = InMacros;
 
 	// 5. 컴파일 성공 여부 반환 (VS 또는 PS 둘 중 하나라도 성공 시)
 	return bVsCompiled || bPsCompiled;
@@ -313,6 +315,13 @@ ID3D11PixelShader* UShader::GetPixelShader(const TArray<FShaderMacro>& InMacros)
 void UShader::CreateInputLayout(ID3D11Device* Device, const FString& InShaderPath, FShaderVariant& InOutVariant)
 {
 	TArray<D3D11_INPUT_ELEMENT_DESC> descArray = UResourceManager::GetInstance().GetProperInputLayout(InShaderPath);
+
+	if (HasMacro(InOutVariant.SourceMacros, "USE_GPU_SKINNING"))
+	{
+		descArray.Add({"BLENDINDICES", 0, DXGI_FORMAT_R32G32B32A32_UINT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0});
+		descArray.Add({"BLENDWEIGHT", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0});
+	}
+	
 	const D3D11_INPUT_ELEMENT_DESC* layout = descArray.data();
 	uint32 layoutCount = static_cast<uint32>(descArray.size());
 
@@ -491,6 +500,20 @@ bool UShader::Reload(ID3D11Device* InDevice)
 
 		return false;
 	}
+}
+
+bool UShader::HasMacro(const TArray<FShaderMacro>& InMacros, const FString& InMacroName)
+{
+	const FName TargetName(InMacroName);
+	for (const FShaderMacro& Macro : InMacros)
+	{
+		if (Macro.Name == TargetName)
+		{
+			return true;
+		}
+	}
+
+	return false;
 }
 
 // Include 파일 파싱 (재귀적으로 처리)

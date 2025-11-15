@@ -88,6 +88,8 @@ struct FSkinnedVertex
 
         return Ar;
     }
+
+    void FillFrom(const FSkinnedVertex& Src);
 };
 
 // 같은 Position인데 Normal이나 UV가 다른 vertex가 존재할 수 있음, 그래서 SkinnedVertex를 키로 구별해야해서 hash함수 정의함

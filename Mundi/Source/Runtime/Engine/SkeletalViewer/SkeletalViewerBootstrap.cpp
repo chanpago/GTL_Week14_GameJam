@@ -44,6 +44,11 @@ ViewerState* SkeletalViewerBootstrap::CreateViewerState(const char* Name, UWorld
         State->PreviewActor = Preview;
     }
 
+    if (InWorld)
+    {
+        State->World->GetRenderSettings().SetShowFlags(InWorld->GetRenderSettings().GetShowFlags());
+    }
+
     return State;
 }
 

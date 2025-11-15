@@ -131,9 +131,18 @@ void ASkeletalMeshActor::RebuildBoneLines(int32 SelectedBoneIndex)
     }
 
     // Update transforms only for the selected bone subtree
-    if (SelectedBoneIndex >= 0 && SelectedBoneIndex < BoneCount)
+    // if (SelectedBoneIndex >= 0 && SelectedBoneIndex < BoneCount)
+    // {
+    //     UpdateBoneSubtreeTransforms(SelectedBoneIndex);
+    // }
+
+    /* @note 애니메이션이 적용되었을 경우 본 전체를 갱신해주어야 함 */
+    for (int32 i = 0; i < BoneCount; ++i)
     {
-        UpdateBoneSubtreeTransforms(SelectedBoneIndex);
+        if (Bones[i].ParentIndex < 0)
+        {
+            UpdateBoneSubtreeTransforms(i);
+        }
     }
 }
 

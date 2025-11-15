@@ -9,6 +9,7 @@
 #include "SelectionManager.h"
 #include "USlateManager.h"
 #include "BoneAnchorComponent.h"
+#include "SkinningStats.h"
 #include "Source/Runtime/Engine/Animation/AnimSequence.h"
 #include "Source/Runtime/Engine/Collision/Picking.h"
 #include "Source/Runtime/Engine/GameFramework/CameraActor.h"
@@ -254,7 +255,7 @@ void SSkeletalMeshViewerWindow::OnRender()
                 }
             }
             ImGui::PopStyleColor(2);
-            ImGui::EndGroup();
+            ImGui::EndGroup();           
 
             ImGui::Spacing();
             ImGui::PushStyleColor(ImGuiCol_Separator, ImVec4(0.35f, 0.45f, 0.60f, 0.7f));
@@ -653,21 +654,29 @@ void SSkeletalMeshViewerWindow::OnUpdate(float DeltaSeconds)
     if (!ActiveState || !ActiveState->Viewport)
         return;
 
-    // Tick the preview world so editor actors (e.g., gizmo) update visibility/state
-    if (ActiveState->World)
-    {
-        ActiveState->World->Tick(DeltaSeconds);
-        if (ActiveState->World->GetGizmoActor())
-            ActiveState->World->GetGizmoActor()->ProcessGizmoModeSwitch();
-    }
-
     if (ActiveState && ActiveState->Client)
     {
         ActiveState->Client->Tick(DeltaSeconds);
     }
 
+    if (ActiveState->bTimeChanged)
+    {
+        ActiveState->bBoneLinesDirty = true;
+    }
+
     if (!ActiveState->CurrentAnimation || !ActiveState->CurrentAnimation->GetDataModel())
     {
+        if (ActiveState->World)
+        {
+            ActiveState->World->Tick(DeltaSeconds);
+            if (ActiveState->World->GetGizmoActor())
+                ActiveState->World->GetGizmoActor()->ProcessGizmoModeSwitch();
+        }
+        
+        if(ActiveState->bTimeChanged)
+        {
+             ActiveState->bTimeChanged = false;
+        }
         return;
     }
 
@@ -677,6 +686,9 @@ void SSkeletalMeshViewerWindow::OnUpdate(float DeltaSeconds)
         DataModel = ActiveState->CurrentAnimation->GetDataModel();
     }
 
+    bool bIsPlaying = ActiveState->bIsPlaying || ActiveState->bIsPlayingReverse;
+    bool bTimeAdvancedThisFrame = false;
+
     if (DataModel && DataModel->GetPlayLength() > 0.0f)
     {
         if (ActiveState->bIsPlaying)
@@ -684,7 +696,7 @@ void SSkeletalMeshViewerWindow::OnUpdate(float DeltaSeconds)
             ActiveState->CurrentAnimTime += DeltaSeconds;
             if (ActiveState->CurrentAnimTime > DataModel->GetPlayLength())
             {
-                if (ActiveState->bAnimLoop)
+                if (ActiveState->bIsLooping)
                 {
                     ActiveState->CurrentAnimTime = std::fmodf(ActiveState->CurrentAnimTime, DataModel->GetPlayLength());
                 }
@@ -694,13 +706,14 @@ void SSkeletalMeshViewerWindow::OnUpdate(float DeltaSeconds)
                     ActiveState->bIsPlaying = false;
                 }
             }
+            bTimeAdvancedThisFrame = true;
         }
         else if (ActiveState->bIsPlayingReverse)
         {
             ActiveState->CurrentAnimTime -= DeltaSeconds;
             if (ActiveState->CurrentAnimTime < 0.0f) 
             {
-                if (ActiveState->bAnimLoop)
+                if (ActiveState->bIsLooping)
                 {
                     ActiveState->CurrentAnimTime += DataModel->GetPlayLength();
                 }
@@ -710,15 +723,44 @@ void SSkeletalMeshViewerWindow::OnUpdate(float DeltaSeconds)
                     ActiveState->bIsPlayingReverse = false;
                 }
             }
+            bTimeAdvancedThisFrame = true;
         }
     }
 
+    bool bUpdateAnimation = bTimeAdvancedThisFrame || ActiveState->bTimeChanged;
+
     if (ActiveState->PreviewActor && ActiveState->PreviewActor->GetSkeletalMeshComponent())
     {
-        if (ActiveState->bRefreshAnimation)
+        auto SkeletalMeshComponent = ActiveState->PreviewActor->GetSkeletalMeshComponent();
+        
+        SkeletalMeshComponent->SetPlaying(bIsPlaying);
+        SkeletalMeshComponent->SetLooping(ActiveState->bIsLooping);
+
+        if (bUpdateAnimation)
         {
+            bool OriginalPlaying = SkeletalMeshComponent->IsPlaying();
+            if (ActiveState->bTimeChanged) 
+            {
+                SkeletalMeshComponent->SetPlaying(true);
+            }
+            
+            SkeletalMeshComponent->SetAnimationTime(ActiveState->CurrentAnimTime);
+
+            if (ActiveState->bTimeChanged) 
+            {
+                SkeletalMeshComponent->SetPlaying(OriginalPlaying);
+                ActiveState->bTimeChanged = false; 
+            }
+
+            ActiveState->bBoneLinesDirty = true;
         }
-        ActiveState->PreviewActor->GetSkeletalMeshComponent()->SetAnimationTime(ActiveState->CurrentAnimTime);
+    }
+
+    if (ActiveState->World)
+    {
+        ActiveState->World->Tick(DeltaSeconds);
+        if (ActiveState->World->GetGizmoActor())
+            ActiveState->World->GetGizmoActor()->ProcessGizmoModeSwitch();
     }
 }
 
@@ -1186,7 +1228,7 @@ void SSkeletalMeshViewerWindow::DrawAnimationPanel(ViewerState* State)
             {
                 State->CurrentAnimTime = ImClamp(FrameAtMouse * FrameDuration, 0.0f, PlayLength);
                 State->bIsPlaying = false;
-                // TODO: 애니메이션 시스템에 시간 업데이트
+                State->bTimeChanged = true;
             }
         }
 
@@ -1222,8 +1264,12 @@ void SSkeletalMeshViewerWindow::DrawAnimationPanel(ViewerState* State)
         if (IconPrevFrame && IconPrevFrame->GetShaderResourceView())
         {
             if (ImGui::ImageButton("##PrevFrameBtn", (void*)IconPrevFrame->GetShaderResourceView(), IconSizeVec))
-            { 
-                State->CurrentAnimTime = ImMax(0.0f, State->CurrentAnimTime - FrameDuration); State->bIsPlaying = false; 
+            {
+                if (bHasAnimation)
+                {
+                    State->CurrentAnimTime = ImMax(0.0f, State->CurrentAnimTime - FrameDuration); State->bIsPlaying = false;
+                    State->bTimeChanged = true;
+                }
             } 
         }
         ImGui::SameLine();
@@ -1244,19 +1290,11 @@ void SSkeletalMeshViewerWindow::DrawAnimationPanel(ViewerState* State)
                 {
                     State->bIsPlaying = false;
                     State->bIsPlayingReverse = false;
-                    if (State->PreviewActor && State->PreviewActor->GetSkeletalMeshComponent())
-                    {
-                        State->PreviewActor->GetSkeletalMeshComponent()->SetPlaying(State->bIsPlayingReverse);
-                    }
                 }
                 else 
                 {
                     State->bIsPlaying = false;
                     State->bIsPlayingReverse = true;
-                    if (State->PreviewActor && State->PreviewActor->GetSkeletalMeshComponent())
-                    {
-                        State->PreviewActor->GetSkeletalMeshComponent()->SetPlaying(State->bIsPlayingReverse);
-                    }
                 }
             }
             if (bIsPlayingReverse)
@@ -1307,19 +1345,11 @@ void SSkeletalMeshViewerWindow::DrawAnimationPanel(ViewerState* State)
                 {
                     State->bIsPlaying = false;
                     State->bIsPlayingReverse = false;
-                    if (State->PreviewActor && State->PreviewActor->GetSkeletalMeshComponent())
-                    {
-                        State->PreviewActor->GetSkeletalMeshComponent()->SetPlaying(State->bIsPlaying);
-                    }
                 }
                 else
                 {
                     State->bIsPlaying = true;
                     State->bIsPlayingReverse = false;
-                    if (State->PreviewActor && State->PreviewActor->GetSkeletalMeshComponent())
-                    {
-                        State->PreviewActor->GetSkeletalMeshComponent()->SetPlaying(State->bIsPlaying);
-                    }
                 }
             }
 
@@ -1334,8 +1364,12 @@ void SSkeletalMeshViewerWindow::DrawAnimationPanel(ViewerState* State)
         if (IconNextFrame && IconNextFrame->GetShaderResourceView())
         {
             if (ImGui::ImageButton("##NextFrameBtn", (void*)IconNextFrame->GetShaderResourceView(), IconSizeVec)) 
-            { 
-                State->CurrentAnimTime = ImMin(PlayLength, State->CurrentAnimTime + FrameDuration); State->bIsPlaying = false; 
+            {
+                if (bHasAnimation)
+                {
+                    State->CurrentAnimTime = ImMin(PlayLength, State->CurrentAnimTime + FrameDuration); State->bIsPlaying = false;
+                    State->bTimeChanged = true;
+                }
             } 
         }
         ImGui::SameLine();
@@ -1349,16 +1383,17 @@ void SSkeletalMeshViewerWindow::DrawAnimationPanel(ViewerState* State)
                 {
                     State->CurrentAnimTime = PlayLength;
                     State->bIsPlaying = false;
+                    State->bTimeChanged = true;
                 }
             } 
         }
         ImGui::SameLine();
 
         // 8. [루프] 버튼
-        UTexture* CurrentLoopIcon = State->bAnimLoop ? IconLoop : IconNoLoop;
+        UTexture* CurrentLoopIcon = State->bIsLooping ? IconLoop : IconNoLoop;
         if (CurrentLoopIcon && CurrentLoopIcon->GetShaderResourceView())
         {
-            bool bIsLooping = State->bAnimLoop; 
+            bool bIsLooping = State->bIsLooping; 
 
             if (bIsLooping) 
             {
@@ -1367,11 +1402,7 @@ void SSkeletalMeshViewerWindow::DrawAnimationPanel(ViewerState* State)
 
             if (ImGui::ImageButton("##LoopBtn", (void*)CurrentLoopIcon->GetShaderResourceView(), IconSizeVec)) 
             { 
-                State->bAnimLoop = !State->bAnimLoop;
-                if (State->PreviewActor && State->PreviewActor->GetSkeletalMeshComponent())
-                {
-                    State->PreviewActor->GetSkeletalMeshComponent()->SetLooping(State->bAnimLoop);
-                }
+                State->bIsLooping = !State->bIsLooping;
             }
 
             if (bIsLooping) 

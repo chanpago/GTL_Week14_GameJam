@@ -5,6 +5,7 @@
 #include "FAudioDevice.h"
 #include "FbxLoader.h"
 #include <ObjManager.h>
+#include <roapi.h>
 
 
 float UEditorEngine::ClientWidth = 1024.0f;
@@ -210,6 +211,8 @@ bool UEditorEngine::Startup(HINSTANCE hInstance)
     // 최근에 사용한 레벨 불러오기를 시도합니다.
     GWorld->TryLoadLastUsedLevel();
 
+    GPU_PROFILER.Initialize(&RHIDevice);
+
     bRunning = true;
     return true;
 }
@@ -361,6 +364,8 @@ void UEditorEngine::Shutdown()
 
     // Explicitly release D3D11RHI resources before global destruction
     RHIDevice.Release();
+
+    GPU_PROFILER.Shutdown();
 
     SaveIniFile();
 }

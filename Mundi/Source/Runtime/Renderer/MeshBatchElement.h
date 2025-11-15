@@ -62,6 +62,10 @@ struct FMeshBatchElement
 	// (기본값으로 흰색(1,1,1,1)을 설정하는 것이 일반적입니다.)
 	FLinearColor InstanceColor = FLinearColor(1.0f, 1.0f, 1.0f, 1.0f);
 
+	// GPUSkinning용 Structured Buffer
+	ID3D11ShaderResourceView* GPUSkinMatrixSRV = nullptr;
+	ID3D11ShaderResourceView* GPUSkinNormalMatrixSRV = nullptr;
+
 	// --- 기본 생성자 ---
 	FMeshBatchElement() = default;
 

@@ -35,6 +35,7 @@ private:
     void RenderViewModeDropdownMenu();
     void RenderShowFlagDropdownMenu();
     void RenderViewportLayoutSwitchButton();
+    void RenderGPUSkinningButton();
     void LoadToolbarIcons(ID3D11Device* Device);
 
     // 드래그 앤 드롭 처리

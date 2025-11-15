@@ -82,6 +82,8 @@
 
 #include "JsonSerializer.h"
 
+#include "GPUProfile.h"
+
 #define RESOURCE UResourceManager::GetInstance()
 #define UI UUIManager::GetInstance()
 #define INPUT UInputManager::GetInstance()

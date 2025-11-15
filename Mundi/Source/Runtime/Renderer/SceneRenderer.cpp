@@ -48,6 +48,8 @@
 #include "PostProcessing/VignettePass.h"
 #include "FbxLoader.h"
 #include "SkinnedMeshComponent.h"
+#include "SkinningStats.h"
+#include "StatsOverlayD2D.h"
 
 FSceneRenderer::FSceneRenderer(UWorld* InWorld, FSceneView* InView, URenderer* InOwnerRenderer)
 	: World(InWorld)
@@ -163,9 +165,8 @@ void FSceneRenderer::RenderLitPath()
         RHIDevice->GetDeviceContext()->ClearRenderTargetView(RHIDevice->GetCurrentTargetRTV(), bg);
         RHIDevice->ClearDepthBuffer(1.0f, 0);
     }
-
-	// Base Pass
-	RenderOpaquePass(View->RenderSettings->GetViewMode());
+    // Base Pass
+    RenderOpaquePass(View->RenderSettings->GetViewMode());
 	RenderDecalPass();
 }
 
@@ -494,6 +495,10 @@ void FSceneRenderer::RenderShadowDepthPass(FShadowRenderRequest& ShadowRequest, 
 	UINT CurrentVertexStride = 0;
 	D3D11_PRIMITIVE_TOPOLOGY CurrentTopology = D3D11_PRIMITIVE_TOPOLOGY_UNDEFINED;
 
+	// GPU 스키닝
+	ID3D11ShaderResourceView* CurrentSkinMatrixSRV = nullptr;
+	ID3D11ShaderResourceView* CurrentSkinNormalMatrixSRV = nullptr;
+
 	for (const FMeshBatchElement& Batch : InShadowBatches)
 	{
 		// 셰이더/픽셀 상태 변경 불필요
@@ -516,11 +521,26 @@ void FSceneRenderer::RenderShadowDepthPass(FShadowRenderRequest& ShadowRequest, 
 			CurrentTopology = Batch.PrimitiveTopology;
 		}
 
+		if (Batch.GPUSkinMatrixSRV != CurrentSkinMatrixSRV || Batch.GPUSkinNormalMatrixSRV != CurrentSkinNormalMatrixSRV)
+		{
+			ID3D11ShaderResourceView* SkinSRVs[2] = { Batch.GPUSkinMatrixSRV, Batch.GPUSkinNormalMatrixSRV};
+			RHIDevice->GetDeviceContext()->VSSetShaderResources(12, 2, SkinSRVs);
+
+			CurrentSkinMatrixSRV = Batch.GPUSkinMatrixSRV;
+			CurrentSkinNormalMatrixSRV = Batch.GPUSkinNormalMatrixSRV;
+		}
+
 		// 오브젝트별 World 행렬 설정 (VS에서 필요)
 		RHIDevice->SetAndUpdateConstantBuffer(ModelBufferType(Batch.WorldMatrix, Batch.WorldMatrix.InverseAffine().Transpose()));
 
 		// 드로우 콜
 		RHIDevice->GetDeviceContext()->DrawIndexed(Batch.IndexCount, Batch.StartIndex, Batch.BaseVertexIndex);
+	}
+
+	if (CurrentSkinMatrixSRV || CurrentSkinNormalMatrixSRV)
+	{
+		ID3D11ShaderResourceView* NullSRVs[2] = { nullptr, nullptr };
+		RHIDevice->GetDeviceContext()->VSSetShaderResources(12, 2, NullSRVs);
 	}
 }
 
@@ -610,6 +630,7 @@ void FSceneRenderer::GatherVisibleProxies()
 	// NOTE: 일단 컴포넌트 단위와 데칼 관련 이슈 해결까지 컬링 무시
 	//// 절두체 컬링 수행 -> 결과가 멤버 변수 PotentiallyVisibleActors에 저장됨
 	//PerformFrustumCulling();
+	FSkinningStatManager::GetInstance().ResetStats();
 
 	const bool bDrawStaticMeshes = World->GetRenderSettings().IsShowFlagEnabled(EEngineShowFlags::SF_StaticMeshes);
 	const bool bDrawSkeletalMeshes = World->GetRenderSettings().IsShowFlagEnabled(EEngineShowFlags::SF_SkeletalMeshes);
@@ -618,7 +639,7 @@ void FSceneRenderer::GatherVisibleProxies()
 	const bool bDrawLight = World->GetRenderSettings().IsShowFlagEnabled(EEngineShowFlags::SF_Lighting);
 	const bool bUseAntiAliasing = World->GetRenderSettings().IsShowFlagEnabled(EEngineShowFlags::SF_FXAA);
 	const bool bUseBillboard = World->GetRenderSettings().IsShowFlagEnabled(EEngineShowFlags::SF_Billboard);
-	const bool bUseIcon = World->GetRenderSettings().IsShowFlagEnabled(EEngineShowFlags::SF_EditorIcon);
+	const bool bUseIcon = World->GetRenderSettings().IsShowFlagEnabled(EEngineShowFlags::SF_EditorIcon);	
 
 	// Helper lambda to collect components from an actor
 	auto CollectComponentsFromActor = [&](AActor* Actor, bool bIsEditorActor)
@@ -674,7 +695,7 @@ void FSceneRenderer::GatherVisibleProxies()
 						}
 						else if (MeshComponent->IsA(USkinnedMeshComponent::StaticClass()))
 						{
-						    bShouldAdd = bDrawSkeletalMeshes;
+						    bShouldAdd = bDrawSkeletalMeshes;							
 						}
 
 						if (bShouldAdd)
@@ -733,6 +754,7 @@ void FSceneRenderer::GatherVisibleProxies()
 		CollectComponentsFromActor(EditorActor, true);
 	}
 
+	
 	// Collect from Level Actors (including their Gizmo components)
 	for (AActor* Actor : World->GetActors())
 	{
@@ -782,6 +804,11 @@ void FSceneRenderer::GatherVisibleProxies()
 		ShadowStats.Calculate2DAtlasMemory();
 		ShadowStats.CalculateCubeAtlasMemory();
 	}
+
+	UPDATE_SKINNING_STATS(Proxies.Meshes)
+	UPDATE_SKINNING_TYPE(World->GetRenderSettings().IsShowFlagEnabled(EEngineShowFlags::SF_GPUSkinning))
+	//FSkinningStatManager::GetInstance().GatherSkinnningStats(Proxies.Meshes);
+	//FSkinningStatManager::GetInstance().UpdateSkinningType(World->GetRenderSettings().IsShowFlagEnabled(EEngineShowFlags::SF_GPUSkinning));
 
 	ShadowStats.CalculateTotal();
 	FShadowStatManager::GetInstance().UpdateStats(ShadowStats);
@@ -890,7 +917,10 @@ void FSceneRenderer::RenderOpaquePass(EViewMode InRenderViewMode)
 	MeshBatchElements.Sort();
 
 	// --- 3. 그리기 (Draw) ---
-	DrawMeshBatches(MeshBatchElements, true);
+	{
+		GPU_TIME_PROFILE("GPUSkinning")
+		DrawMeshBatches(MeshBatchElements, true);
+	}
 }
 
 void FSceneRenderer::RenderDecalPass()
@@ -1290,6 +1320,10 @@ void FSceneRenderer::DrawMeshBatches(TArray<FMeshBatchElement>& InMeshBatches, b
 	ID3D11Buffer* CurrentIndexBuffer = nullptr;
 	UINT CurrentVertexStride = 0;
 	D3D11_PRIMITIVE_TOPOLOGY CurrentTopology = D3D11_PRIMITIVE_TOPOLOGY_UNDEFINED;
+	// GPU 스키닝
+	ID3D11ShaderResourceView* CurrentSkinMatrixSRV = nullptr;
+	ID3D11ShaderResourceView* CurrentSkinNormalMatrixSRV = nullptr;
+	RHIDevice->GetDeviceContext()->VSSetShaderResources(12, 2, nullSRVs);
 
 	// 기본 샘플러 미리 가져오기 (루프 내 반복 호출 방지)
 	ID3D11SamplerState* DefaultSampler = RHIDevice->GetSamplerState(RHI_Sampler_Index::Default);
@@ -1388,6 +1422,17 @@ void FSceneRenderer::DrawMeshBatches(TArray<FMeshBatchElement>& InMeshBatches, b
 			// --- 캐시 업데이트 ---
 			CurrentMaterial = Batch.Material;
 			CurrentInstanceSRV = Batch.InstanceShaderResourceView;
+		}
+
+		if (Batch.GPUSkinMatrixSRV != CurrentSkinMatrixSRV || Batch.GPUSkinNormalMatrixSRV != CurrentSkinNormalMatrixSRV)
+		{
+			// t12, t13
+			ID3D11ShaderResourceView* SkinSRVs[2] = {Batch.GPUSkinMatrixSRV, Batch.GPUSkinNormalMatrixSRV};
+
+			RHIDevice->GetDeviceContext()->VSSetShaderResources(12, 2, SkinSRVs);
+
+			CurrentSkinMatrixSRV = Batch.GPUSkinMatrixSRV;
+			CurrentSkinNormalMatrixSRV = Batch.GPUSkinNormalMatrixSRV;
 		}
 
 		// 3. IA (Input Assembler) 상태 변경
