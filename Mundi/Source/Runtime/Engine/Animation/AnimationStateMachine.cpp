@@ -3,6 +3,8 @@
 #include "AnimInstance.h"
 #include "AnimSequence.h"
 
+IMPLEMENT_CLASS(UAnimationStateMachine)
+
 void UAnimationStateMachine::Initialize(UAnimInstance* InOwner)
 {
     Owner = InOwner;

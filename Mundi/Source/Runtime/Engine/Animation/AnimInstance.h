@@ -107,7 +107,7 @@ public:
      * @brief AnimInstance 초기화
      * @param InComponent 소유 컴포넌트
      */
-    void Initialize(USkeletalMeshComponent* InComponent);
+    virtual void Initialize(USkeletalMeshComponent* InComponent);
 
     // ============================================================
     // Update & Pose Evaluation
