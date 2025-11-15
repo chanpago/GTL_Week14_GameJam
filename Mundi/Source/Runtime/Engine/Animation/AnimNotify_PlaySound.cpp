@@ -6,7 +6,11 @@
 
 void UAnimNotify_PlaySound::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
 {
+	// Sound 할당하는 임시 코드
+	Sound = UResourceManager::GetInstance().Load<USound>("Data/Audio/CGC1.wav");
+
 	UE_LOG("PlaySound_Notify");
+
 	if (Sound && MeshComp)
 	{
 		// Sound 재생 
@@ -16,4 +20,5 @@ void UAnimNotify_PlaySound::Notify(USkeletalMeshComponent* MeshComp, UAnimSequen
 
 		FAudioDevice::PlaySoundAtLocationOneShot(Sound, SoundPos);
 	}
+
 }
