@@ -10,12 +10,25 @@
 #include "USlateManager.h"
 #include "BoneAnchorComponent.h"
 #include "SkinningStats.h"
+#include "Source/Runtime/Engine/Animation/AnimSequence.h"
 #include "Source/Runtime/Engine/Collision/Picking.h"
 #include "Source/Runtime/Engine/GameFramework/CameraActor.h"
 
 SSkeletalMeshViewerWindow::SSkeletalMeshViewerWindow()
 {
     CenterRect = FRect(0, 0, 0, 0);
+    
+    IconFirstFrame = UResourceManager::GetInstance().Load<UTexture>("Data/Icon/PlayControlsToFront.png");
+    IconLastFrame = UResourceManager::GetInstance().Load<UTexture>("Data/Icon/PlayControlsToEnd.png");
+    IconPrevFrame = UResourceManager::GetInstance().Load<UTexture>("Data/Icon/PlayControlsToPrevious.png");
+    IconNextFrame = UResourceManager::GetInstance().Load<UTexture>("Data/Icon/PlayControlsToNext.png");
+    IconPlay = UResourceManager::GetInstance().Load<UTexture>("Data/Icon/PlayControlsPlayForward.png");
+    IconReversePlay = UResourceManager::GetInstance().Load<UTexture>("Data/Icon/PlayControlsPlayReverse.png");
+    IconPause = UResourceManager::GetInstance().Load<UTexture>("Data/Icon/PlayControlsPause.png");
+    IconRecord = UResourceManager::GetInstance().Load<UTexture>("Data/Icon/PlayControlsRecord.png");
+    IconRecordActive = UResourceManager::GetInstance().Load<UTexture>("Data/Icon/PlayControlsRecord.png");
+    IconLoop = UResourceManager::GetInstance().Load<UTexture>("Data/Icon/PlayControlsLooping.png");
+    IconNoLoop = UResourceManager::GetInstance().Load<UTexture>("Data/Icon/PlayControlsNoLooping.png");
 }
 
 SSkeletalMeshViewerWindow::~SSkeletalMeshViewerWindow()
@@ -111,6 +124,18 @@ void SSkeletalMeshViewerWindow::OnRender()
         float leftWidth = totalWidth * LeftPanelRatio;
         float rightWidth = totalWidth * RightPanelRatio;
         float centerWidth = totalWidth - leftWidth - rightWidth;
+
+        // 상단 패널(뷰포트, 속성)과 하단 패널(타임라인, 브라우저)의 높이를 미리 계산합니다.
+        const float BottomPanelHeight = totalHeight * BottomPanelRatio;
+        float TopPanelHeight = totalHeight - BottomPanelHeight;
+
+        // 패널 사이의 간격 조정
+        if (ImGui::GetStyle().ItemSpacing.y > 0)
+        {
+            TopPanelHeight -= ImGui::GetStyle().ItemSpacing.y;
+        }
+        // 최소 높이 보장
+        TopPanelHeight = std::max(TopPanelHeight, 50.0f);
 
         // Remove spacing between panels
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
@@ -293,7 +318,6 @@ void SSkeletalMeshViewerWindow::OnRender()
                             flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
                         }
                         
-                        // 펼쳐진 노드는 명시적으로 열린 상태로 설정
                         if (ActiveState->ExpandedBoneIndices.count(Index) > 0)
                         {
                             ImGui::SetNextItemOpen(true);
@@ -319,12 +343,9 @@ void SSkeletalMeshViewerWindow::OnRender()
                         if (ActiveState->SelectedBoneIndex == Index)
                         {
                             ImGui::PopStyleColor(3);
-                            
-                            // 선택된 본까지 스크롤
                             ImGui::SetScrollHereY(0.5f);
                         }
 
-                        // 사용자가 수동으로 노드를 접거나 펼쳤을 때 상태 업데이트
                         if (ImGui::IsItemToggledOpen())
                         {
                             if (open)
@@ -387,151 +408,235 @@ void SSkeletalMeshViewerWindow::OnRender()
 
         ImGui::SameLine(0, 0); // No spacing between panels
 
-        // Center panel (viewport area) — draw with border to see the viewport area
-        ImGui::BeginChild("SkeletalMeshViewport", ImVec2(centerWidth, totalHeight), true, ImGuiWindowFlags_NoScrollbar);
-        ImVec2 childPos = ImGui::GetWindowPos();
-        ImVec2 childSize = ImGui::GetWindowSize();
-        ImVec2 rectMin = childPos;
-        ImVec2 rectMax(childPos.x + childSize.x, childPos.y + childSize.y);
-        CenterRect.Left = rectMin.x; CenterRect.Top = rectMin.y; CenterRect.Right = rectMax.x; CenterRect.Bottom = rectMax.y; CenterRect.UpdateMinMax();
+        // Center panel (viewport area)
+        ImGui::BeginChild("CenterColumn", ImVec2(centerWidth, totalHeight), false, ImGuiWindowFlags_NoScrollbar);
+        {
+            // 상단: 뷰포트 자식 창: 계산된 TopPanelHeight 사용
+            ImGui::BeginChild("SkeletalMeshViewport", ImVec2(0, TopPanelHeight), true, ImGuiWindowFlags_NoScrollbar);
+            {
+                ImVec2 childPos = ImGui::GetWindowPos();
+                ImVec2 childSize = ImGui::GetWindowSize();
+                ImVec2 rectMin = childPos;
+                ImVec2 rectMax(childPos.x + childSize.x, childPos.y + childSize.y);
+                CenterRect.Left = rectMin.x; CenterRect.Top = rectMin.y; CenterRect.Right = rectMax.x; CenterRect.Bottom = rectMax.y; CenterRect.UpdateMinMax();
+            }
+            ImGui::EndChild();
+
+            ImGui::Separator();
+
+            // 하단: 애니메이션 패널: 남은 공간(BottomPanelHeight)을 채움
+            ImGui::BeginChild("AnimationPanel", ImVec2(0, 0), true);
+            {
+                if (ActiveState)
+                {
+                    DrawAnimationPanel(ActiveState);
+                }
+            }
+            ImGui::EndChild();
+        }
         ImGui::EndChild();
 
         ImGui::SameLine(0, 0); // No spacing between panels
 
-        // Right panel - Bone Properties
+        // Right panel - Bone Properties & Anim Browser
         ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 8.0f);
+        // 1. RightPanel '컨테이너' 자식 창
         ImGui::BeginChild("RightPanel", ImVec2(rightWidth, totalHeight), true);
         ImGui::PopStyleVar();
-
-        // Panel header
-        ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.25f, 0.35f, 0.50f, 0.8f));
-        ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 4);
-        ImGui::Indent(8.0f);
-        ImGui::Text("Bone Properties");
-        ImGui::Unindent(8.0f);
-        ImGui::PopStyleColor();
-
-        ImGui::Spacing();
-        ImGui::PushStyleColor(ImGuiCol_Separator, ImVec4(0.35f, 0.45f, 0.60f, 0.7f));
-        ImGui::Separator();
-        ImGui::PopStyleColor();
-        ImGui::Spacing();
-
-        // === 선택된 본의 트랜스폼 편집 UI ===
-        if (ActiveState->SelectedBoneIndex >= 0 && ActiveState->CurrentMesh)
         {
-            const FSkeleton* Skeleton = ActiveState->CurrentMesh->GetSkeleton();
-            if (Skeleton && ActiveState->SelectedBoneIndex < Skeleton->Bones.size())
+            // 2. 상단: "Bone Properties"를 위한 자식 창 (TopPanelHeight 사용)
+            ImGui::BeginChild("BonePropertiesChild", ImVec2(0, TopPanelHeight), false); 
             {
-                const FBone& SelectedBone = Skeleton->Bones[ActiveState->SelectedBoneIndex];
-
-                // Selected bone header with icon-like prefix
-                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.90f, 0.40f, 1.0f));
-                ImGui::Text("> Selected Bone");
+                // Panel header
+                ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.25f, 0.35f, 0.50f, 0.8f));
+                ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 4);
+                ImGui::Indent(8.0f);
+                ImGui::Text("Bone Properties");
+                ImGui::Unindent(8.0f);
                 ImGui::PopStyleColor();
 
                 ImGui::Spacing();
-                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.90f, 0.95f, 1.00f, 1.0f));
-                ImGui::TextWrapped("%s", SelectedBone.Name.c_str());
-                ImGui::PopStyleColor();
-
-                ImGui::Spacing();
-                ImGui::PushStyleColor(ImGuiCol_Separator, ImVec4(0.45f, 0.55f, 0.70f, 0.8f));
+                ImGui::PushStyleColor(ImGuiCol_Separator, ImVec4(0.35f, 0.45f, 0.60f, 0.7f));
                 ImGui::Separator();
                 ImGui::PopStyleColor();
-
-                // 본의 현재 트랜스폼 가져오기 (편집 중이 아닐 때만)
-                if (!ActiveState->bBoneRotationEditing)
-                {
-                    UpdateBoneTransformFromSkeleton(ActiveState);
-                }
-
                 ImGui::Spacing();
 
-                // Location 편집
-                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.5f, 0.5f, 1.0f));
-                ImGui::Text("Location");
-                ImGui::PopStyleColor();
-
-                ImGui::PushItemWidth(-1);
-                ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.28f, 0.20f, 0.20f, 0.6f));
-                bool bLocationChanged = false;
-                bLocationChanged |= ImGui::DragFloat("##BoneLocX", &ActiveState->EditBoneLocation.X, 0.1f, 0.0f, 0.0f, "X: %.3f");
-                bLocationChanged |= ImGui::DragFloat("##BoneLocY", &ActiveState->EditBoneLocation.Y, 0.1f, 0.0f, 0.0f, "Y: %.3f");
-                bLocationChanged |= ImGui::DragFloat("##BoneLocZ", &ActiveState->EditBoneLocation.Z, 0.1f, 0.0f, 0.0f, "Z: %.3f");
-                ImGui::PopStyleColor();
-                ImGui::PopItemWidth();
-
-                if (bLocationChanged)
+                // === 선택된 본의 트랜스폼 편집 UI ===
+                if (ActiveState->SelectedBoneIndex >= 0 && ActiveState->CurrentMesh)
                 {
-                    ApplyBoneTransform(ActiveState);
-                    ActiveState->bBoneLinesDirty = true;
+                    const FSkeleton* Skeleton = ActiveState->CurrentMesh->GetSkeleton();
+                    if (Skeleton && ActiveState->SelectedBoneIndex < Skeleton->Bones.size())
+                    {
+                        const FBone& SelectedBone = Skeleton->Bones[ActiveState->SelectedBoneIndex];
+
+                        // Selected bone header with icon-like prefix
+                        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.90f, 0.40f, 1.0f));
+                        ImGui::Text("> Selected Bone");
+                        ImGui::PopStyleColor();
+
+                        ImGui::Spacing();
+                        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.90f, 0.95f, 1.00f, 1.0f));
+                        ImGui::TextWrapped("%s", SelectedBone.Name.c_str());
+                        ImGui::PopStyleColor();
+
+                        ImGui::Spacing();
+                        ImGui::PushStyleColor(ImGuiCol_Separator, ImVec4(0.45f, 0.55f, 0.70f, 0.8f));
+                        ImGui::Separator();
+                        ImGui::PopStyleColor();
+
+                        // 본의 현재 트랜스폼 가져오기 (편집 중이 아닐 때만)
+                        if (!ActiveState->bBoneRotationEditing)
+                        {
+                            UpdateBoneTransformFromSkeleton(ActiveState);
+                        }
+
+                        ImGui::Spacing();
+
+                        // Location 편집
+                        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.5f, 0.5f, 1.0f));
+                        ImGui::Text("Location");
+                        ImGui::PopStyleColor();
+
+                        ImGui::PushItemWidth(-1);
+                        ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.28f, 0.20f, 0.20f, 0.6f));
+                        bool bLocationChanged = false;
+                        bLocationChanged |= ImGui::DragFloat("##BoneLocX", &ActiveState->EditBoneLocation.X, 0.1f, 0.0f, 0.0f, "X: %.3f");
+                        bLocationChanged |= ImGui::DragFloat("##BoneLocY", &ActiveState->EditBoneLocation.Y, 0.1f, 0.0f, 0.0f, "Y: %.3f");
+                        bLocationChanged |= ImGui::DragFloat("##BoneLocZ", &ActiveState->EditBoneLocation.Z, 0.1f, 0.0f, 0.0f, "Z: %.3f");
+                        ImGui::PopStyleColor();
+                        ImGui::PopItemWidth();
+
+                        if (bLocationChanged)
+                        {
+                            ApplyBoneTransform(ActiveState);
+                            ActiveState->bBoneLinesDirty = true;
+                        }
+
+                        ImGui::Spacing();
+
+                        // Rotation 편집
+                        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.5f, 1.0f, 0.5f, 1.0f));
+                        ImGui::Text("Rotation");
+                        ImGui::PopStyleColor();
+
+                        ImGui::PushItemWidth(-1);
+                        ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.20f, 0.28f, 0.20f, 0.6f));
+                        bool bRotationChanged = false;
+
+                        if (ImGui::IsAnyItemActive())
+                        {
+                            ActiveState->bBoneRotationEditing = true;
+                        }
+
+                        bRotationChanged |= ImGui::DragFloat("##BoneRotX", &ActiveState->EditBoneRotation.X, 0.5f, -180.0f, 180.0f, "X: %.2f°");
+                        bRotationChanged |= ImGui::DragFloat("##BoneRotY", &ActiveState->EditBoneRotation.Y, 0.5f, -180.0f, 180.0f, "Y: %.2f°");
+                        bRotationChanged |= ImGui::DragFloat("##BoneRotZ", &ActiveState->EditBoneRotation.Z, 0.5f, -180.0f, 180.0f, "Z: %.2f°");
+                        ImGui::PopStyleColor();
+                        ImGui::PopItemWidth();
+
+                        if (!ImGui::IsAnyItemActive())
+                        {
+                            ActiveState->bBoneRotationEditing = false;
+                        }
+
+                        if (bRotationChanged)
+                        {
+                            ApplyBoneTransform(ActiveState);
+                            ActiveState->bBoneLinesDirty = true;
+                        }
+
+                        ImGui::Spacing();
+
+                        // Scale 편집
+                        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.5f, 0.5f, 1.0f, 1.0f));
+                        ImGui::Text("Scale");
+                        ImGui::PopStyleColor();
+
+                        ImGui::PushItemWidth(-1);
+                        ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.20f, 0.20f, 0.28f, 0.6f));
+                        bool bScaleChanged = false;
+                        bScaleChanged |= ImGui::DragFloat("##BoneScaleX", &ActiveState->EditBoneScale.X, 0.01f, 0.001f, 100.0f, "X: %.3f");
+                        bScaleChanged |= ImGui::DragFloat("##BoneScaleY", &ActiveState->EditBoneScale.Y, 0.01f, 0.001f, 100.0f, "Y: %.3f");
+                        bScaleChanged |= ImGui::DragFloat("##BoneScaleZ", &ActiveState->EditBoneScale.Z, 0.01f, 0.001f, 100.0f, "Z: %.3f");
+                        ImGui::PopStyleColor();
+                        ImGui::PopItemWidth();
+
+                        if (bScaleChanged)
+                        {
+                            ApplyBoneTransform(ActiveState);
+                            ActiveState->bBoneLinesDirty = true;
+                        }
+                    }
                 }
-
-                ImGui::Spacing();
-
-                // Rotation 편집
-                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.5f, 1.0f, 0.5f, 1.0f));
-                ImGui::Text("Rotation");
-                ImGui::PopStyleColor();
-
-                ImGui::PushItemWidth(-1);
-                ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.20f, 0.28f, 0.20f, 0.6f));
-                bool bRotationChanged = false;
-
-                if (ImGui::IsAnyItemActive())
+                else
                 {
-                    ActiveState->bBoneRotationEditing = true;
-                }
-
-                bRotationChanged |= ImGui::DragFloat("##BoneRotX", &ActiveState->EditBoneRotation.X, 0.5f, -180.0f, 180.0f, "X: %.2f°");
-                bRotationChanged |= ImGui::DragFloat("##BoneRotY", &ActiveState->EditBoneRotation.Y, 0.5f, -180.0f, 180.0f, "Y: %.2f°");
-                bRotationChanged |= ImGui::DragFloat("##BoneRotZ", &ActiveState->EditBoneRotation.Z, 0.5f, -180.0f, 180.0f, "Z: %.2f°");
-                ImGui::PopStyleColor();
-                ImGui::PopItemWidth();
-
-                if (!ImGui::IsAnyItemActive())
-                {
-                    ActiveState->bBoneRotationEditing = false;
-                }
-
-                if (bRotationChanged)
-                {
-                    ApplyBoneTransform(ActiveState);
-                    ActiveState->bBoneLinesDirty = true;
-                }
-
-                ImGui::Spacing();
-
-                // Scale 편집
-                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.5f, 0.5f, 1.0f, 1.0f));
-                ImGui::Text("Scale");
-                ImGui::PopStyleColor();
-
-                ImGui::PushItemWidth(-1);
-                ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.20f, 0.20f, 0.28f, 0.6f));
-                bool bScaleChanged = false;
-                bScaleChanged |= ImGui::DragFloat("##BoneScaleX", &ActiveState->EditBoneScale.X, 0.01f, 0.001f, 100.0f, "X: %.3f");
-                bScaleChanged |= ImGui::DragFloat("##BoneScaleY", &ActiveState->EditBoneScale.Y, 0.01f, 0.001f, 100.0f, "Y: %.3f");
-                bScaleChanged |= ImGui::DragFloat("##BoneScaleZ", &ActiveState->EditBoneScale.Z, 0.01f, 0.001f, 100.0f, "Z: %.3f");
-                ImGui::PopStyleColor();
-                ImGui::PopItemWidth();
-
-                if (bScaleChanged)
-                {
-                    ApplyBoneTransform(ActiveState);
-                    ActiveState->bBoneLinesDirty = true;
+                    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.6f, 0.6f, 0.6f, 1.0f));
+                    ImGui::TextWrapped("Select a bone from the hierarchy to edit its transform properties.");
+                    ImGui::PopStyleColor();
                 }
             }
-        }
-        else
-        {
-            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.6f, 0.6f, 0.6f, 1.0f));
-            ImGui::TextWrapped("Select a bone from the hierarchy to edit its transform properties.");
-            ImGui::PopStyleColor();
-        }
+            ImGui::EndChild(); // "BonePropertiesChild"
 
-        ImGui::EndChild(); // RightPanel
+            ImGui::Separator();
+
+            // 3. 하단: "Animation Browser"를 위한 자식 창 (남은 공간 모두 사용)
+            ImGui::BeginChild("AnimBrowserChild", ImVec2(0, 0), true);
+            {
+                // --- Animation Browser 헤더 ---
+                ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.25f, 0.50f, 0.35f, 0.8f));
+                ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 4);
+                ImGui::Indent(8.0f);
+                ImGui::Text("Animation Browser");
+                ImGui::Unindent(8.0f);
+                ImGui::PopStyleColor();
+
+                ImGui::Spacing();
+                ImGui::PushStyleColor(ImGuiCol_Separator, ImVec4(0.35f, 0.60f, 0.45f, 0.7f));
+                ImGui::Separator();
+                ImGui::PopStyleColor();
+                ImGui::Spacing();
+
+                // --- 에셋 리스트 (스크롤 가능) ---
+                TArray<UAnimSequence*> AnimSequences = UResourceManager::GetInstance().GetAll<UAnimSequence>();
+
+                if (AnimSequences.IsEmpty())
+                {
+                    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.6f, 0.6f, 0.6f, 1.0f));
+                    ImGui::TextWrapped("No animation sequences found.");
+                    ImGui::PopStyleColor();
+                }
+                else
+                {
+                    for (UAnimSequence* Anim : AnimSequences)
+                    {
+                        if (!Anim) continue;
+
+                        FString AssetName = Anim->GetFilePath();
+                        size_t lastSlash = AssetName.find_last_of("/\\");
+                        if (lastSlash != FString::npos)
+                        {
+                            AssetName = AssetName.substr(lastSlash + 1);
+                        }
+
+                        bool bIsSelected = (ActiveState->CurrentAnimation == Anim);
+
+                        if (ImGui::Selectable(AssetName.c_str(), bIsSelected))
+                        {
+                            if (ActiveState->PreviewActor && ActiveState->PreviewActor->GetSkeletalMeshComponent())
+                            {
+                                ActiveState->PreviewActor->GetSkeletalMeshComponent()->SetAnimation(Anim);
+                            }
+                            ActiveState->CurrentAnimation = Anim;
+                            ActiveState->CurrentAnimTime = 0.0f;
+                            ActiveState->bIsPlaying = false;
+                            ActiveState->bIsPlayingReverse = false;
+                        }
+                    }
+                }
+            }
+            ImGui::EndChild(); // "AnimBrowserChild"
+        }
+        ImGui::EndChild(); // "RightPanel"
 
         // Pop the ItemSpacing style
         ImGui::PopStyleVar();
@@ -570,6 +675,61 @@ void SSkeletalMeshViewerWindow::OnUpdate(float DeltaSeconds)
     if (ActiveState && ActiveState->Client)
     {
         ActiveState->Client->Tick(DeltaSeconds);
+    }
+
+    if (!ActiveState->CurrentAnimation || !ActiveState->CurrentAnimation->GetDataModel())
+    {
+        return;
+    }
+
+    UAnimDataModel* DataModel = nullptr;
+    if (ActiveState->CurrentAnimation)
+    {
+        DataModel = ActiveState->CurrentAnimation->GetDataModel();
+    }
+
+    if (DataModel && DataModel->GetPlayLength() > 0.0f)
+    {
+        if (ActiveState->bIsPlaying)
+        {
+            ActiveState->CurrentAnimTime += DeltaSeconds;
+            if (ActiveState->CurrentAnimTime > DataModel->GetPlayLength())
+            {
+                if (ActiveState->bAnimLoop)
+                {
+                    ActiveState->CurrentAnimTime = std::fmodf(ActiveState->CurrentAnimTime, DataModel->GetPlayLength());
+                }
+                else
+                {
+                    ActiveState->CurrentAnimTime = DataModel->GetPlayLength();
+                    ActiveState->bIsPlaying = false;
+                }
+            }
+        }
+        else if (ActiveState->bIsPlayingReverse)
+        {
+            ActiveState->CurrentAnimTime -= DeltaSeconds;
+            if (ActiveState->CurrentAnimTime < 0.0f) 
+            {
+                if (ActiveState->bAnimLoop)
+                {
+                    ActiveState->CurrentAnimTime += DataModel->GetPlayLength();
+                }
+                else
+                {
+                    ActiveState->CurrentAnimTime = 0.0f;
+                    ActiveState->bIsPlayingReverse = false;
+                }
+            }
+        }
+    }
+
+    if (ActiveState->PreviewActor && ActiveState->PreviewActor->GetSkeletalMeshComponent())
+    {
+        if (ActiveState->bRefreshAnimation)
+        {
+        }
+        ActiveState->PreviewActor->GetSkeletalMeshComponent()->SetAnimationTime(ActiveState->CurrentAnimTime);
     }
 }
 
@@ -764,8 +924,6 @@ void SSkeletalMeshViewerWindow::LoadSkeletalMesh(const FString& Path)
             LineComp->SetLineVisible(ActiveState->bShowBones);
         }
 
-        
-
         UE_LOG("SSkeletalMeshViewerWindow: Loaded skeletal mesh from %s", Path.c_str());
     }
     else
@@ -811,4 +969,429 @@ void SSkeletalMeshViewerWindow::ExpandToSelectedBone(ViewerState* State, int32 B
         State->ExpandedBoneIndices.insert(CurrentIndex);
         CurrentIndex = Skeleton->Bones[CurrentIndex].ParentIndex;
     }
+}
+
+void SSkeletalMeshViewerWindow::DrawAnimationPanel(ViewerState* State)
+{
+    bool bHasAnimation = !!(State->CurrentAnimation);
+    
+    UAnimDataModel* DataModel = nullptr;
+    if (bHasAnimation)
+    {
+         DataModel = State->CurrentAnimation->GetDataModel();
+    }
+
+    float PlayLength = 0.0f;
+    int32 FrameRate = 0;
+    int32 NumberOfFrames = 0;
+    int32 NumberOfKeys = 0;
+
+    if (DataModel)
+    {
+        PlayLength = DataModel->GetPlayLength();
+        FrameRate = DataModel->GetFrameRate();
+        NumberOfFrames = DataModel->GetNumberOfFrames();
+        NumberOfKeys = DataModel->GetNumberOfKeys();
+    }
+    
+    float FrameDuration = 0.0f;
+    if (bHasAnimation && NumberOfFrames > 0)
+    {
+        FrameDuration = PlayLength / static_cast<float>(NumberOfFrames);
+    }
+    else
+    {
+        FrameDuration = (1.0f / 30.0f); // 애니메이션 없을 시 30fps로 가정
+    }
+
+    float ControlHeight = ImGui::GetFrameHeightWithSpacing();
+    
+    // --- 1. 메인 타임라인 에디터 (테이블 기반) ---
+    ImGui::BeginChild("TimelineEditor", ImVec2(0, -ControlHeight));
+
+    ImGuiTableFlags TableFlags = ImGuiTableFlags_Resizable | ImGuiTableFlags_ScrollY | ImGuiTableFlags_ScrollX |
+                                 ImGuiTableFlags_BordersOuter | ImGuiTableFlags_NoSavedSettings;
+
+    if (ImGui::BeginTable("TimelineTable", 2, TableFlags))
+    {
+        // --- 1.1. 테이블 컬럼 설정 ---
+        ImGui::TableSetupColumn("Tracks", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_NoResize, 200.0f);
+        ImGui::TableSetupColumn("Timeline", ImGuiTableColumnFlags_WidthStretch | ImGuiTableColumnFlags_NoHeaderLabel);
+
+        bool bIsTimelineHovered = false;
+        float FrameAtMouse = 0.0f;
+
+        // --- 1.2. 헤더 행 (필터 + 눈금자) ---
+        ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+        
+        // 헤더 - 컬럼 0: 필터
+        ImGui::TableSetColumnIndex(0);
+        ImGui::PushItemWidth(-1);
+        static char filterText[128] = "";
+        ImGui::InputTextWithHint("##Filter", "Filter...", filterText, sizeof(filterText));
+        ImGui::PopItemWidth();
+
+        // 헤더 - 컬럼 1: 눈금자 (Ruler)
+        ImGui::TableSetColumnIndex(1);
+        ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.2f, 0.22f, 0.24f, 1.0f));
+        if (ImGui::BeginChild("Ruler", ImVec2(0, ImGui::GetFrameHeightWithSpacing()), false, ImGuiWindowFlags_NoScrollbar))
+        {
+            ImDrawList* DrawList = ImGui::GetWindowDrawList();
+            ImVec2 P = ImGui::GetCursorScreenPos();
+            ImVec2 Size = ImGui::GetWindowSize();
+
+            auto FrameToPixel = [&](float Frame) { return P.x + (Frame - State->TimelineOffset) * State->TimelineScale; };
+            auto PixelToFrame = [&](float Pixel) { return (Pixel - P.x) / State->TimelineScale + State->TimelineOffset; };
+
+            ImGui::InvisibleButton("##RulerInput", Size);
+            if (ImGui::IsItemHovered())
+            {
+                bIsTimelineHovered = true;
+                FrameAtMouse = PixelToFrame(ImGui::GetIO().MousePos.x);
+            }
+
+            if (bHasAnimation)
+            {
+                int FrameStep = 10;
+                if (State->TimelineScale < 0.5f)
+                {
+                    FrameStep = 50;
+                    
+                }
+                else if (State->TimelineScale < 2.0f)
+                {
+                    FrameStep = 20;
+                }
+
+                float StartFrame = (float)(int)PixelToFrame(P.x) - 1.0f;
+                float EndFrame = (float)(int)PixelToFrame(P.x + Size.x) + 1.0f;
+                StartFrame = ImMax(StartFrame, 0.0f);
+
+                for (float F = StartFrame; F <= EndFrame && F <= NumberOfFrames; F += 1.0f)
+                {
+                    int Frame = (int)F;
+                    float X = FrameToPixel((float)Frame);
+                    if (X < P.x || X > P.x + Size.x) continue;
+
+                    float TickHeight = (Frame % 5 == 0) ? (Size.y * 0.5f) : (Size.y * 0.3f);
+                    if (Frame % FrameStep == 0) TickHeight = Size.y * 0.7f;
+                    
+                    DrawList->AddLine(ImVec2(X, P.y + Size.y - TickHeight), ImVec2(X, P.y + Size.y), IM_COL32(150, 150, 150, 255));
+                    
+                    if (Frame % FrameStep == 0)
+                    {
+                        char Text[16]; snprintf(Text, 16, "%d", Frame);
+                        DrawList->AddText(ImVec2(X + 2, P.y), IM_COL32_WHITE, Text);
+                    }
+                }
+            }
+
+            if (bHasAnimation)
+            {
+                float PlayheadFrame = State->CurrentAnimTime / FrameDuration;
+                float PlayheadX = FrameToPixel(PlayheadFrame);
+                if (PlayheadX >= P.x && PlayheadX <= P.x + Size.x)
+                {
+                    DrawList->AddLine(ImVec2(PlayheadX, P.y), ImVec2(PlayheadX, P.y + Size.y), IM_COL32(255, 0, 0, 255), 2.0f);
+                }
+            }
+        }
+        ImGui::EndChild();
+        ImGui::PopStyleColor();
+
+        // --- 1.3. 노티파이 트랙 행 ---
+        ImGui::TableNextRow();
+        
+        ImGui::TableSetColumnIndex(0);
+        bool bNodeVisible = ImGui::TreeNodeEx("노티파이", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Leaf);
+
+        ImGui::TableSetColumnIndex(1);
+        float TrackHeight = ImGui::GetTextLineHeight() * 1.5f;
+        ImVec2 TrackSize = ImVec2(ImGui::GetContentRegionAvail().x, TrackHeight);
+        
+        ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.18f, 0.19f, 0.2f, 1.0f));
+        if (ImGui::BeginChild("NotifyTrack", TrackSize, false, ImGuiWindowFlags_NoScrollbar))
+        {
+            ImDrawList* DrawList = ImGui::GetWindowDrawList();
+            ImVec2 P = ImGui::GetCursorScreenPos();
+            ImVec2 Size = ImGui::GetWindowSize();
+            
+            auto FrameToPixel = [&](float Frame) { return P.x + (Frame - State->TimelineOffset) * State->TimelineScale; };
+            auto PixelToFrame = [&](float Pixel) { return (Pixel - P.x) / State->TimelineScale + State->TimelineOffset; };
+
+            ImGui::InvisibleButton("##NotifyTrackInput", Size);
+            if (ImGui::IsItemHovered())
+            {
+                bIsTimelineHovered = true;
+                FrameAtMouse = PixelToFrame(ImGui::GetIO().MousePos.x);
+            }
+
+            if (bHasAnimation)
+            {
+                for (const FAnimNotifyEvent& Notify : State->CurrentAnimation->GetAnimNotifyEvents())
+                {
+                    float TriggerFrame = Notify.TriggerTime / FrameDuration;
+                    float DurationFrames = (Notify.Duration > 0.0f) ? (Notify.Duration / FrameDuration) : 0.5f;
+                    
+                    float XStart = FrameToPixel(TriggerFrame);
+                    float XEnd = FrameToPixel(TriggerFrame + DurationFrames);
+
+                    if (XEnd < P.x || XStart > P.x + Size.x) continue;
+
+                    float ViewXStart = ImMax(XStart, P.x);
+                    float ViewXEnd = ImMin(XEnd, P.x + Size.x);
+
+                    if (ViewXEnd > ViewXStart)
+                    {
+                        DrawList->AddRectFilled(
+                            ImVec2(ViewXStart, P.y), 
+                            ImVec2(ViewXEnd, P.y + Size.y), 
+                            IM_COL32(100, 100, 255, 100)
+                        );
+                        DrawList->AddRect(
+                            ImVec2(ViewXStart, P.y), 
+                            ImVec2(ViewXEnd, P.y + Size.y), 
+                            IM_COL32(200, 200, 255, 150)
+                        );
+                        
+                        ImGui::PushClipRect(ImVec2(ViewXStart, P.y), ImVec2(ViewXEnd, P.y + Size.y), true);
+                        DrawList->AddText(ImVec2(XStart + 2, P.y + 2), IM_COL32_WHITE, Notify.NotifyName.ToString().c_str());
+                        ImGui::PopClipRect();
+                    }
+                }
+            }
+
+            if (bHasAnimation)
+            {
+                float PlayheadFrame = State->CurrentAnimTime / FrameDuration;
+                float PlayheadX = FrameToPixel(PlayheadFrame);
+                if (PlayheadX >= P.x && PlayheadX <= P.x + Size.x)
+                {
+                    DrawList->AddLine(ImVec2(PlayheadX, P.y), ImVec2(PlayheadX, P.y + Size.y), IM_COL32(255, 0, 0, 255), 2.0f);
+                }
+            }
+        }
+        ImGui::EndChild();
+        ImGui::PopStyleColor();
+
+        if (bNodeVisible)
+        {
+            ImGui::TreePop();
+        }
+
+        // --- 1.4. 타임라인 패닝, 줌, 스크러빙 (테이블 내에서 처리) ---
+        if (bHasAnimation && bIsTimelineHovered)
+        {
+            if (ImGui::GetIO().KeyCtrl && ImGui::GetIO().MouseWheel != 0)
+            {
+                float NewScale = State->TimelineScale * powf(1.1f, ImGui::GetIO().MouseWheel);
+                State->TimelineScale = ImClamp(NewScale, 0.1f, 100.0f);
+                State->TimelineOffset = FrameAtMouse - (ImGui::GetIO().MousePos.x - ImGui::GetCursorScreenPos().x) / State->TimelineScale;
+            }
+            else if (ImGui::IsMouseDragging(ImGuiMouseButton_Middle))
+            {
+                float DeltaFrames = ImGui::GetIO().MouseDelta.x / State->TimelineScale;
+                State->TimelineOffset -= DeltaFrames;
+            }
+            else if (ImGui::IsMouseDown(ImGuiMouseButton_Left))
+            {
+                State->CurrentAnimTime = ImClamp(FrameAtMouse * FrameDuration, 0.0f, PlayLength);
+                State->bIsPlaying = false;
+                // TODO: 애니메이션 시스템에 시간 업데이트
+            }
+        }
+
+        State->TimelineOffset = std::max(State->TimelineOffset, 0.0f);
+
+        ImGui::EndTable();
+    }
+    ImGui::EndChild(); // "TimelineEditor"
+
+    ImGui::Separator();
+    
+    // --- 2. 하단 컨트롤 바 ---
+    ImGui::BeginChild("BottomControls", ImVec2(0, ControlHeight), false, ImGuiWindowFlags_NoScrollbar);
+    {
+        const ImVec2 IconSizeVec(IconSize, IconSize);
+        
+        // 1. [첫 프레임] 버튼 
+        if (IconFirstFrame && IconFirstFrame->GetShaderResourceView())
+        {
+            if (ImGui::ImageButton("##FirstFrameBtn", (void*)IconFirstFrame->GetShaderResourceView(), IconSizeVec))
+            {
+                if (bHasAnimation)
+                {
+                    State->CurrentAnimTime = 0.0f;
+                    State->bIsPlaying = false;
+                }
+            }
+        }
+        
+        ImGui::SameLine(); 
+
+        // 2. [이전 프레임] 버튼
+        if (IconPrevFrame && IconPrevFrame->GetShaderResourceView())
+        {
+            if (ImGui::ImageButton("##PrevFrameBtn", (void*)IconPrevFrame->GetShaderResourceView(), IconSizeVec))
+            { 
+                State->CurrentAnimTime = ImMax(0.0f, State->CurrentAnimTime - FrameDuration); State->bIsPlaying = false; 
+            } 
+        }
+        ImGui::SameLine();
+        
+        // 3. [역재생/일시정지] 버튼
+        UTexture* CurrentReverseIcon = State->bIsPlayingReverse ? IconPause : IconReversePlay;
+        if (CurrentReverseIcon && CurrentReverseIcon->GetShaderResourceView())
+        {
+            bool bIsPlayingReverse = State->bIsPlayingReverse;
+            if (bIsPlayingReverse)
+            {
+                ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImGui::GetStyle().Colors[ImGuiCol_ButtonActive]);
+            }
+        
+            if (ImGui::ImageButton("##ReversePlayBtn", (void*)CurrentReverseIcon->GetShaderResourceView(), IconSizeVec))
+            {
+                if (bIsPlayingReverse) 
+                {
+                    State->bIsPlaying = false;
+                    State->bIsPlayingReverse = false;
+                    if (State->PreviewActor && State->PreviewActor->GetSkeletalMeshComponent())
+                    {
+                        State->PreviewActor->GetSkeletalMeshComponent()->SetPlaying(State->bIsPlayingReverse);
+                    }
+                }
+                else 
+                {
+                    State->bIsPlaying = false;
+                    State->bIsPlayingReverse = true;
+                    if (State->PreviewActor && State->PreviewActor->GetSkeletalMeshComponent())
+                    {
+                        State->PreviewActor->GetSkeletalMeshComponent()->SetPlaying(State->bIsPlayingReverse);
+                    }
+                }
+            }
+            if (bIsPlayingReverse)
+            {
+                ImGui::PopStyleColor();
+            }
+        }
+        ImGui::SameLine();
+
+        // 4. [녹화] 버튼
+        UTexture* CurrentRecordIcon = State->bIsRecording ? IconRecordActive : IconRecord;
+        if (CurrentRecordIcon && CurrentRecordIcon->GetShaderResourceView())
+        {
+            bool bWasRecording = State->bIsRecording;
+
+            if (bWasRecording)
+            {
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.8f, 0.1f, 0.1f, 1.0f));
+                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(1.0f, 0.2f, 0.2f, 1.0f));
+                ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.7f, 0.1f, 0.1f, 1.0f));
+            }
+
+            if (ImGui::ImageButton("##RecordBtn", (void*)CurrentRecordIcon->GetShaderResourceView(), IconSizeVec))
+            {
+                State->bIsRecording = !State->bIsRecording; // 상태 변경
+            }
+
+            if (bWasRecording) 
+            {
+                ImGui::PopStyleColor(3);
+            }
+        }
+        ImGui::SameLine();
+
+        // 5. [재생/일시정지] 버튼
+        UTexture* CurrentPlayIcon = State->bIsPlaying ? IconPause : IconPlay;
+        if (CurrentPlayIcon && CurrentPlayIcon->GetShaderResourceView())
+        {
+            bool bIsPlaying = State->bIsPlaying;
+            if (bIsPlaying)
+            {
+                ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImGui::GetStyle().Colors[ImGuiCol_ButtonActive]);
+            }
+                
+            if (ImGui::ImageButton("##PlayPauseBtn", (void*)CurrentPlayIcon->GetShaderResourceView(), IconSizeVec)) 
+            {
+                if (bIsPlaying)
+                {
+                    State->bIsPlaying = false;
+                    State->bIsPlayingReverse = false;
+                    if (State->PreviewActor && State->PreviewActor->GetSkeletalMeshComponent())
+                    {
+                        State->PreviewActor->GetSkeletalMeshComponent()->SetPlaying(State->bIsPlaying);
+                    }
+                }
+                else
+                {
+                    State->bIsPlaying = true;
+                    State->bIsPlayingReverse = false;
+                    if (State->PreviewActor && State->PreviewActor->GetSkeletalMeshComponent())
+                    {
+                        State->PreviewActor->GetSkeletalMeshComponent()->SetPlaying(State->bIsPlaying);
+                    }
+                }
+            }
+
+            if (bIsPlaying)
+            {
+                ImGui::PopStyleColor();
+            }
+        }
+        ImGui::SameLine();
+
+        // 6. [다음 프레임] 버튼
+        if (IconNextFrame && IconNextFrame->GetShaderResourceView())
+        {
+            if (ImGui::ImageButton("##NextFrameBtn", (void*)IconNextFrame->GetShaderResourceView(), IconSizeVec)) 
+            { 
+                State->CurrentAnimTime = ImMin(PlayLength, State->CurrentAnimTime + FrameDuration); State->bIsPlaying = false; 
+            } 
+        }
+        ImGui::SameLine();
+
+        // 7. [마지막 프레임] 버튼
+        if (IconLastFrame && IconLastFrame->GetShaderResourceView())
+        {
+            if (ImGui::ImageButton("##LastFrameBtn", (void*)IconLastFrame->GetShaderResourceView(), IconSizeVec)) 
+            { 
+                if (bHasAnimation)
+                {
+                    State->CurrentAnimTime = PlayLength;
+                    State->bIsPlaying = false;
+                }
+            } 
+        }
+        ImGui::SameLine();
+
+        // 8. [루프] 버튼
+        UTexture* CurrentLoopIcon = State->bAnimLoop ? IconLoop : IconNoLoop;
+        if (CurrentLoopIcon && CurrentLoopIcon->GetShaderResourceView())
+        {
+            bool bIsLooping = State->bAnimLoop; 
+
+            if (bIsLooping) 
+            {
+                ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImGui::GetStyle().Colors[ImGuiCol_ButtonActive]);
+            }
+
+            if (ImGui::ImageButton("##LoopBtn", (void*)CurrentLoopIcon->GetShaderResourceView(), IconSizeVec)) 
+            { 
+                State->bAnimLoop = !State->bAnimLoop;
+                if (State->PreviewActor && State->PreviewActor->GetSkeletalMeshComponent())
+                {
+                    State->PreviewActor->GetSkeletalMeshComponent()->SetLooping(State->bAnimLoop);
+                }
+            }
+
+            if (bIsLooping) 
+            {
+                ImGui::PopStyleColor(); 
+            }
+        } 
+        ImGui::SameLine();
+        ImGui::TextDisabled("(%.2f / %.2f)", State->CurrentAnimTime, PlayLength);
+    }
+    ImGui::EndChild();
 }

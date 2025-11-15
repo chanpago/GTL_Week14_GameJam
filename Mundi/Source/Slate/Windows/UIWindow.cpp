@@ -26,7 +26,7 @@ UUIWindow::UUIWindow(const FUIWindowConfig& InConfig)
 
 	if (IssuedWindowID == 1)
 	{
-		cout << "UIWindow: Created: " << WindowID << " (" << Config.WindowTitle << ")" << "\n";
+		//cout << "UIWindow: Created: " << WindowID << " (" << Config.WindowTitle << ")" << "\n";
 	}
 	else
 	{

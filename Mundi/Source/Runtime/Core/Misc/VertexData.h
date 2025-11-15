@@ -1,7 +1,9 @@
 ﻿#pragma once
 #include "Archive.h"
 #include "Vector.h"
+#include "Name.h"
 
+#define  INDEX_NONE -1
 // 직렬화 포맷 (FVertexDynamic와 역할이 달라서 분리됨)
 struct FNormalVertex
 {
@@ -268,6 +270,35 @@ struct FSkeleton
     FString Name; // 스켈레톤 이름
     TArray<FBone> Bones; // 본 배열
     TMap <FString, int32> BoneNameToIndex; // 이름으로 본 검색
+
+    /**
+     * @brief 본 이름으로 본 인덱스를 찾기
+     * @param BoneName 찾을 본 이름
+     * @return 본 인덱스, 없으면 INDEX_NONE(-1)
+     */
+    int32 FindBoneIndex(const FName& BoneName) const
+    {
+        auto It = BoneNameToIndex.find(BoneName.ToString());
+        if (It != BoneNameToIndex.end())
+        {
+            return It->second;
+        }
+        return INDEX_NONE;
+    }
+
+    /**
+     * @brief 인덱스로 본 이름 가져오기
+     * @param BoneIndex 본 인덱스
+     * @return 본 이름
+     */
+    FName GetBoneName(int32 BoneIndex) const
+    {
+        if (BoneIndex >= 0 && BoneIndex < static_cast<int32>(Bones.size()))
+        {
+            return FName(Bones[BoneIndex].Name);
+        }
+        return FName();
+    }
 
     friend FArchive& operator<<(FArchive& Ar, FSkeleton& Skeleton)
     {

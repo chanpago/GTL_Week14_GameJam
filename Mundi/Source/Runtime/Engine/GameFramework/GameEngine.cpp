@@ -236,6 +236,8 @@ void UGameEngine::Tick(float DeltaSeconds)
         WorldContext.World->Tick(DeltaSeconds);
     }
     INPUT.Update();
+
+    FAudioDevice::Update(); 
 }
 
 void UGameEngine::Render()

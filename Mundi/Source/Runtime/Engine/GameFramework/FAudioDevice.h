@@ -7,6 +7,12 @@
 #pragma comment(lib, "xaudio2.lib")
 class USound;
 
+struct FPendingCleanup 
+{ 
+    IXAudio2SourceVoice* Voice; 
+    struct FOneShotVoiceCallback* Callback; 
+};
+
 // Minimal XAudio2 device bootstrap and 3D helpers
 class FAudioDevice
 {
@@ -22,7 +28,9 @@ public:
     static void SetListenerPosition(const FVector& Position, const FVector& ForwardVec, const FVector& UpVec);
     static void UpdateSoundPosition(IXAudio2SourceVoice* pSourceVoice, const FVector& EmitterPosition);
 
-    // Loads .wav files under GDataDir/Audio into resource manager
+    static void PlaySoundAtLocationOneShot(USound* Sound, const FVector& Pos, float Volume = 1.f, float Pitch = 1.f);
+
+     // Loads .wav files under GDataDir/Audio into resource manager
     static void Preload();
 
 private:
@@ -31,5 +39,7 @@ private:
     static X3DAUDIO_HANDLE          X3DInstance;
     static X3DAUDIO_LISTENER        Listener;
     static DWORD                    dwChannelMask;
+
+    static TArray<IXAudio2SourceVoice*> OneShotVoices;
 };
 

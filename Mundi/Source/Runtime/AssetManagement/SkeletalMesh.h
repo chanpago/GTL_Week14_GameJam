@@ -13,7 +13,7 @@ public:
     
     const FSkeletalMeshData* GetSkeletalMeshData() const { return Data; }
     const FString& GetPathFileName() const { if (Data) return Data->PathFileName; return FString(); }
-    const FSkeleton* GetSkeleton() const { return Data ? &Data->Skeleton : nullptr; }
+    FSkeleton* GetSkeleton() const { return Data ? &Data->Skeleton : nullptr; }
     uint32 GetBoneCount() const { return Data ? Data->Skeleton.Bones.Num() : 0; }
     
     // ID3D11Buffer* GetVertexBuffer() const { return VertexBuffer; } // W10 CPU Skinning이라 Component가 VB 소유

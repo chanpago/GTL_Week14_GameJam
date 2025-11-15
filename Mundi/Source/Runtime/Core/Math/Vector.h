@@ -62,6 +62,90 @@ namespace FMath
 	{
 		return A + (B - A) * Alpha;
 	}
+
+	/**
+	 * @brief 내림 (소수점 이하 버림)
+	 * @param Value 입력 값
+	 * @return 내림된 실수 값 (예: 2.7f → 2.0f)
+	 */
+	static float Floor(float Value)
+	{
+		return std::floor(Value);
+	}
+
+	/**
+	 * @brief 내림 후 정수로 변환
+	 * @param Value 입력 값
+	 * @return 내림된 정수 값 (예: 2.7f → 2)
+	 */
+	static int32 FloorToInt(float Value)
+	{
+		return static_cast<int32>(std::floor(Value));
+	}
+
+	/**
+	 * @brief 올림 (소수점 이하 올림)
+	 * @param Value 입력 값
+	 * @return 올림된 실수 값 (예: 2.1f → 3.0f)
+	 */
+	static float Ceil(float Value)
+	{
+		return std::ceil(Value);
+	}
+
+	/**
+	 * @brief 올림 후 정수로 변환
+	 * @param Value 입력 값
+	 * @return 올림된 정수 값 (예: 2.1f → 3)
+	 */
+	static int32 CeilToInt(float Value)
+	{
+		return static_cast<int32>(std::ceil(Value));
+	}
+
+	/**
+	 * @brief 반올림 후 정수로 변환
+	 * @param Value 입력 값
+	 * @return 반올림된 정수 값 (예: 2.5f → 3, 2.4f → 2)
+	 */
+	static int32 RoundToInt(float Value)
+	{
+		return static_cast<int32>(std::round(Value));
+	}
+
+	/**
+	 * @brief 부동소수점 나머지 연산
+	 * @param X 피제수
+	 * @param Y 제수
+	 * @return X를 Y로 나눈 나머지 (예: Fmod(5.5f, 2.0f) = 1.5f)
+	 */
+	static float Fmod(float X, float Y)
+	{
+		return std::fmod(X, Y);
+	}
+
+	/**
+	 * @brief 값이 0에 가까운지 확인
+	 * @param Value 확인할 값
+	 * @param Tolerance 허용 오차 (기본값: KINDA_SMALL_NUMBER)
+	 * @return true면 거의 0, false면 0이 아님
+	 */
+	static bool IsNearlyZero(float Value, float Tolerance = KINDA_SMALL_NUMBER)
+	{
+		return Abs(Value) <= Tolerance;
+	}
+
+	/**
+	 * @brief 두 값이 거의 같은지 확인
+	 * @param A 첫 번째 값
+	 * @param B 두 번째 값
+	 * @param Tolerance 허용 오차 (기본값: KINDA_SMALL_NUMBER)
+	 * @return true면 거의 같음, false면 다름
+	 */
+	static bool IsNearlyEqual(float A, float B, float Tolerance = KINDA_SMALL_NUMBER)
+	{
+		return Abs(A - B) <= Tolerance;
+	}
 }
 // 각도를 -180 ~ 180 범위로 정규화 (모듈러 연산)
 inline float NormalizeAngleDeg(float angleDeg)
@@ -1313,6 +1397,19 @@ struct FTransform
 		FVector  TScale = FVector::Lerp(A.Scale3D, B.Scale3D, T);
 		FQuat    TRotation = FQuat::Slerp(A.Rotation, B.Rotation, T);
 		return FTransform(TPosition, TRotation, TScale);
+	}
+
+	/**
+	 * @brief 두 Transform을 보간하여 현재 Transform에 저장
+	 * @param A 첫 번째 Transform
+	 * @param B 두 번째 Transform
+	 * @param Alpha 보간 비율 (0.0 = A, 1.0 = B)
+	 */
+	void Blend(const FTransform& A, const FTransform& B, float Alpha)
+	{
+		Translation = FVector::Lerp(A.Translation, B.Translation, Alpha);
+		Scale3D = FVector::Lerp(A.Scale3D, B.Scale3D, Alpha);
+		Rotation = FQuat::Slerp(A.Rotation, B.Rotation, Alpha);
 	}
 
 	// 비교 연산자

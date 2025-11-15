@@ -2,6 +2,8 @@
 #include "Object.h"
 #include "fbxsdk.h"
 
+class UAnimSequence;
+
 class UFbxLoader : public UObject
 {
 public:
@@ -15,6 +17,14 @@ public:
 	USkeletalMesh* LoadFbxMesh(const FString& FilePath);
 
 	FSkeletalMeshData* LoadFbxMeshAsset(const FString& FilePath);
+
+	// Animation loading
+	//void LoadAnimationsFromFbx(const FString& FilePath, TArray<UAnimSequence*>& OutAnimations);
+
+	// Animation caching
+	bool SaveAnimationToCache(UAnimSequence* Animation, const FString& CachePath);
+	UAnimSequence* LoadAnimationFromCache(const FString& CachePath);
+	bool TryLoadAnimationsFromCache(const FString& NormalizedPath, TArray<UAnimSequence*>& OutAnimations);
 	
 
 protected:
@@ -39,9 +49,16 @@ private:
 	FbxString GetAttributeTypeName(FbxNodeAttribute* InAttribute);
 
 	void EnsureSingleRootBone(FSkeletalMeshData& MeshData);
-	
+
+	// Animation helper functions
+	void ProcessAnimations(FbxScene* Scene, const FSkeletalMeshData& MeshData, const FString& FilePath, TArray<UAnimSequence*>& OutAnimations);
+	void ExtractBoneAnimation(FbxNode* BoneNode, FbxAnimLayer* AnimLayer, FbxTime Start, FbxTime End, int32 NumFrames, TArray<FVector>& OutPositions, TArray<FQuat>& OutRotations, TArray<FVector>& OutScales);
+	bool NodeHasAnimation(FbxNode* Node, FbxAnimLayer* AnimLayer);
+	void BuildBoneNodeMap(FbxNode* RootNode, TMap<FName, FbxNode*>& OutBoneNodeMap);
+	FbxAMatrix GetBindPoseMatrix(FbxNode* Node);
+
 	// bin파일 저장용
 	TArray<FMaterialInfo> MaterialInfos;
 	FbxManager* SdkManager = nullptr;
-	
+
 };

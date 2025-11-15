@@ -49,6 +49,7 @@ private:
     // Layout state
     float LeftPanelRatio = 0.25f;   // 25% of width
     float RightPanelRatio = 0.25f;  // 25% of width
+    float BottomPanelRatio = 0.4f;  // 40% of Height (Animation Panel)
 
     // Cached center region used for viewport sizing and input mapping
     FRect CenterRect;
@@ -68,7 +69,24 @@ public:
 
 private:
     void UpdateBoneTransformFromSkeleton(ViewerState* State);
+    
     void ApplyBoneTransform(ViewerState* State);
 
     void ExpandToSelectedBone(ViewerState* State, int32 BoneIndex);
+
+    void DrawAnimationPanel(ViewerState* State);
+
+    static constexpr float IconSize = 20.0f;
+
+    UTexture* IconFirstFrame = nullptr;
+    UTexture* IconLastFrame = nullptr;
+    UTexture* IconPrevFrame = nullptr;
+    UTexture* IconNextFrame = nullptr;
+    UTexture* IconPlay = nullptr;
+    UTexture* IconReversePlay = nullptr;
+    UTexture* IconPause = nullptr;
+    UTexture* IconRecord = nullptr;
+    UTexture* IconRecordActive = nullptr;
+    UTexture* IconLoop = nullptr;
+    UTexture* IconNoLoop = nullptr;
 };

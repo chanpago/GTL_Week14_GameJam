@@ -10,6 +10,7 @@ IXAudio2MasteringVoice* FAudioDevice::pMasteringVoice = nullptr;
 X3DAUDIO_HANDLE         FAudioDevice::X3DInstance = {};
 X3DAUDIO_LISTENER       FAudioDevice::Listener = {};
 DWORD                   FAudioDevice::dwChannelMask = 0;
+TArray<IXAudio2SourceVoice*> FAudioDevice::OneShotVoices;
 
 UINT32 FAudioDevice::GetOutputChannelCount()
 {
@@ -117,6 +118,22 @@ void FAudioDevice::Shutdown()
 void FAudioDevice::Update()
 {
     // For future: process queued commands, streaming, etc.
+
+    // 뒤에서 앞으로 순회하며 완료된 보이스 정리
+    for (int i = static_cast<int>(OneShotVoices.size()) - 1; i >= 0; --i)
+    {
+        IXAudio2SourceVoice* voice = OneShotVoices[i];
+        if (!voice) { OneShotVoices.erase(OneShotVoices.begin() + i); continue; }
+
+        XAUDIO2_VOICE_STATE state{};
+        voice->GetState(&state);
+        if (state.BuffersQueued == 0)
+        {
+            // Stop -> Flush -> Destroy
+            StopSound(voice);
+            OneShotVoices.erase(OneShotVoices.begin() + i);
+        }
+    }
 }
 
 IXAudio2SourceVoice* FAudioDevice::PlaySound3D(USound* SoundToPlay, const FVector& EmitterPosition, float Volume, bool bIsLooping)
@@ -347,6 +364,38 @@ void FAudioDevice::SetListenerPosition(const FVector& Position, const FVector& F
     {
         pSourceVoice->SetFrequencyRatio(Dsp.DopplerFactor);
     }
+}
+void FAudioDevice::PlaySoundAtLocationOneShot(USound* Sound, const FVector& Pos, float Volume, float Pitch)
+{
+    if (!pXAudio2 || !pMasteringVoice || !Sound) return;
+
+    const WAVEFORMATEX& fmt = Sound->GetWaveFormat();
+    const uint8* pcm = Sound->GetPCMData();
+    const uint32 size = Sound->GetPCMSize();
+    if (!pcm || size == 0) return;
+
+    IXAudio2SourceVoice* voice = nullptr;
+    HRESULT hr = pXAudio2->CreateSourceVoice(&voice, &fmt);
+    if (FAILED(hr) || !voice) return;
+
+    XAUDIO2_BUFFER buf{};
+    buf.pAudioData = pcm;
+    buf.AudioBytes = size;
+    buf.Flags = XAUDIO2_END_OF_STREAM;
+
+    hr = voice->SubmitSourceBuffer(&buf);
+    if (FAILED(hr)) { voice->DestroyVoice(); return; }
+
+    voice->SetVolume(Volume);
+    if (Pitch > 0.f) voice->SetFrequencyRatio(Pitch);
+
+    // 고정 위치 3D 매트릭스 1회 적용(팔로우 없음)
+    UpdateSoundPosition(voice, Pos);
+
+    hr = voice->Start(0);
+    if (FAILED(hr)) { voice->DestroyVoice(); return; }
+
+    OneShotVoices.push_back(voice);
 }
 void FAudioDevice::StopSound(IXAudio2SourceVoice* pSourceVoice)
 {
