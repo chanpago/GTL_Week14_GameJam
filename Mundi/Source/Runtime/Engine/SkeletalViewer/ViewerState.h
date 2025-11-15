@@ -31,4 +31,20 @@ public:
     
     bool bBoneTransformChanged = false;
     bool bBoneRotationEditing = false;
+
+    // 애니메이션 관련
+    
+    // CurrentAnimation
+    float CurrentAnimTime;
+    float CurrentAnimLength;
+    int32 CurrentAnimTotalFrames;
+    int32 CurrentAnimFrames;
+    
+    float TimelineScale = 10.0f;
+    float TimelineOffset = 0.0f;
+    
+    bool bIsPlaying;
+    bool bIsPlayingReverse;
+    bool bIsRecording;
+    bool bAnimLoop;
 };

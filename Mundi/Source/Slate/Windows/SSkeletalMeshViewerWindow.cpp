@@ -15,6 +15,18 @@
 SSkeletalMeshViewerWindow::SSkeletalMeshViewerWindow()
 {
     CenterRect = FRect(0, 0, 0, 0);
+    
+    IconFirstFrame = UResourceManager::GetInstance().Load<UTexture>("Data/Icon/PlayControlsToFront.png");
+    IconLastFrame = UResourceManager::GetInstance().Load<UTexture>("Data/Icon/PlayControlsToEnd.png");
+    IconPrevFrame = UResourceManager::GetInstance().Load<UTexture>("Data/Icon/PlayControlsToPrevious.png");
+    IconNextFrame = UResourceManager::GetInstance().Load<UTexture>("Data/Icon/PlayControlsToNext.png");
+    IconPlay = UResourceManager::GetInstance().Load<UTexture>("Data/Icon/PlayControlsPlayForward.png");
+    IconReversePlay = UResourceManager::GetInstance().Load<UTexture>("Data/Icon/PlayControlsPlayReverse.png");
+    IconPause = UResourceManager::GetInstance().Load<UTexture>("Data/Icon/PlayControlsPause.png");
+    IconRecord = UResourceManager::GetInstance().Load<UTexture>("Data/Icon/PlayControlsRecord.png");
+    IconRecordActive = UResourceManager::GetInstance().Load<UTexture>("Data/Icon/PlayControlsRecord.png");
+    IconLoop = UResourceManager::GetInstance().Load<UTexture>("Data/Icon/PlayControlsLooping.png");
+    IconNoLoop = UResourceManager::GetInstance().Load<UTexture>("Data/Icon/PlayControlsNoLooping.png");
 }
 
 SSkeletalMeshViewerWindow::~SSkeletalMeshViewerWindow()
@@ -377,12 +389,40 @@ void SSkeletalMeshViewerWindow::OnRender()
         ImGui::SameLine(0, 0); // No spacing between panels
 
         // Center panel (viewport area) — draw with border to see the viewport area
-        ImGui::BeginChild("SkeletalMeshViewport", ImVec2(centerWidth, totalHeight), true, ImGuiWindowFlags_NoScrollbar);
-        ImVec2 childPos = ImGui::GetWindowPos();
-        ImVec2 childSize = ImGui::GetWindowSize();
-        ImVec2 rectMin = childPos;
-        ImVec2 rectMax(childPos.x + childSize.x, childPos.y + childSize.y);
-        CenterRect.Left = rectMin.x; CenterRect.Top = rectMin.y; CenterRect.Right = rectMax.x; CenterRect.Bottom = rectMax.y; CenterRect.UpdateMinMax();
+        ImGui::BeginChild("CenterColumn", ImVec2(centerWidth, totalHeight), false, ImGuiWindowFlags_NoScrollbar);
+        {
+            float CenterColumnHeight = ImGui::GetContentRegionAvail().y;
+
+            const float BottomPannelHeight = CenterColumnHeight * BottomPanelRatio;
+
+            float ViewportHeight = CenterColumnHeight - BottomPannelHeight;
+            if (ImGui::GetStyle().ItemSpacing.y > 0)
+            {
+                ViewportHeight -= ImGui::GetStyle().ItemSpacing.y;
+            }
+            ViewportHeight = std::max(ViewportHeight, 50.0f);
+            
+            ImGui::BeginChild("SkeletalMeshViewport", ImVec2(0, ViewportHeight), true, ImGuiWindowFlags_NoScrollbar);
+            {
+                ImVec2 childPos = ImGui::GetWindowPos();
+                ImVec2 childSize = ImGui::GetWindowSize();
+                ImVec2 rectMin = childPos;
+                ImVec2 rectMax(childPos.x + childSize.x, childPos.y + childSize.y);
+                CenterRect.Left = rectMin.x; CenterRect.Top = rectMin.y; CenterRect.Right = rectMax.x; CenterRect.Bottom = rectMax.y; CenterRect.UpdateMinMax();
+            }
+            ImGui::EndChild();
+
+            ImGui::Separator();
+
+            ImGui::BeginChild("AnimationPanel", ImVec2(0, 0), true);
+            {
+                if (ActiveState)
+                {
+                    DrawAnimationPanel(ActiveState);
+                }
+            }
+            ImGui::EndChild();
+        }
         ImGui::EndChild();
 
         ImGui::SameLine(0, 0); // No spacing between panels
@@ -559,6 +599,42 @@ void SSkeletalMeshViewerWindow::OnUpdate(float DeltaSeconds)
     if (ActiveState && ActiveState->Client)
     {
         ActiveState->Client->Tick(DeltaSeconds);
+    }
+
+    if (ActiveState->CurrentAnimLength > 0.0f)
+    {
+        if (ActiveState->bIsPlaying)
+        {
+            ActiveState->CurrentAnimTime += DeltaSeconds;
+            if (ActiveState->CurrentAnimTime > ActiveState->CurrentAnimLength)
+            {
+                if (ActiveState->bAnimLoop)
+                {
+                    ActiveState->CurrentAnimTime = std::fmodf(ActiveState->CurrentAnimTime, ActiveState->CurrentAnimLength);
+                }
+                else
+                {
+                    ActiveState->CurrentAnimTime = ActiveState->CurrentAnimLength;
+                    ActiveState->bIsPlaying = false;
+                }
+            }
+        }
+        else if (ActiveState->bIsPlayingReverse)
+        {
+            ActiveState->CurrentAnimTime -= DeltaSeconds;
+            if (ActiveState->CurrentAnimTime < 0.0f) 
+            {
+                if (ActiveState->bAnimLoop)
+                {
+                    ActiveState->CurrentAnimTime += ActiveState->CurrentAnimLength;
+                }
+                else
+                {
+                    ActiveState->CurrentAnimTime = 0.0f;
+                    ActiveState->bIsPlayingReverse = false;
+                }
+            }
+        }
     }
 }
 
@@ -798,4 +874,406 @@ void SSkeletalMeshViewerWindow::ExpandToSelectedBone(ViewerState* State, int32 B
         State->ExpandedBoneIndices.insert(CurrentIndex);
         CurrentIndex = Skeleton->Bones[CurrentIndex].ParentIndex;
     }
+}
+
+// @todo 테스트용 구조체, 테스트 완료 후 삭제할 것
+struct FAnimNotifyEvent
+{
+    float TriggerTime = 0.0f;
+    float Duration = 0.0f;
+    FName NotifyName;
+};
+
+void SSkeletalMeshViewerWindow::DrawAnimationPanel(ViewerState* State)
+{
+    // --- 0. 임시 데이터 (시연용) ---
+    // @todo : 이 static 배열을 실제 State의 애니메이션 에셋에 있는 Notifies 배열로 교체해야 함
+    
+    static TArray<FAnimNotifyEvent> s_Notifies;
+    if (s_Notifies.IsEmpty())
+    {
+        s_Notifies.Add({ 0.33f, 0.0f, FName("Default") });
+        s_Notifies.Add({ 0.33f, 0.0f, FName("Charge") }); // 10프레임 (0.33초 @ 30fps)
+        s_Notifies.Add({ 0.83f, 0.0f, FName("Attack") }); // 25프레임 (0.83초 @ 30fps)
+    }
+
+    State->CurrentAnimLength = 100.0f;
+    State->CurrentAnimFrames = 50;
+    State->CurrentAnimTotalFrames = 200;
+
+    // ---
+
+    bool bHasAnimation = (State->CurrentAnimLength > 0.0f);
+    float FrameDuration = 0.0f;
+    if (bHasAnimation && State->CurrentAnimTotalFrames > 0)
+    {
+        FrameDuration = State->CurrentAnimLength / (float)State->CurrentAnimTotalFrames;
+    }
+    else
+    {
+        FrameDuration = (1.0f / 30.0f); // 애니메이션 없을 시 30fps로 가정
+    }
+
+    float ControlHeight = ImGui::GetFrameHeightWithSpacing();
+    
+    // --- 1. 메인 타임라인 에디터 (테이블 기반) ---
+    ImGui::BeginChild("TimelineEditor", ImVec2(0, -ControlHeight));
+
+    ImGuiTableFlags TableFlags = ImGuiTableFlags_Resizable | ImGuiTableFlags_ScrollY | ImGuiTableFlags_ScrollX |
+                                 ImGuiTableFlags_BordersOuter | ImGuiTableFlags_NoSavedSettings;
+
+    if (ImGui::BeginTable("TimelineTable", 2, TableFlags))
+    {
+        // --- 1.1. 테이블 컬럼 설정 ---
+        ImGui::TableSetupColumn("Tracks", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_NoResize, 200.0f);
+        ImGui::TableSetupColumn("Timeline", ImGuiTableColumnFlags_WidthStretch | ImGuiTableColumnFlags_NoHeaderLabel);
+
+        bool bIsTimelineHovered = false;
+        float FrameAtMouse = 0.0f;
+
+        // --- 1.2. 헤더 행 (필터 + 눈금자) ---
+        ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+        
+        // 헤더 - 컬럼 0: 필터
+        ImGui::TableSetColumnIndex(0);
+        ImGui::PushItemWidth(-1);
+        static char filterText[128] = "";
+        ImGui::InputTextWithHint("##Filter", "Filter...", filterText, sizeof(filterText));
+        ImGui::PopItemWidth();
+
+        // 헤더 - 컬럼 1: 눈금자 (Ruler)
+        ImGui::TableSetColumnIndex(1);
+        ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.2f, 0.22f, 0.24f, 1.0f));
+        if (ImGui::BeginChild("Ruler", ImVec2(0, ImGui::GetFrameHeightWithSpacing()), false, ImGuiWindowFlags_NoScrollbar))
+        {
+            ImDrawList* DrawList = ImGui::GetWindowDrawList();
+            ImVec2 P = ImGui::GetCursorScreenPos();
+            ImVec2 Size = ImGui::GetWindowSize();
+
+            auto FrameToPixel = [&](float Frame) { return P.x + (Frame - State->TimelineOffset) * State->TimelineScale; };
+            auto PixelToFrame = [&](float Pixel) { return (Pixel - P.x) / State->TimelineScale + State->TimelineOffset; };
+
+            ImGui::InvisibleButton("##RulerInput", Size);
+            if (ImGui::IsItemHovered())
+            {
+                bIsTimelineHovered = true;
+                FrameAtMouse = PixelToFrame(ImGui::GetIO().MousePos.x);
+            }
+
+            if (bHasAnimation)
+            {
+                int FrameStep = 10;
+                if (State->TimelineScale < 0.5f)
+                {
+                    FrameStep = 50;
+                    
+                }
+                else if (State->TimelineScale < 2.0f)
+                {
+                    FrameStep = 20;
+                }
+
+                float StartFrame = (float)(int)PixelToFrame(P.x) - 1.0f;
+                float EndFrame = (float)(int)PixelToFrame(P.x + Size.x) + 1.0f;
+                StartFrame = ImMax(StartFrame, 0.0f);
+
+                for (float F = StartFrame; F <= EndFrame && F <= State->CurrentAnimTotalFrames; F += 1.0f)
+                {
+                    int Frame = (int)F;
+                    float X = FrameToPixel((float)Frame);
+                    if (X < P.x || X > P.x + Size.x) continue;
+
+                    float TickHeight = (Frame % 5 == 0) ? (Size.y * 0.5f) : (Size.y * 0.3f);
+                    if (Frame % FrameStep == 0) TickHeight = Size.y * 0.7f;
+                    
+                    DrawList->AddLine(ImVec2(X, P.y + Size.y - TickHeight), ImVec2(X, P.y + Size.y), IM_COL32(150, 150, 150, 255));
+                    
+                    if (Frame % FrameStep == 0)
+                    {
+                        char Text[16]; snprintf(Text, 16, "%d", Frame);
+                        DrawList->AddText(ImVec2(X + 2, P.y), IM_COL32_WHITE, Text);
+                    }
+                }
+            }
+
+            if (bHasAnimation)
+            {
+                float PlayheadFrame = State->CurrentAnimTime / FrameDuration;
+                float PlayheadX = FrameToPixel(PlayheadFrame);
+                if (PlayheadX >= P.x && PlayheadX <= P.x + Size.x)
+                {
+                    DrawList->AddLine(ImVec2(PlayheadX, P.y), ImVec2(PlayheadX, P.y + Size.y), IM_COL32(255, 0, 0, 255), 2.0f);
+                }
+            }
+        }
+        ImGui::EndChild();
+        ImGui::PopStyleColor();
+
+        // --- 1.3. 노티파이 트랙 행 ---
+        ImGui::TableNextRow();
+        
+        ImGui::TableSetColumnIndex(0);
+        bool bNodeVisible = ImGui::TreeNodeEx("노티파이", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Leaf);
+
+        ImGui::TableSetColumnIndex(1);
+        float TrackHeight = ImGui::GetTextLineHeight() * 1.5f;
+        ImVec2 TrackSize = ImVec2(ImGui::GetContentRegionAvail().x, TrackHeight);
+        
+        ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.18f, 0.19f, 0.2f, 1.0f));
+        if (ImGui::BeginChild("NotifyTrack", TrackSize, false, ImGuiWindowFlags_NoScrollbar))
+        {
+            ImDrawList* DrawList = ImGui::GetWindowDrawList();
+            ImVec2 P = ImGui::GetCursorScreenPos();
+            ImVec2 Size = ImGui::GetWindowSize();
+            
+            auto FrameToPixel = [&](float Frame) { return P.x + (Frame - State->TimelineOffset) * State->TimelineScale; };
+            auto PixelToFrame = [&](float Pixel) { return (Pixel - P.x) / State->TimelineScale + State->TimelineOffset; };
+
+            ImGui::InvisibleButton("##NotifyTrackInput", Size);
+            if (ImGui::IsItemHovered())
+            {
+                bIsTimelineHovered = true;
+                FrameAtMouse = PixelToFrame(ImGui::GetIO().MousePos.x);
+            }
+
+            if (bHasAnimation)
+            {
+                // TODO: 's_Notifies'를 'State->CurrentAnimation->Notifies' 같은 실제 데이터로 변경
+                for (const FAnimNotifyEvent& Notify : s_Notifies)
+                {
+                    float TriggerFrame = Notify.TriggerTime / FrameDuration;
+                    float DurationFrames = (Notify.Duration > 0.0f) ? (Notify.Duration / FrameDuration) : 0.5f;
+                    
+                    float XStart = FrameToPixel(TriggerFrame);
+                    float XEnd = FrameToPixel(TriggerFrame + DurationFrames);
+
+                    if (XEnd < P.x || XStart > P.x + Size.x) continue;
+
+                    float ViewXStart = ImMax(XStart, P.x);
+                    float ViewXEnd = ImMin(XEnd, P.x + Size.x);
+
+                    if (ViewXEnd > ViewXStart)
+                    {
+                        DrawList->AddRectFilled(
+                            ImVec2(ViewXStart, P.y), 
+                            ImVec2(ViewXEnd, P.y + Size.y), 
+                            IM_COL32(100, 100, 255, 100)
+                        );
+                        DrawList->AddRect(
+                            ImVec2(ViewXStart, P.y), 
+                            ImVec2(ViewXEnd, P.y + Size.y), 
+                            IM_COL32(200, 200, 255, 150)
+                        );
+                        
+                        ImGui::PushClipRect(ImVec2(ViewXStart, P.y), ImVec2(ViewXEnd, P.y + Size.y), true);
+                        DrawList->AddText(ImVec2(XStart + 2, P.y + 2), IM_COL32_WHITE, Notify.NotifyName.ToString().c_str());
+                        ImGui::PopClipRect();
+                    }
+                }
+            }
+
+            if (bHasAnimation)
+            {
+                float PlayheadFrame = State->CurrentAnimTime / FrameDuration;
+                float PlayheadX = FrameToPixel(PlayheadFrame);
+                if (PlayheadX >= P.x && PlayheadX <= P.x + Size.x)
+                {
+                    DrawList->AddLine(ImVec2(PlayheadX, P.y), ImVec2(PlayheadX, P.y + Size.y), IM_COL32(255, 0, 0, 255), 2.0f);
+                }
+            }
+        }
+        ImGui::EndChild();
+        ImGui::PopStyleColor();
+
+        if (bNodeVisible)
+        {
+            ImGui::TreePop();
+        }
+
+        // --- 1.4. 타임라인 패닝, 줌, 스크러빙 (테이블 내에서 처리) ---
+        if (bHasAnimation && bIsTimelineHovered)
+        {
+            if (ImGui::GetIO().KeyCtrl && ImGui::GetIO().MouseWheel != 0)
+            {
+                float NewScale = State->TimelineScale * powf(1.1f, ImGui::GetIO().MouseWheel);
+                State->TimelineScale = ImClamp(NewScale, 0.1f, 100.0f);
+                State->TimelineOffset = FrameAtMouse - (ImGui::GetIO().MousePos.x - ImGui::GetCursorScreenPos().x) / State->TimelineScale;
+            }
+            else if (ImGui::IsMouseDragging(ImGuiMouseButton_Middle))
+            {
+                float DeltaFrames = ImGui::GetIO().MouseDelta.x / State->TimelineScale;
+                State->TimelineOffset -= DeltaFrames;
+            }
+            else if (ImGui::IsMouseDown(ImGuiMouseButton_Left))
+            {
+                State->CurrentAnimTime = ImClamp(FrameAtMouse * FrameDuration, 0.0f, State->CurrentAnimLength);
+                State->bIsPlaying = false;
+                // TODO: 애니메이션 시스템에 시간 업데이트
+            }
+        }
+
+        State->TimelineOffset = std::max(State->TimelineOffset, 0.0f);
+
+        ImGui::EndTable();
+    }
+    ImGui::EndChild(); // "TimelineEditor"
+
+    ImGui::Separator();
+    
+    // --- 2. 하단 컨트롤 바 ---
+    ImGui::BeginChild("BottomControls", ImVec2(0, ControlHeight), false, ImGuiWindowFlags_NoScrollbar);
+    {
+        const ImVec2 IconSizeVec(IconSize, IconSize);
+        
+        // 1. [첫 프레임] 버튼 
+        if (IconFirstFrame && IconFirstFrame->GetShaderResourceView())
+        {
+            if (ImGui::ImageButton("##FirstFrameBtn", (void*)IconFirstFrame->GetShaderResourceView(), IconSizeVec))
+            {
+                State->CurrentAnimTime = 0.0f; State->bIsPlaying = false;
+            }
+        }
+        
+        ImGui::SameLine(); 
+
+        // 2. [이전 프레임] 버튼
+        if (IconPrevFrame && IconPrevFrame->GetShaderResourceView())
+        {
+            if (ImGui::ImageButton("##PrevFrameBtn", (void*)IconPrevFrame->GetShaderResourceView(), IconSizeVec))
+            { 
+                State->CurrentAnimTime = ImMax(0.0f, State->CurrentAnimTime - FrameDuration); State->bIsPlaying = false; 
+            } 
+        }
+        ImGui::SameLine();
+        
+        // 3. [역재생/일시정지] 버튼
+        UTexture* CurrentReverseIcon = State->bIsPlayingReverse ? IconPause : IconReversePlay;
+        if (CurrentReverseIcon && CurrentReverseIcon->GetShaderResourceView())
+        {
+            bool bIsPlayingReverse = State->bIsPlayingReverse;
+            if (bIsPlayingReverse)
+            {
+                ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImGui::GetStyle().Colors[ImGuiCol_ButtonActive]);
+            }
+        
+            if (ImGui::ImageButton("##ReversePlayBtn", (void*)CurrentReverseIcon->GetShaderResourceView(), IconSizeVec))
+            {
+                if (bIsPlayingReverse) 
+                {
+                    State->bIsPlaying = false;
+                    State->bIsPlayingReverse = false;
+                }
+                else 
+                {
+                    State->bIsPlaying = false;
+                    State->bIsPlayingReverse = true;
+                }
+            }
+            if (bIsPlayingReverse)
+            {
+                ImGui::PopStyleColor();
+            }
+        }
+        ImGui::SameLine();
+
+        UTexture* CurrentRecordIcon = State->bIsRecording ? IconRecordActive : IconRecord;
+        if (CurrentRecordIcon && CurrentRecordIcon->GetShaderResourceView())
+        {
+            bool bWasRecording = State->bIsRecording;
+
+            if (bWasRecording)
+            {
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.8f, 0.1f, 0.1f, 1.0f));
+                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(1.0f, 0.2f, 0.2f, 1.0f));
+                ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.7f, 0.1f, 0.1f, 1.0f));
+            }
+
+            if (ImGui::ImageButton("##RecordBtn", (void*)CurrentRecordIcon->GetShaderResourceView(), IconSizeVec))
+            {
+                State->bIsRecording = !State->bIsRecording; // 상태 변경
+            }
+
+            if (bWasRecording) 
+            {
+                ImGui::PopStyleColor(3);
+            }
+        }
+        ImGui::SameLine();
+
+        // 5. [재생/일시정지] 버튼
+        UTexture* CurrentPlayIcon = State->bIsPlaying ? IconPause : IconPlay;
+        if (CurrentPlayIcon && CurrentPlayIcon->GetShaderResourceView())
+        {
+            bool bIsPlaying = State->bIsPlaying;
+            if (bIsPlaying)
+            {
+                ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImGui::GetStyle().Colors[ImGuiCol_ButtonActive]);
+            }
+                
+            if (ImGui::ImageButton("##PlayPauseBtn", (void*)CurrentPlayIcon->GetShaderResourceView(), IconSizeVec)) 
+            {
+                if (bIsPlaying)
+                {
+                    State->bIsPlaying = false;
+                    State->bIsPlayingReverse = false;
+                }
+                else
+                {
+                    State->bIsPlaying = true;
+                    State->bIsPlayingReverse = false;
+                }
+            }
+
+            if (bIsPlaying)
+            {
+                ImGui::PopStyleColor();
+            }
+        }
+        ImGui::SameLine();
+
+        // 6. [다음 프레임] 버튼
+        if (IconNextFrame && IconNextFrame->GetShaderResourceView())
+        {
+            if (ImGui::ImageButton("##NextFrameBtn", (void*)IconNextFrame->GetShaderResourceView(), IconSizeVec)) 
+            { 
+                State->CurrentAnimTime = ImMin(State->CurrentAnimLength, State->CurrentAnimTime + FrameDuration); State->bIsPlaying = false; 
+            } 
+        }
+        ImGui::SameLine();
+
+        // 7. [마지막 프레임] 버튼
+        if (IconLastFrame && IconLastFrame->GetShaderResourceView())
+        {
+            if (ImGui::ImageButton("##LastFrameBtn", (void*)IconLastFrame->GetShaderResourceView(), IconSizeVec)) 
+            { 
+                if (bHasAnimation) State->CurrentAnimTime = State->CurrentAnimLength; State->bIsPlaying = false; 
+            } 
+        }
+        ImGui::SameLine();
+
+        // 8. [루프] 버튼
+        UTexture* CurrentLoopIcon = State->bAnimLoop ? IconLoop : IconNoLoop;
+        if (CurrentLoopIcon && CurrentLoopIcon->GetShaderResourceView())
+        {
+            bool bIsLooping = State->bAnimLoop; 
+
+            if (bIsLooping) 
+            {
+                ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImGui::GetStyle().Colors[ImGuiCol_ButtonActive]);
+            }
+
+            if (ImGui::ImageButton("##LoopBtn", (void*)CurrentLoopIcon->GetShaderResourceView(), IconSizeVec)) 
+            { 
+                State->bAnimLoop = !State->bAnimLoop; 
+            }
+
+            if (bIsLooping) 
+            {
+                ImGui::PopStyleColor(); 
+            }
+        } 
+        ImGui::SameLine();
+        ImGui::TextDisabled("(%.2f / %.2f)", State->CurrentAnimTime, State->CurrentAnimLength);
+    }
+    ImGui::EndChild();
 }
