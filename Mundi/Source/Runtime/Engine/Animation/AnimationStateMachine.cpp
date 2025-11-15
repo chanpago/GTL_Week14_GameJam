@@ -122,7 +122,7 @@ void UAnimationStateMachine::ChangeState(const FName& NewStateName, float BlendT
         if (BlendTime > 0.0f)
         {
             // 블렌드 사용
-            Owner->BlendTo(NewState->Sequence, BlendTime);
+            Owner->BlendTo(NewState->Sequence, NewState->bLoop, NewState->PlayRate, BlendTime);
         }
         else
         {

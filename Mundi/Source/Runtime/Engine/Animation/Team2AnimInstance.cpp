@@ -79,6 +79,8 @@ void UTeam2AnimInstance::BuildStateMachine()
     StateMachine = NewObject<UAnimationStateMachine>();
     StateMachine->Initialize(this);
 
+    constexpr float BlendTimeSeconds = 0.3f;
+
     // Idle 상태 추가 (루프, 1.0배속)
     StateMachine->AddState(FAnimationState("Idle", IdleSequence, true, 1.0f));
 
@@ -90,56 +92,56 @@ void UTeam2AnimInstance::BuildStateMachine()
 
     // Idle -> Walk 전이
     // 조건: 속도가 WalkThreshold(0.1) 이상이고 RunThreshold(5.0) 미만일 때
-    // 블렌드 시간: 0.0초 (즉시 전환)
+    // 블렌드 시간: 0.3초 (블렌드 전환)
     StateMachine->AddTransition(FStateTransition(
         "Idle", "Walk",
         [this]() { return GetMovementSpeed() >= WalkThreshold && GetMovementSpeed() < RunThreshold; },
-        0.0f
+        BlendTimeSeconds
     ));
 
     // Idle -> Run 전이
     // 조건: 속도가 RunThreshold(5.0) 이상일 때
-    // 블렌드 시간: 0.0초 (즉시 전환)
+    // 블렌드 시간: 0.3초 (블렌드 전환)
     StateMachine->AddTransition(FStateTransition(
         "Idle", "Run",
         [this]() { return GetMovementSpeed() >= RunThreshold; },
-        0.0f
+        BlendTimeSeconds
     ));
 
     // Walk -> Idle 전이
     // 조건: 속도가 WalkThreshold(0.1) 미만일 때
-    // 블렌드 시간: 0.0초 (즉시 전환)
+    // 블렌드 시간: 0.3초 (블렌드 전환)
     StateMachine->AddTransition(FStateTransition(
         "Walk", "Idle",
         [this]() { return GetMovementSpeed() < WalkThreshold; },
-        0.0f
+        BlendTimeSeconds
     ));
 
     // Walk -> Run 전이
     // 조건: 속도가 RunThreshold(5.0) 이상일 때
-    // 블렌드 시간: 0.0초 (즉시 전환)
+    // 블렌드 시간: 0.3초 (블렌드 전환)
     StateMachine->AddTransition(FStateTransition(
         "Walk", "Run",
         [this]() { return GetMovementSpeed() >= RunThreshold; },
-        0.0f
+        BlendTimeSeconds
     ));
 
     // Run -> Walk 전이
     // 조건: 속도가 WalkThreshold(0.1) 이상이고 RunThreshold(5.0) 미만일 때
-    // 블렌드 시간: 0.0초 (즉시 전환)
+    // 블렌드 시간: 0.3초 (블렌드 전환)
     StateMachine->AddTransition(FStateTransition(
         "Run", "Walk",
         [this]() { return GetMovementSpeed() >= WalkThreshold && GetMovementSpeed() < RunThreshold; },
-        0.0f
+        BlendTimeSeconds
     ));
 
     // Run -> Idle 전이
     // 조건: 속도가 WalkThreshold(0.1) 미만일 때
-    // 블렌드 시간: 0.0초 (즉시 전환)
+    // 블렌드 시간: 0.3초 (블렌드 전환)
     StateMachine->AddTransition(FStateTransition(
         "Run", "Idle",
         [this]() { return GetMovementSpeed() < WalkThreshold; },
-        0.0f
+        BlendTimeSeconds
     ));
 
     // 초기 상태를 Idle로 설정
