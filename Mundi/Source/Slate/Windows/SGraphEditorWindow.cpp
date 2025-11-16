@@ -155,10 +155,7 @@ void SGraphEditorWindow::RenderNode(UEdGraphNode* Node)
 
     // #3. 중간 영역 (커스텀 UI 콜백)
     Builder->Middle();
-    if (Node->RenderBody)
-    {
-        Node->RenderBody(Node);
-    }
+    Node->RenderBody();
 
     // #4. 출력 핀
     for (UEdGraphPin* Pin : Node->Pins)
@@ -357,6 +354,7 @@ ImColor SGraphEditorWindow::GetPinColor(const FEdGraphPinType& PinType)
     if (PinType.PinCategory == FEdGraphPinCategory::Exec) return ImColor(255, 255, 255);
     if (PinType.PinCategory == FEdGraphPinCategory::Float) return ImColor(147, 226, 74);
     if (PinType.PinCategory == FEdGraphPinCategory::Int) return ImColor(68, 201, 156);
+    if (PinType.PinCategory == FEdGraphPinCategory::AnimSequence) return ImColor(100, 120, 255);
     // (bool, object 등 추가)
     
     return ImColor(200, 200, 200); // Default

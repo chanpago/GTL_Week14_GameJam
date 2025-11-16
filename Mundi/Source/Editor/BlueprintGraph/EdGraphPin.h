@@ -8,6 +8,8 @@ namespace FEdGraphPinCategory
     static const FName Exec("exec");
     static const FName Float("float");
     static const FName Int("int");
+    static const FName Bool("bool");
+    static const FName AnimSequence("UAnimSequence");
 }
 
 UCLASS(DisplayName="UEdGraphPin", Description="블루프린트 그래프 핀")

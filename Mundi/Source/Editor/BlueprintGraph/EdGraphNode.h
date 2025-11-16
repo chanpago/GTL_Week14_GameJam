@@ -28,12 +28,6 @@ public:
     /** @note UEdGraph가 발급해주는 ID 사용 */
     int32 NodeID;
 
-    /**
-     * @brief 커스텀 렌더링을 위한 콜백 (UE5 FAnimGraphNode::RenderBody)
-     * @todo 프로퍼티 리플렉션 시스템으로 대체
-     */
-    std::function<void(UEdGraphNode*)> RenderBody;
-
 public:
     UEdGraphNode() = default;
     
@@ -48,6 +42,9 @@ public:
 
     /** @brief 노드 타입에 필요한 기본 핀들을 생성한다. */
     virtual void AllocateDefaultPins() {}
+
+    /** @brief 노드 본문의 커스텀 UI를 렌더링한다. */
+    virtual void RenderBody() {}
 
     /** @brief 노드 제목을 반환한다. */
     virtual FString GetNodeTitle() const { return "Base Node"; }
