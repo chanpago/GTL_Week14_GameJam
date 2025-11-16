@@ -14,7 +14,7 @@ class UK2Node_Add_FloatFloat : public UK2Node
     // --- UEdGraphNode 인터페이스 ---
 public:
     virtual FString GetNodeTitle() const override { return "+ (Float)"; }
-    virtual FString GetMenuCategory() const override { return "Math"; }
+    virtual FString GetMenuCategory() const override { return "수학"; }
     virtual bool IsNodePure() const override { return true; }
     virtual void AllocateDefaultPins() override;
     virtual void RenderBody() override;
@@ -32,7 +32,7 @@ class UK2Node_Subtract_FloatFloat : public UK2Node
     // --- UEdGraphNode 인터페이스 ---
 public:
     virtual FString GetNodeTitle() const override { return "- (Float)"; }
-    virtual FString GetMenuCategory() const override { return "Math"; }
+    virtual FString GetMenuCategory() const override { return "수학"; }
     virtual bool IsNodePure() const override { return true; }
     virtual void AllocateDefaultPins() override;
     virtual void RenderBody() override;
@@ -50,7 +50,7 @@ class UK2Node_Multiply_FloatFloat : public UK2Node
     // --- UEdGraphNode 인터페이스 ---
 public:
     virtual FString GetNodeTitle() const override { return "* (Float)"; }
-    virtual FString GetMenuCategory() const override { return "Math"; }
+    virtual FString GetMenuCategory() const override { return "수학"; }
     virtual bool IsNodePure() const override { return true; }
     virtual void AllocateDefaultPins() override;
     virtual void RenderBody() override;
@@ -68,7 +68,7 @@ class UK2Node_Divide_FloatFloat : public UK2Node
     // --- UEdGraphNode 인터페이스 ---
 public:
     virtual FString GetNodeTitle() const override { return "/ (Float)"; }
-    virtual FString GetMenuCategory() const override { return "Math"; }
+    virtual FString GetMenuCategory() const override { return "수학"; }
     virtual bool IsNodePure() const override { return true; }
     virtual void AllocateDefaultPins() override;
     virtual void RenderBody() override;
@@ -86,7 +86,7 @@ class UK2Node_Greater_FloatFloat : public UK2Node
     // --- UEdGraphNode 인터페이스 ---
 public:
     virtual FString GetNodeTitle() const override { return "> (Float)"; }
-    virtual FString GetMenuCategory() const override { return "Math"; }
+    virtual FString GetMenuCategory() const override { return "수학"; }
     virtual bool IsNodePure() const override { return true; }
     virtual void AllocateDefaultPins() override;
     virtual void RenderBody() override;
@@ -104,7 +104,7 @@ class UK2Node_Equal_FloatFloat : public UK2Node
     // --- UEdGraphNode 인터페이스 ---
 public:
     virtual FString GetNodeTitle() const override { return "== (Float)"; }
-    virtual FString GetMenuCategory() const override { return "Math"; }
+    virtual FString GetMenuCategory() const override { return "수학"; }
     virtual bool IsNodePure() const override { return true; }
     virtual void AllocateDefaultPins() override;
     virtual void RenderBody() override;
@@ -126,7 +126,7 @@ class UK2Node_Add_IntInt : public UK2Node
     // --- UEdGraphNode 인터페이스 ---
 public:
     virtual FString GetNodeTitle() const override { return "+ (Int)"; }
-    virtual FString GetMenuCategory() const override { return "Math"; }
+    virtual FString GetMenuCategory() const override { return "수학"; }
     virtual bool IsNodePure() const override { return true; }
     virtual void AllocateDefaultPins() override;
     virtual void RenderBody() override;
@@ -144,7 +144,7 @@ class UK2Node_Subtract_IntInt : public UK2Node
     // --- UEdGraphNode 인터페이스 ---
 public:
     virtual FString GetNodeTitle() const override { return "- (Int)"; }
-    virtual FString GetMenuCategory() const override { return "Math"; }
+    virtual FString GetMenuCategory() const override { return "수학"; }
     virtual bool IsNodePure() const override { return true; }
     virtual void AllocateDefaultPins() override;
     virtual void RenderBody() override;
@@ -162,7 +162,7 @@ class UK2Node_Multiply_IntInt : public UK2Node
     // --- UEdGraphNode 인터페이스 ---
 public:
     virtual FString GetNodeTitle() const override { return "* (Int)"; }
-    virtual FString GetMenuCategory() const override { return "Math"; }
+    virtual FString GetMenuCategory() const override { return "수학"; }
     virtual bool IsNodePure() const override { return true; }
     virtual void AllocateDefaultPins() override;
     virtual void RenderBody() override;
@@ -180,7 +180,7 @@ class UK2Node_Divide_IntInt : public UK2Node
     // --- UEdGraphNode 인터페이스 ---
 public:
     virtual FString GetNodeTitle() const override { return "/ (Int)"; }
-    virtual FString GetMenuCategory() const override { return "Math"; }
+    virtual FString GetMenuCategory() const override { return "수학"; }
     virtual bool IsNodePure() const override { return true; }
     virtual void AllocateDefaultPins() override;
     virtual void RenderBody() override;
@@ -198,7 +198,7 @@ class UK2Node_Greater_IntInt : public UK2Node
     // --- UEdGraphNode 인터페이스 ---
 public:
     virtual FString GetNodeTitle() const override { return "> (Int)"; }
-    virtual FString GetMenuCategory() const override { return "Math"; }
+    virtual FString GetMenuCategory() const override { return "수학"; }
     virtual bool IsNodePure() const override { return true; }
     virtual void AllocateDefaultPins() override;
     virtual void RenderBody() override;
@@ -216,7 +216,7 @@ class UK2Node_Equal_IntInt : public UK2Node
     // --- UEdGraphNode 인터페이스 ---
 public:
     virtual FString GetNodeTitle() const override { return "== (Int)"; }
-    virtual FString GetMenuCategory() const override { return "Math"; }
+    virtual FString GetMenuCategory() const override { return "수학"; }
     virtual bool IsNodePure() const override { return true; }
     virtual void AllocateDefaultPins() override;
     virtual void RenderBody() override;

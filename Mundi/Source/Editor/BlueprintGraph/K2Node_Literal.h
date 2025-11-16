@@ -18,7 +18,7 @@ public:
     // --- UEdGraphNode 인터페이스 ---
 public:
     virtual FString GetNodeTitle() const override { return "int"; }
-    virtual FString GetMenuCategory() const override { return "Literals"; };
+    virtual FString GetMenuCategory() const override { return "리터럴"; };
     virtual bool IsNodePure() const override { return true; }
     virtual void AllocateDefaultPins() override;
     virtual void RenderBody() override;
@@ -44,7 +44,7 @@ public:
     // --- UEdGraphNode 인터페이스 ---
 public:
     virtual FString GetNodeTitle() const override { return "float"; }
-    virtual FString GetMenuCategory() const override { return "Literals"; };
+    virtual FString GetMenuCategory() const override { return "리터럴"; };
     virtual bool IsNodePure() const override { return true; }
     virtual void AllocateDefaultPins() override;
     virtual void RenderBody() override;

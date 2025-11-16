@@ -18,7 +18,7 @@ public:
     // --- UEdGraphNode 인터페이스 ---
 public:
     virtual FString GetNodeTitle() const override { return "Is Key Pressed"; }
-    virtual FString GetMenuCategory() const override { return "Input"; };
+    virtual FString GetMenuCategory() const override { return "입력"; };
     virtual bool IsNodePure() const override { return true; } // 순수 노드로 처리
     virtual void AllocateDefaultPins() override;
     virtual void RenderBody() override;
@@ -40,7 +40,7 @@ class UK2Node_GetMousePosition : public UK2Node
     // --- UEdGraphNode 인터페이스 ---
 public:
     virtual FString GetNodeTitle() const override { return "Get Mouse Position"; }
-    virtual FString GetMenuCategory() const override { return "Input"; };
+    virtual FString GetMenuCategory() const override { return "입력"; };
     virtual bool IsNodePure() const override { return true; } // 순수 노드로 처리
     virtual void AllocateDefaultPins() override;
     virtual void RenderBody() override; 

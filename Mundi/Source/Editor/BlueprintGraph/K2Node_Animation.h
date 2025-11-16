@@ -17,8 +17,8 @@ public:
 
     // --- UEdGraphNode 인터페이스 ---
 public:
-    virtual FString GetNodeTitle() const override { return "애니메이션 시퀀스"; }
-    virtual FString GetMenuCategory() const override { return "Animation"; };
+    virtual FString GetNodeTitle() const override { return "Animation Sequence"; }
+    virtual FString GetMenuCategory() const override { return "애니메이션"; };
     virtual bool IsNodePure() const override { return true; }
     virtual void AllocateDefaultPins() override;
     virtual void RenderBody() override;
@@ -39,8 +39,8 @@ class UK2Node_AnimStateEntry : public UK2Node
 
     // --- UEdGraphNode 인터페이스 ---
 public:
-    virtual FString GetNodeTitle() const override { return "애니메이션 진입점"; }
-    virtual FString GetMenuCategory() const override { return "Animation"; };
+    virtual FString GetNodeTitle() const override { return "Entry"; }
+    virtual FString GetMenuCategory() const override { return "애니메이션"; };
     virtual bool IsNodePure() const override { return false; }
     virtual void AllocateDefaultPins() override;
     virtual void RenderBody() override;
@@ -68,8 +68,8 @@ public:
 
     // --- UEdGraphNode 인터페이스 ---
 public:
-    virtual FString GetNodeTitle() const override { return "애니메이션 스테이트"; }
-    virtual FString GetMenuCategory() const override { return "Animation"; };
+    virtual FString GetNodeTitle() const override { return "Animation State"; }
+    virtual FString GetMenuCategory() const override { return "애니메이션"; };
     virtual bool IsNodePure() const override { return false; } // 실행 흐름(Exec)이 있으므로 Pure가 아님
     virtual void AllocateDefaultPins() override;
     virtual void RenderBody() override;
@@ -90,8 +90,8 @@ class UK2Node_AnimTransition : public UK2Node
 
     // --- UEdGraphNode 인터페이스 ---
 public:
-    virtual FString GetNodeTitle() const override { return "애니메이션 상태 전이"; }
-    virtual FString GetMenuCategory() const override { return "Animation"; };
+    virtual FString GetNodeTitle() const override { return "Animation Transition"; }
+    virtual FString GetMenuCategory() const override { return "애니메이션"; };
     virtual bool IsNodePure() const override { return false; } // 실행 흐름(Exec)이 있으므로 Pure가 아님
     virtual void AllocateDefaultPins() override;
     virtual void RenderBody() override; 
