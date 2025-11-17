@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug_StandAlone|x64">
@@ -270,6 +270,9 @@
     <ClCompile Include="Source\Runtime\AssetManagement\SkeletalMesh.cpp" />
     <ClCompile Include="Source\Runtime\Core\Memory\GPUProfile.cpp" />
     <ClCompile Include="Source\Runtime\Core\Misc\VertexData.cpp" />
+    <ClCompile Include="Source\Runtime\Core\Object\Controller.cpp" />
+    <ClCompile Include="Source\Runtime\Core\Object\Pawn.cpp" />
+    <ClCompile Include="Source\Runtime\Core\Object\PlayerController.cpp" />
     <ClCompile Include="Source\Runtime\Debug\Console.cpp" />
     <ClCompile Include="Source\Runtime\Debug\ConsoleInputThread.cpp" />
     <ClCompile Include="Source\Runtime\Debug\CrashCommand.cpp" />
@@ -566,7 +569,9 @@
     <ClCompile Include="Source\Slate\Windows\SWindow.cpp" />
     <ClCompile Include="Source\Slate\Windows\UIWindow.cpp" />
     <ClCompile Include="Generated\UMeshComponent.generated.cpp" />
-  </ItemGroup>
+    <ClCompile Include="Generated\APawn.generated.cpp" />
+    <ClCompile Include="Generated\AController.generated.cpp" />
+  <ClCompile Include="Generated\APlayerController.generated.cpp" /></ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shaders\Common\LightingBuffers.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
@@ -740,7 +745,10 @@
     <ClInclude Include="Source\Runtime\Core\Misc\Delegates.h" />
     <ClInclude Include="Source\Runtime\Core\Misc\Hash.h" />
     <ClInclude Include="Source\Runtime\Core\Misc\PathUtils.h" />
+    <ClInclude Include="Source\Runtime\Core\Object\Controller.h" />
     <ClInclude Include="Source\Runtime\Core\Object\FireballActor.h" />
+    <ClInclude Include="Source\Runtime\Core\Object\Pawn.h" />
+    <ClInclude Include="Source\Runtime\Core\Object\PlayerController.h" />
     <ClInclude Include="Source\Runtime\Core\Object\Property.h" />
     <ClInclude Include="Source\Runtime\Debug\Console.h" />
     <ClInclude Include="Source\Runtime\Debug\CrashCommand.h" />
@@ -972,7 +980,9 @@
     <ClInclude Include="Generated\UMeshComponent.generated.h" />
     <ClInclude Include="Generated\ASkinnedMeshActor.generated.h" />
     <ClInclude Include="Generated\ASkeletalMeshActor.generated.h" />
-  </ItemGroup>
+    <ClInclude Include="Generated\APawn.generated.h" />
+    <ClInclude Include="Generated\AController.generated.h" />
+  <ClInclude Include="Generated\APlayerController.generated.h" /></ItemGroup>
   <ItemGroup>
     <None Include="Tools\CodeGenerator\generate.py" />
     <None Include="Tools\CodeGenerator\lua_generator.py" />
