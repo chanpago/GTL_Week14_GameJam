@@ -8,7 +8,7 @@ void FGPUProfiler::Initialize(D3D11RHI* InRHI)
     DeviceContext = RHIDevice->GetDeviceContext();
 
     // 초기 쿼리 풀을 미리 생성합니다 (예: 100개)
-    const int32 InitialPoolSize = 100;
+    const int32 InitialPoolSize = 20;
     for (int32 i = 0; i < InitialPoolSize; ++i)
     {
         FreeQueryPool.Add(CreateNewQueryPair());
