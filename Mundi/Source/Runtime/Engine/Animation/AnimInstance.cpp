@@ -5,6 +5,7 @@
 #include "AnimationStateMachine.h"
 #include "AnimSequence.h"
 
+IMPLEMENT_CLASS(UAnimInstance, UObject)
 
 // ============================================================
 // Initialization & Setup

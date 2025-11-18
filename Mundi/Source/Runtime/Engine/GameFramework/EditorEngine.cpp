@@ -7,6 +7,8 @@
 #include <ObjManager.h>
 #include <roapi.h>
 
+#include "BlueprintGraph/BlueprintActionDatabase.h"
+
 
 float UEditorEngine::ClientWidth = 1024.0f;
 float UEditorEngine::ClientHeight = 1024.0f;
@@ -197,6 +199,9 @@ bool UEditorEngine::Startup(HINSTANCE hInstance)
     UFbxLoader::PreLoad();
 
     FAudioDevice::Preload();
+    
+    // 블루프린트 액션 데이터베이스 초기화
+    FBlueprintActionDatabase::GetInstance().Initialize();
 
     ///////////////////////////////////
     WorldContexts.Add(FWorldContext(NewObject<UWorld>(), EWorldType::Editor));

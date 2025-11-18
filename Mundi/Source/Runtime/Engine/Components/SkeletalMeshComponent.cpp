@@ -3,6 +3,7 @@
 #include "Source/Runtime/Engine/Animation/AnimDateModel.h"
 #include "Source/Runtime/Engine/Animation/AnimSequence.h"
 #include "Source/Runtime/Engine/Animation/AnimInstance.h"
+#include "Source/Runtime/Engine/Animation/AnimationStateMachine.h"
 #include "Source/Runtime/Engine/Animation/AnimSingleNodeInstance.h"
 #include "Source/Runtime/Engine/Animation/AnimTypes.h"
 #include "Source/Runtime/Engine/Animation/AnimationAsset.h"
@@ -11,6 +12,8 @@
 #include "InputManager.h"
 
 #include "PlatformTime.h"
+#include "USlateManager.h"
+#include "BlueprintGraph/AnimBlueprintCompiler.h"
 
 USkeletalMeshComponent::USkeletalMeshComponent()
 {
@@ -28,8 +31,21 @@ void USkeletalMeshComponent::BeginPlay()
     SetAnimationMode(EAnimationMode::AnimationBlueprint);
 
     // Team2AnimInstance 생성 및 설정
-    UTeam2AnimInstance* Team2AnimInst = NewObject<UTeam2AnimInstance>();
-    SetAnimInstance(Team2AnimInst);
+    // UTeam2AnimInstance* Team2AnimInst = NewObject<UTeam2AnimInstance>();
+    // SetAnimInstance(Team2AnimInst);
+
+    AnimInstance = NewObject<UAnimInstance>();
+    SetAnimInstance(AnimInstance);
+
+    UAnimationStateMachine* StateMachine = NewObject<UAnimationStateMachine>();
+    AnimInstance->SetStateMachine(StateMachine);
+
+    // @todo BeinPlay에서 직접 컴파일을 하는 흐름이 매끄럽지 않음 (개선 요망)
+    FAnimBlueprintCompiler::Compile(
+        USlateManager::GetInstance().GetAnimationGraph(),
+        AnimInstance,
+        StateMachine
+    );
 
     UE_LOG("Team2AnimInstance initialized - Idle/Walk/Run state machine ready");
     UE_LOG("Use SetMovementSpeed() to control animation transitions");

@@ -8,6 +8,8 @@
 #include "FAudioDevice.h"
 #include <sol/sol.hpp>
 
+#include "BlueprintGraph/BlueprintActionDatabase.h"
+
 float UGameEngine::ClientWidth = 1024.0f;
 float UGameEngine::ClientHeight = 1024.0f;
 

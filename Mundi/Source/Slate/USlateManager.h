@@ -7,6 +7,7 @@
 #include "Windows/SViewportWindow.h"
 #include "Windows/SSkeletalMeshViewerWindow.h"
 
+class UAnimationGraph;
 class SAnimGraphEditorWindow;
 class SSceneIOWindow; // 새로 추가할 UI
 class SDetailsWindow;
@@ -78,8 +79,11 @@ public:
     // Temp: open/close Skeletal Mesh Viewer (detached window)
     void OpenSkeletalMeshViewer();
     void OpenSkeletalMeshViewerWithFile(const char* FilePath);
+    void OpenAnimationGraphEditor();
     void CloseSkeletalMeshViewer();
     bool IsSkeletalMeshViewerOpen() const { return SkeletalViewerWindow != nullptr; }
+    bool IsAnimationGraphEditorOpen() const { return AnimationGraphEditorWindow != nullptr;}
+    UAnimationGraph* GetAnimationGraph() const { return AnimGraph; }
 
 private:
     FRect Rect; // 이전엔 SWindow로부터 상속받던 영역 정보
@@ -127,10 +131,8 @@ private:
     SSkeletalMeshViewerWindow* SkeletalViewerWindow = nullptr;
 
     // 애니메이션 그래프 편집기
-    SAnimGraphEditorWindow* AnimGraphEditorWindow = nullptr;
-
-    // 블루프린트 편집기
-    SGraphEditorWindow* GraphEditorWindow = nullptr;
+    UAnimationGraph* AnimGraph = nullptr;
+    SGraphEditorWindow* AnimationGraphEditorWindow = nullptr;
 
     // Content Browser (Bottom panel overlay with animation)
     UContentBrowserWindow* ContentBrowserWindow = nullptr;

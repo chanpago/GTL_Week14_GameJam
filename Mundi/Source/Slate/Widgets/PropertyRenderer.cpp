@@ -18,7 +18,10 @@
 #include "PlatformProcess.h"
 #include "SkeletalMeshComponent.h"
 #include "USlateManager.h"
+#include "BlueprintGraph/AnimBlueprintCompiler.h"
 #include "ImGui/imgui_curve.hpp"
+#include "Source/Runtime/Engine/Animation/AnimationStateMachine.h"
+#include "Source/Runtime/Engine/Animation/AnimInstance.h"
 
 // 정적 멤버 변수 초기화
 TArray<FString> UPropertyRenderer::CachedSkeletalMeshPaths;
@@ -1088,6 +1091,7 @@ bool UPropertyRenderer::RenderSkeletalMeshProperty(const FProperty& Prop, void* 
 			return true;
 		}
 	}
+	// @todo 호버링 고쳐주세요 고장났어요
 	if (ImGui::IsItemHovered())
 	{
 		ImGui::BeginTooltip();
@@ -1107,6 +1111,36 @@ bool UPropertyRenderer::RenderSkeletalMeshProperty(const FProperty& Prop, void* 
 		//}
 
 		ImGui::EndTooltip();
+	}
+	
+	ImGui::Spacing();
+	ImGui::Separator(); 
+	ImGui::Spacing();
+
+	if (ImGui::Button("Animation Graph Editor"))
+	{
+		if (!USlateManager::GetInstance().IsAnimationGraphEditorOpen())
+		{
+			USlateManager::GetInstance().OpenAnimationGraphEditor();	
+		}
+	}
+
+	ImGui::SameLine();
+
+	// @todo 컴파일하는 흐름이 매끄럽지 않음 
+	if (ImGui::Button("Compile"))
+	{
+		UObject* Object = static_cast<UObject*>(Instance);
+		if (USkeletalMeshComponent* Component = Cast<USkeletalMeshComponent>(Object))
+		{
+			UAnimationStateMachine* StateMachine = Component->GetAnimInstance()->GetStateMachine();
+			FAnimBlueprintCompiler::Compile(
+				USlateManager::GetInstance().GetAnimationGraph(),
+				Component->GetAnimInstance(),
+				StateMachine
+			);
+			Component->GetAnimInstance()->SetStateMachine(StateMachine);
+		}
 	}
 
 	return false;

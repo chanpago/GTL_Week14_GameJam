@@ -1,6 +1,8 @@
 ﻿#include "pch.h"
 #include "USlateManager.h"
 
+#include <imgui_node_editor_internal.h>
+
 #include "CameraActor.h"
 #include "Windows/SWindow.h"
 #include "Windows/SSplitterV.h"
@@ -17,6 +19,7 @@
 #include "UIManager.h"
 #include "GlobalConsole.h"
 #include "ThumbnailManager.h"
+#include "BlueprintGraph/AnimationGraph.h"
 #include "BlueprintGraph/BlueprintActionDatabase.h"
 #include "BlueprintGraph/EdGraph.h"
 #include "Windows/AnimGraph/SAnimGraphEditorWindow.h"
@@ -189,12 +192,6 @@ void USlateManager::OpenSkeletalMeshViewer()
     // AnimGraphEditorWindow = new SAnimGraphEditorWindow();
     // AnimGraphEditorWindow->Initialize();
 
-    FBlueprintActionDatabase::GetInstance().Initialize();
-    GraphEditorWindow = new SGraphEditorWindow();
-    // @todo 메모리 누수 발생 지점. 나중에 무조건 지울 것
-    UEdGraph* Graph = new UEdGraph();
-    GraphEditorWindow->Initialize(Graph);
-
     // Open as a detached window at a default size and position
     const float toolbarHeight = 50.0f;
     const float availableHeight = Rect.GetHeight() - toolbarHeight;
@@ -219,6 +216,20 @@ void USlateManager::OpenSkeletalMeshViewerWithFile(const char* FilePath)
         SkeletalViewerWindow->LoadSkeletalMesh(FilePath);
         UE_LOG("Opening SkeletalMeshViewer with file: %s", FilePath);
     }
+}
+
+void USlateManager::OpenAnimationGraphEditor()
+{
+    if (AnimationGraphEditorWindow)
+    {
+        return;
+    }
+
+    AnimationGraphEditorWindow = new SGraphEditorWindow();
+
+    // @note 기본 애니메이션 그래프 생성
+    AnimGraph = NewObject<UAnimationGraph>();
+    AnimationGraphEditorWindow->Initialize(AnimGraph);
 }
 
 void USlateManager::CloseSkeletalMeshViewer()
@@ -427,14 +438,9 @@ void USlateManager::Render()
         SkeletalViewerWindow->OnRender();
     }
 
-    if (AnimGraphEditorWindow)
+    if (AnimationGraphEditorWindow)
     {
-        AnimGraphEditorWindow->OnRender();
-    }
-
-    if (GraphEditorWindow)
-    {
-        GraphEditorWindow->OnRender();
+        AnimationGraphEditorWindow->OnRender();
     }
 }
 
@@ -734,16 +740,10 @@ void USlateManager::Shutdown()
         SkeletalViewerWindow = nullptr;
     }
 
-    if (AnimGraphEditorWindow)
+    if (AnimationGraphEditorWindow)
     {
-        delete AnimGraphEditorWindow;
-        AnimGraphEditorWindow = nullptr;
-    }
-
-    if (GraphEditorWindow)
-    {
-        delete GraphEditorWindow;
-        GraphEditorWindow = nullptr;
+        delete AnimationGraphEditorWindow;
+        AnimationGraphEditorWindow = nullptr;
     }
 }
 
