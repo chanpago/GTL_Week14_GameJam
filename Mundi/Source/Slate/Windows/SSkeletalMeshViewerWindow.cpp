@@ -1232,6 +1232,56 @@ void SSkeletalMeshViewerWindow::DrawAnimationPanel(ViewerState* State)
                     }
                     ImGui::EndMenu();
                 }
+
+                ImGui::Separator();
+                if (ImGui::MenuItem("Delete Notify"))
+                {
+                    if (bHasAnimation && State->CurrentAnimation)
+                    {
+                        const float ClickFrame = RightClickFrame;
+                        const float ClickTimeSec = ImClamp(ClickFrame * FrameDuration, 0.0f, PlayLength);
+
+                        TArray<FAnimNotifyEvent>& Events = State->CurrentAnimation->GetAnimNotifyEvents();
+
+                        int DeleteIndex = -1;
+                        float BestDist = 1e9f;
+                        const float Tolerance = FMath::Max(FrameDuration * 0.5f, 0.05f);
+
+                        for (int i = 0; i < Events.Num(); ++i)
+                        {
+                            const FAnimNotifyEvent& E = Events[i];
+                            float Dist = 1e9f;
+                            if (E.IsState())
+                            {
+                                const float Start = E.GetTriggerTime();
+                                const float End = E.GetEndTriggerTime();
+                                if (ClickTimeSec >= Start - Tolerance && ClickTimeSec <= End + Tolerance)
+                                {
+                                    Dist = 0.0f;
+                                }
+                                else
+                                {
+                                    Dist = (ClickTimeSec < Start) ? (Start - ClickTimeSec) : (ClickTimeSec - End);
+                                }
+                            }
+                            else
+                            {
+                                Dist = FMath::Abs(E.GetTriggerTime() - ClickTimeSec);
+                            }
+
+                            if (Dist <= Tolerance && Dist < BestDist)
+                            {
+                                BestDist = Dist;
+                                DeleteIndex = i;
+                            }
+                        }
+
+                        if (DeleteIndex >= 0)
+                        {
+                            Events.RemoveAt(DeleteIndex);
+                        }
+                    }
+                }
                 ImGui::EndPopup();
             }
 
