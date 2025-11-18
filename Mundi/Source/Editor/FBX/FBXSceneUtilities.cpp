@@ -67,8 +67,10 @@ bool FBXSceneUtilities::ConvertSceneAxisIfNeeded(FbxScene* Scene)
 bool FBXSceneUtilities::NodeContainsSkeleton(FbxNode* InNode)
 {
 	if (!InNode)
+	{
 		return false;
-
+	}
+	FString NodeName = InNode->GetName();
 	int InNodeCount = InNode->GetNodeAttributeCount();
 	for (int i = 0; i < InNodeCount; ++i)
 	{
@@ -139,17 +141,51 @@ bool FBXSceneUtilities::NodeContainsSkeletonInDescendants(FbxNode* InNode)
 	for (int i = 0; i < InNode->GetChildCount(); ++i)
 	{
 		FbxNode* ChildNode = InNode->GetChild(i);
-		
+
 		// If child itself is a skeleton, return true
 		if (NodeContainsSkeleton(ChildNode))
 		{
 			return true;
 		}
-		
+
 		// Recursively check child's descendants
 		if (NodeContainsSkeletonInDescendants(ChildNode))
 		{
 			return true;
+		}
+	}
+
+	return false;
+}
+
+// Helper: Check if a node has skeleton nodes in its immediate children only (non-recursive)
+// Returns true if any direct child contains a skeleton attribute
+bool FBXSceneUtilities::NodeContainsSkeletonInImmediateChildren(FbxNode* InNode)
+{
+	
+	if (!InNode)
+	{
+		return false;
+	}
+	FString NodeName = InNode->GetName();
+	// Check only immediate children (no recursion)
+
+	int InNodeCount = InNode->GetChildCount();
+	for (int i = 0; i < InNodeCount; ++i)
+	{
+		FbxNode* ChildNode = InNode->GetChild(i);
+		FString ChildNodeName = ChildNode->GetName();
+		// If child itself is a skeleton, return true
+		int ChildAttributeCount = ChildNode->GetNodeAttributeCount();
+		for (int j = 0; j < ChildAttributeCount; ++j)
+		{
+			if (FbxNodeAttribute* Attribute = ChildNode->GetNodeAttributeByIndex(j))
+			{
+				if (Attribute->GetAttributeType() == FbxNodeAttribute::eSkeleton)
+				{
+					return true;
+				}
+			}
 		}
 	}
 

@@ -46,11 +46,4 @@ public:
 
     // Override GetPlayLength from base class
     virtual float GetPlayLength() const override;
-
-    // Non-skeleton parent correction transform (for FBX files with container nodes like Armature, CactusPA, etc.)
-    // Identity if no correction needed (e.g., Mixamo), or the container's local transform if present
-    FTransform NonSkeletonCorrection;
-
-    void SetNonSkeletonCorrection(const FTransform& InTransform) { NonSkeletonCorrection = InTransform; }
-    FTransform GetNonSkeletonCorrection() const { return NonSkeletonCorrection; }
 };

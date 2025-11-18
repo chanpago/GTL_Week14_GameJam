@@ -11,7 +11,7 @@ public:
 	static void ProcessAnimations(FbxScene* Scene, const FSkeletalMeshData& MeshData, const FString& FilePath, TArray<UAnimSequence*>& OutAnimations);
 
 	// Extract bone animation data for a specific bone
-	static void ExtractBoneAnimation(FbxNode* BoneNode, FbxAnimLayer* AnimLayer, FbxTime Start, FbxTime End, int32 NumFrames, TArray<FVector>& OutPositions, TArray<FQuat>& OutRotations, TArray<FVector>& OutScales);
+	static void ExtractBoneAnimation(FbxNode* BoneNode, FbxAnimLayer* AnimLayer, FbxTime StartTime, FbxLongLong FrameCount, FbxTime::EMode TimeMode, TArray<FVector>& OutPositions, TArray<FQuat>& OutRotations, TArray<FVector>& OutScales, const FbxAMatrix& ArmatureTransform, bool bIsRootBone);
 
 	// Check if a node has animation curves
 	static bool NodeHasAnimation(FbxNode* Node, FbxAnimLayer* AnimLayer);

@@ -16,6 +16,10 @@ public:
 	// Used to distinguish container nodes (like Armature, CactusPA) from unrelated nodes (like Mesh, Camera)
 	static bool NodeContainsSkeletonInDescendants(FbxNode* InNode);
 
+	// Helper: Check if a node has skeleton nodes in its immediate children only (non-recursive)
+	// Used to find direct skeleton container nodes
+	static bool NodeContainsSkeletonInImmediateChildren(FbxNode* InNode);
+
 	// Helper: Compute accumulated correction matrix from non-skeleton parent nodes (e.g., Armature)
 	// Walks up the parent chain and accumulates transforms of all non-skeleton ancestors
 	static FbxAMatrix ComputeNonSkeletonParentCorrection(FbxNode* BoneNode, const TMap<const FbxNode*, FbxAMatrix>& NonSkeletonParentTransforms);

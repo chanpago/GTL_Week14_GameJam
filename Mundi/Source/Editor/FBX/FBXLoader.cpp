@@ -333,11 +333,13 @@ FSkeletalMeshData* UFbxLoader::LoadFbxMeshAsset(const FString& FilePath)
 	if (RootNode)
 	{
 		// 2번의 패스로 나눠서 처음엔 뼈의 인덱스를 결정하고 2번째 패스에서 뼈가 영향을 미치는 정점들을 구하고 정점마다 뼈 인덱스를 할당해 줄 것임(동시에 TPose 역행렬도 구함)
-		for (int Index = 0; Index < RootNode->GetChildCount(); Index++)
+		int RootNodeChildCount = RootNode->GetChildCount();
+		for (int Index = 0; Index < RootNodeChildCount; Index++)
 		{
 			FBXSkeletonLoader::LoadSkeletonHierarchy(RootNode->GetChild(Index), *MeshData, -1, BoneToIndex);
 		}
-		for (int Index = 0; Index < RootNode->GetChildCount(); Index++)
+		
+		for (int Index = 0; Index < RootNodeChildCount; Index++)
 		{
 			FBXMeshLoader::LoadMeshFromNode(RootNode->GetChild(Index), *MeshData, MaterialGroupIndexList, BoneToIndex, MaterialToIndex, MaterialInfos);
 		}

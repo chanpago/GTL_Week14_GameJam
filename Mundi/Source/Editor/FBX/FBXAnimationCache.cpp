@@ -95,22 +95,6 @@ bool FBXAnimationCache::SaveAnimationToCache(UAnimSequence* Animation, const FSt
 		Writer << NumberOfFrames;
 		Writer << NumberOfKeys;
 
-		// Write Non-skeleton correction transform
-		FTransform CachedNonSkeletonCorrection = Animation->GetNonSkeletonCorrection();
-		FVector ACTranslation = CachedNonSkeletonCorrection.Translation;
-		FQuat ACRotation = CachedNonSkeletonCorrection.Rotation;
-		FVector ACScale = CachedNonSkeletonCorrection.Scale3D;
-		Writer << ACTranslation.X;
-		Writer << ACTranslation.Y;
-		Writer << ACTranslation.Z;
-		Writer << ACRotation.X;
-		Writer << ACRotation.Y;
-		Writer << ACRotation.Z;
-		Writer << ACRotation.W;
-		Writer << ACScale.X;
-		Writer << ACScale.Y;
-		Writer << ACScale.Z;
-
 		// Write bone tracks
 		TArray<FBoneAnimationTrack>& Tracks = DataModel->GetBoneAnimationTracks();
 		uint32 NumTracks = (uint32)Tracks.Num();
@@ -183,20 +167,6 @@ UAnimSequence* FBXAnimationCache::LoadAnimationFromCache(const FString& CachePat
 		Reader << FrameRate;
 		Reader << NumberOfFrames;
 		Reader << NumberOfKeys;
-
-		FTransform NonSkeletonCorrection;
-		Reader << NonSkeletonCorrection.Translation.X;
-		Reader << NonSkeletonCorrection.Translation.Y;
-		Reader << NonSkeletonCorrection.Translation.Z;
-		Reader << NonSkeletonCorrection.Rotation.X;
-		Reader << NonSkeletonCorrection.Rotation.Y;
-		Reader << NonSkeletonCorrection.Rotation.Z;
-		Reader << NonSkeletonCorrection.Rotation.W;
-		Reader << NonSkeletonCorrection.Scale3D.X;
-		Reader << NonSkeletonCorrection.Scale3D.Y;
-		Reader << NonSkeletonCorrection.Scale3D.Z;
-
-		Animation->SetNonSkeletonCorrection(NonSkeletonCorrection);
 
 		DataModel->SetPlayLength(PlayLength);
 		DataModel->SetFrameRate(FrameRate);

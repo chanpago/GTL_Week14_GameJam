@@ -143,27 +143,58 @@ FTransform UAnimDataModel::EvaluateBoneTrackTransform(const FName& BoneName, flo
         return FTransform();
     }
 
-    // Convert time to frame
+    const FRawAnimSequenceTrack& RawTrack = Track->InternalTrack;
+
+    // 시간 클램프
+    float PlayLength = this->PlayLength;
+    Time = FMath::Clamp(Time, 0.0f, PlayLength);
+
+    // 시간을 프레임 번호로 변환
     float FrameTime = Time * static_cast<float>(FrameRate);
-    int32 Frame0 = static_cast<int32>(FMath::Floor(FrameTime));
-    int32 Frame1 = Frame0 + 1;
-    float Alpha = FrameTime - static_cast<float>(Frame0);
 
-    // Clamp frames
-    Frame0 = FMath::Clamp(Frame0, 0, NumberOfFrames - 1);
-    Frame1 = FMath::Clamp(Frame1, 0, NumberOfFrames - 1);
+    // 프레임 인덱스 계산 (KraftonGTL 방식)
+    int32 FrameIndex0 = FMath::FloorToInt(FrameTime);
+    int32 FrameIndex1 = FMath::CeilToInt(FrameTime);
+    float Alpha = FrameTime - FrameIndex0;
 
-    FTransform Transform0, Transform1;
-    GetBoneTrackTransform(BoneName, Frame0, Transform0);
-    GetBoneTrackTransform(BoneName, Frame1, Transform1);
+    FTransform Result;
 
-    if (!bInterpolate || FMath::IsNearlyZero(Alpha))
+    // Position 보간 (Linear)
+    if (RawTrack.PosKeys.Num() > 0)
     {
-        return Transform0;
+        int32 PosIdx0 = FMath::Clamp(FrameIndex0, 0, RawTrack.PosKeys.Num() - 1);
+        int32 PosIdx1 = FMath::Clamp(FrameIndex1, 0, RawTrack.PosKeys.Num() - 1);
+
+        const FVector& Pos0 = RawTrack.PosKeys[PosIdx0];
+        const FVector& Pos1 = RawTrack.PosKeys[PosIdx1];
+
+        Result.Translation = FVector::Lerp(Pos0, Pos1, Alpha);
     }
 
-    // Interpolate
-    FTransform Result;
-    Result.Blend(Transform0, Transform1, Alpha);
+    // Rotation 보간 (Slerp)
+    if (RawTrack.RotKeys.Num() > 0)
+    {
+        int32 RotIdx0 = FMath::Clamp(FrameIndex0, 0, RawTrack.RotKeys.Num() - 1);
+        int32 RotIdx1 = FMath::Clamp(FrameIndex1, 0, RawTrack.RotKeys.Num() - 1);
+
+        const FQuat& Rot0 = RawTrack.RotKeys[RotIdx0];
+        const FQuat& Rot1 = RawTrack.RotKeys[RotIdx1];
+
+        Result.Rotation = FQuat::Slerp(Rot0, Rot1, Alpha);
+        Result.Rotation.Normalize();
+    }
+
+    // Scale 보간 (Linear)
+    if (RawTrack.ScaleKeys.Num() > 0)
+    {
+        int32 ScaleIdx0 = FMath::Clamp(FrameIndex0, 0, RawTrack.ScaleKeys.Num() - 1);
+        int32 ScaleIdx1 = FMath::Clamp(FrameIndex1, 0, RawTrack.ScaleKeys.Num() - 1);
+
+        const FVector& Scale0 = RawTrack.ScaleKeys[ScaleIdx0];
+        const FVector& Scale1 = RawTrack.ScaleKeys[ScaleIdx1];
+
+        Result.Scale3D = FVector::Lerp(Scale0, Scale1, Alpha);
+    }
+
     return Result;
 }

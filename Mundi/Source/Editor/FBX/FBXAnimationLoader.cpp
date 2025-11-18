@@ -1,4 +1,4 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include "FBXAnimationLoader.h"
 #include "FBXAnimationCache.h"
 #include "FBXSceneUtilities.h"
@@ -8,65 +8,63 @@
 #include "PathUtils.h"
 #include <filesystem>
 
+// Helper function to find first non-skeleton node that contains skeleton in its immediate children
+static FbxNode* FindNonSkeletonParentRecursive(FbxNode* Node)
+{
+	FString NodeName = Node->GetName();
+	if (!Node)
+	{
+		return nullptr;
+	}
+
+	// Check if this node is a non-skeleton container that has skeleton children
+	if (!FBXSceneUtilities::NodeContainsSkeleton(Node) && FBXSceneUtilities::NodeContainsSkeletonInImmediateChildren(Node))
+	{
+		FString FindArmatureNodeName = Node->GetName();
+		return Node;
+	}
+
+	// Recursively search children
+	int ChildCount = Node->GetChildCount();
+	for (int i = 0; i < ChildCount; ++i)
+	{
+		FbxNode* FoundNode = FindNonSkeletonParentRecursive(Node->GetChild(i));
+		if (FoundNode)
+		{
+			return FoundNode;
+		}
+	}
+
+	return nullptr;
+}
+
 void FBXAnimationLoader::ProcessAnimations(FbxScene* Scene, const FSkeletalMeshData& MeshData, const FString& FilePath, TArray<UAnimSequence*>& OutAnimations)
 {
 	// Find first non-skeleton container node and extract its transform for correction
 	// This generalizes the old "Armature" hardcoded logic to work with any non-skeleton parent (e.g., CactusPA, Armature, etc.)
-	FTransform NonSkeletonCorrection;
-	bool bFoundNonSkeletonParent = false;
+	FbxAMatrix ArmatureTransform;
+	ArmatureTransform.SetIdentity();  // 기본값: 항등 행렬
 	FbxNode* RootNode = Scene->GetRootNode();
 
 	if (RootNode)
 	{
-		// Search for the first child that is NOT a skeleton node
-		// (skeleton nodes will be handled separately during bone extraction)
-		int RootNodeChildCount = RootNode->GetChildCount();
-		for (int i = 0; i < RootNodeChildCount; ++i)
+		// Search recursively starting from root
+		FbxNode* NonSkeletonParentNode = FindNonSkeletonParentRecursive(RootNode);
+
+		if (NonSkeletonParentNode)
 		{
-			FbxNode* ChildNode = RootNode->GetChild(i);
+			// Found a non-skeleton parent node - extract its transform
+			ArmatureTransform = NonSkeletonParentNode->EvaluateLocalTransform();
 
-			// Check if this node is a non-skeleton container (e.g., Armature, CactusPA, etc.)
-			if (!FBXSceneUtilities::NodeContainsSkeleton(ChildNode) && FBXSceneUtilities::NodeContainsSkeletonInDescendants(ChildNode)
-				)
-			{
-				// Found a non-skeleton parent node - extract its transform
-				FbxAMatrix LocalTransform = ChildNode->EvaluateLocalTransform(FBXSDK_TIME_ZERO);
-
-				// Convert FbxAMatrix to FTransform
-				FbxVector4 Translation = LocalTransform.GetT();
-				FbxQuaternion Rotation = LocalTransform.GetQ();
-				FbxVector4 Scale = LocalTransform.GetS();
-
-				NonSkeletonCorrection.Translation = FVector(
-					static_cast<float>(Translation[0]),
-					static_cast<float>(Translation[1]),
-					static_cast<float>(Translation[2])
-				);
-				NonSkeletonCorrection.Rotation = FQuat(
-					static_cast<float>(Rotation[0]),
-					static_cast<float>(Rotation[1]),
-					static_cast<float>(Rotation[2]),
-					static_cast<float>(Rotation[3])
-				);
-				NonSkeletonCorrection.Scale3D = FVector(
-					static_cast<float>(Scale[0]),
-					static_cast<float>(Scale[1]),
-					static_cast<float>(Scale[2])
-				);
-
-				FString NodeName = ChildNode->GetName();
-				UE_LOG("Found non-skeleton container node '%s', storing correction transform", NodeName.c_str());
-				bFoundNonSkeletonParent = true;
-				break;
-			}
+			FbxVector4 ArmatureScale = ArmatureTransform.GetS();
+			FString NodeName = NonSkeletonParentNode->GetName();
+			UE_LOG("Found Armature '%s' with Scale: (%.2f, %.2f, %.2f)",
+				NodeName.c_str(), ArmatureScale[0], ArmatureScale[1], ArmatureScale[2]);
 		}
-	}
-
-	// If no non-skeleton parent found, skeleton is directly under root (Mixamo case)
-	if (!bFoundNonSkeletonParent)
-	{
-		NonSkeletonCorrection = FTransform();
-		UE_LOG("No non-skeleton container found, skeleton directly under root (Mixamo-style FBX)");
+		else
+		{
+			UE_LOG("No non-skeleton container found, skeleton directly under root (Mixamo-style FBX)");
+		}
 	}
 
 	// 중요
@@ -94,22 +92,22 @@ void FBXAnimationLoader::ProcessAnimations(FbxScene* Scene, const FSkeletalMeshD
 
 		// Get time range
 		FbxTimeSpan TimeSpan = AnimStack->GetLocalTimeSpan();
-		FbxTime Start = TimeSpan.GetStart();
-		FbxTime End = TimeSpan.GetStop();
+		FbxTime StartTime = TimeSpan.GetStart();
+		FbxTime StopTime = TimeSpan.GetStop();
+		FbxTime Duration = StopTime - StartTime;
 
-		float FrameRate = static_cast<float>(FbxTime::GetFrameRate(Scene->GetGlobalSettings().GetTimeMode()));
-		float Duration = static_cast<float>(End.GetSecondDouble() - Start.GetSecondDouble());
+		// Scene의 프레임레이트 가져오기
+		FbxTime::EMode TimeMode = Scene->GetGlobalSettings().GetTimeMode();
+		float FrameRate = static_cast<float>(FbxTime::GetFrameRate(TimeMode));
+		double PlayLength = Duration.GetSecondDouble();
 
-		// 마지막 프레임 누락 방지용 소수점 올림
-		int32 NumFrames = FMath::CeilToInt(Duration * FrameRate);
+		// 전체 프레임 수 계산 (KraftonGTL 방식)
+		FbxLongLong FrameCount = Duration.GetFrameCount(TimeMode);
+		int32 NumFrames = static_cast<int32>(FrameCount) + 1;  // 0부터 FrameCount까지 포함
 
 		// 애니메이션을 저장할 AnimSequence 생성
 		UAnimSequence* AnimSequence = NewObject<UAnimSequence>();
 		AnimSequence->ObjectName = FName(AnimStackName);
-
-
-		// Set Armature correction transform (Identity for Mixamo, actual transform for Blender)
-		AnimSequence->SetNonSkeletonCorrection(NonSkeletonCorrection);
 
 		// Get DataModel
 		UAnimDataModel* DataModel = AnimSequence->GetDataModel();
@@ -119,7 +117,7 @@ void FBXAnimationLoader::ProcessAnimations(FbxScene* Scene, const FSkeletalMeshD
 		}
 
 		DataModel->SetFrameRate(static_cast<int32>(FrameRate));
-		DataModel->SetPlayLength(Duration);
+		DataModel->SetPlayLength(static_cast<float>(PlayLength));
 		DataModel->SetNumberOfFrames(NumFrames);
 		DataModel->SetNumberOfKeys(NumFrames);
 
@@ -163,8 +161,11 @@ void FBXAnimationLoader::ProcessAnimations(FbxScene* Scene, const FSkeletalMeshD
 			TArray<FQuat> Rotations;
 			TArray<FVector> Scales;
 
-			// Extract animation data - 무조건 추출 시도 (EvaluateLocalTransform 사용)
-			ExtractBoneAnimation(BoneNode, AnimLayer, Start, End, NumFrames, Positions, Rotations, Scales);
+			// 루트 본인지 확인
+			bool bIsRootBone = (Bone.ParentIndex == -1);
+
+			// Extract animation data (KraftonGTL 방식 - 프레임 기반)
+			ExtractBoneAnimation(BoneNode, AnimLayer, StartTime, FrameCount, TimeMode, Positions, Rotations, Scales, ArmatureTransform, bIsRootBone);
 
 			// Set keys in data model
 			DataModel->SetBoneTrackKeys(BoneName, Positions, Rotations, Scales);
@@ -221,87 +222,66 @@ void FBXAnimationLoader::ProcessAnimations(FbxScene* Scene, const FSkeletalMeshD
 #endif
 }
 
-void FBXAnimationLoader::ExtractBoneAnimation(FbxNode* BoneNode, FbxAnimLayer* AnimLayer, FbxTime Start, FbxTime End, int32 NumFrames, TArray<FVector>& OutPositions, TArray<FQuat>& OutRotations, TArray<FVector>& OutScales)
+void FBXAnimationLoader::ExtractBoneAnimation(FbxNode* BoneNode, FbxAnimLayer* AnimLayer, FbxTime StartTime, FbxLongLong FrameCount, FbxTime::EMode TimeMode, TArray<FVector>& OutPositions, TArray<FQuat>& OutRotations, TArray<FVector>& OutScales, const FbxAMatrix& ArmatureTransform, bool bIsRootBone)
 {
-	if (!BoneNode || !AnimLayer || NumFrames <= 0)
+	if (!BoneNode || !AnimLayer || FrameCount < 0)
 	{
-		UE_LOG("ExtractBoneAnimation failed: BoneNode=%p, AnimLayer=%p, NumFrames=%d", BoneNode, AnimLayer, NumFrames);
+		UE_LOG("ExtractBoneAnimation failed: BoneNode=%p, AnimLayer=%p, FrameCount=%lld", BoneNode, AnimLayer, FrameCount);
 		return;
 	}
 
-	OutPositions.SetNum(NumFrames);
-	OutRotations.SetNum(NumFrames);
-	OutScales.SetNum(NumFrames);
+	// 부모 노드 가져오기
+	FbxNode* ParentNode = BoneNode->GetParent();
 
-	static bool bLoggedExtraction = false;
-	if (!bLoggedExtraction)
+	// 처음부터 끝까지 모든 프레임을 샘플링 (KraftonGTL 방식)
+	for (FbxLongLong Frame = 0; Frame <= FrameCount; Frame++)
 	{
-		UE_LOG("=== ExtractBoneAnimation START for %s ===", BoneNode->GetName());
-		UE_LOG("NumFrames: %d, Start: %.2f, End: %.2f", NumFrames, Start.GetSecondDouble(), End.GetSecondDouble());
-		bLoggedExtraction = true;
-	}
+		FbxTime CurrentTime;
+		CurrentTime.SetFrame(StartTime.GetFrameCount(TimeMode) + Frame, TimeMode);
 
-	float Duration = static_cast<float>(End.GetSecondDouble() - Start.GetSecondDouble());
-	FbxTime FrameTime;
-	FrameTime.SetSecondDouble(Duration / static_cast<double>(NumFrames - 1));
+		// Global Transform에서 Local Transform 계산 (ConvertScene 적용된 값 사용)
+		FbxAMatrix GlobalTransform = BoneNode->EvaluateGlobalTransform(CurrentTime);
+		FbxAMatrix LocalTransform;
 
-	// 최상위 본(루트 본)에 대해서만 로그 출력
-	static bool bLoggedRootBone = false;
-	bool bIsRootBone = (BoneNode->GetParent() == nullptr || BoneNode->GetParent()->GetNodeAttribute() == nullptr);
+		if (ParentNode)
+		{
+			FbxAMatrix ParentGlobalTransform = ParentNode->EvaluateGlobalTransform(CurrentTime);
+			LocalTransform = ParentGlobalTransform.Inverse() * GlobalTransform;
+		}
+		else
+		{
+			LocalTransform = GlobalTransform;
+		}
 
-	for (int32 FrameIndex = 0; FrameIndex < NumFrames; ++FrameIndex)
-	{
-		FbxTime CurrentTime = Start + FrameTime * FrameIndex;
+		// 루트 본에 Armature Transform 적용 (Blender FBX 지원)
+		// Armature가 없으면 항등 행렬이므로 영향 없음
+		if (bIsRootBone)
+		{
+			LocalTransform = ArmatureTransform * LocalTransform;
+		}
 
-		// 절대 로컬 트랜스폼을 직접 사용 (델타가 아닌 실제 로컬 변환)
-		FbxAMatrix LocalTransform = BoneNode->EvaluateLocalTransform(CurrentTime);
-
-		// Extract translation - ConvertScene()이 이미 cm → m 변환 적용했으므로 그대로 사용
+		// 행렬에서 T, R, S 추출
 		FbxVector4 Translation = LocalTransform.GetT();
-		OutPositions[FrameIndex] = FVector(
+		FbxQuaternion Rotation = LocalTransform.GetQ();
+		FbxVector4 Scale = LocalTransform.GetS();
+
+		// 트랙에 추가
+		OutPositions.Add(FVector(
 			static_cast<float>(Translation[0]),
 			static_cast<float>(Translation[1]),
 			static_cast<float>(Translation[2])
-		);
-
-		// Extract rotation
-		FbxQuaternion Rotation = LocalTransform.GetQ();
-		OutRotations[FrameIndex] = FQuat(
+		));
+		OutRotations.Add(FQuat(
 			static_cast<float>(Rotation[0]),
 			static_cast<float>(Rotation[1]),
 			static_cast<float>(Rotation[2]),
 			static_cast<float>(Rotation[3])
-		);
-
-		// Extract scale
-		FbxVector4 Scale = LocalTransform.GetS();
-		OutScales[FrameIndex] = FVector(
+		));
+		OutScales.Add(FVector(
 			static_cast<float>(Scale[0]),
 			static_cast<float>(Scale[1]),
 			static_cast<float>(Scale[2])
-		);
-
-		// 저장되는 실제 값 로그 (루트 본의 처음, 중간, 끝 프레임)
-		if (!bLoggedRootBone && bIsRootBone)
-		{
-			int32 MidFrame = NumFrames / 2;
-			int32 EndFrame = NumFrames - 1;
-
-			if (FrameIndex < 3 || FrameIndex == MidFrame || FrameIndex == MidFrame + 1 || FrameIndex >= EndFrame - 1)
-			{
-				UE_LOG("[Frame %d/%d] LocalTransform: T(%.3f,%.3f,%.3f) R(%.3f,%.3f,%.3f,%.3f) S(%.3f,%.3f,%.3f)",
-					FrameIndex, NumFrames - 1,
-					OutPositions[FrameIndex].X, OutPositions[FrameIndex].Y, OutPositions[FrameIndex].Z,
-					OutRotations[FrameIndex].X, OutRotations[FrameIndex].Y, OutRotations[FrameIndex].Z, OutRotations[FrameIndex].W,
-					OutScales[FrameIndex].X, OutScales[FrameIndex].Y, OutScales[FrameIndex].Z);
-			}
-		}
-	}
-
-	// 루트 본 로그 출력 완료 플래그 설정
-	if (!bLoggedRootBone && bIsRootBone)
-	{
-		bLoggedRootBone = true;
+		));
 	}
 }
 
