@@ -9,7 +9,7 @@
     }, {
       "CapsuleHalfHeight" : 0.000000,
       "CapsuleRadius" : 0.000000,
-      "Id" : 1693,
+      "Id" : 1293,
       "ObjectName" : "UCapsuleComponent_1",
       "ParentId" : 0,
       "RelativeLocation" : [1.532815, -1.532815, 1.173166],
@@ -26,7 +26,7 @@
       "bTickEnabled" : true
     }, {
       "AnimGraphPath" : "Data/Graphs/Future.graph",
-      "Id" : 1694,
+      "Id" : 1294,
       "MaterialSlots" : [{
           "Type" : "None"
         }, {
@@ -40,7 +40,7 @@
           "Type" : "UMaterial"
         }],
       "ObjectName" : "USkeletalMeshComponent_1",
-      "ParentId" : 1693,
+      "ParentId" : 1293,
       "RelativeLocation" : [0.000000, 0.000000, 0.000000],
       "RelativeRotationEuler" : [0.000000, 0.000000, 0.000000],
       "RelativeScale" : [1.000000, 1.000000, 1.000000],
@@ -54,7 +54,7 @@
       "bIsVisible" : true,
       "bTickEnabled" : true
     }],
-  "RootComponentId" : 1693,
+  "RootComponentId" : 1293,
   "Tag" : "",
   "Type" : "ACharacter",
   "bActorHiddenInGame" : false,

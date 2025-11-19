@@ -87,8 +87,9 @@ void UK2Node_AnimSequence::RenderBody()
                   
                 if (ImGui::Selectable(AssetName.c_str(), bIsSelected))
                 {
-                    Value = Anim; 
-                    Anim->LoadMeta(Anim->GetNotifyPath());
+                    Value = Anim;
+                    // LoadMeta 호출 제거 - GetAnimNotifyEvents()가 이미 lazy loading을 수행함
+                    // 불필요한 LoadMeta 호출은 메모리의 노티파이를 파일 데이터로 덮어씀
                     ImGui::CloseCurrentPopup();
                 }
 

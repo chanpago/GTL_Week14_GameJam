@@ -58,9 +58,15 @@ TArray<FAnimNotifyEvent>& UAnimSequenceBase::GetAnimNotifyEvents()
         }
         const FString MetaPathUtf8 = NormalizePath(GDataDir + "/" + FileName + ".anim.json");
         std::filesystem::path MetaPath(UTF8ToWide(MetaPathUtf8));
-        std::error_code ec; if (std::filesystem::exists(MetaPath, ec))
+        std::error_code ec;
+
+        UE_LOG("GetAnimNotifyEvents - FilePath: %s, MetaPath: %s, Exists: %d",
+            Src.c_str(), MetaPathUtf8.c_str(), std::filesystem::exists(MetaPath, ec) ? 1 : 0);
+
+        if (std::filesystem::exists(MetaPath, ec))
         {
             LoadMeta(MetaPathUtf8);
+            UE_LOG("GetAnimNotifyEvents - Loaded %d notifies from %s", Notifies.Num(), MetaPathUtf8.c_str());
         }
     }
     return Notifies;

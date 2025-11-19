@@ -301,6 +301,8 @@ void UAnimInstance::TriggerAnimNotifies(float DeltaSeconds)
 {
     if (!CurrentPlayState.Sequence)
     {
+        // PoseProvider만 있고 Sequence가 없는 경우 (예: BlendSpace1D)
+        // 이 경우 노티파이를 처리할 수 없음
         return;
     }
 
@@ -309,6 +311,16 @@ void UAnimInstance::TriggerAnimNotifies(float DeltaSeconds)
 
     float DeltaMove = DeltaSeconds * CurrentPlayState.PlayRate;
     CurrentPlayState.Sequence->GetAnimNotify(PreviousPlayTime, DeltaMove, PendingNotifies);
+
+    // 디버그: 노티파이 검출 상태 출력
+    static float LogTimer = 0.0f;
+    LogTimer += DeltaSeconds;
+    if (LogTimer > 1.0f)
+    {
+        UE_LOG("TriggerAnimNotifies - PrevTime: %.3f, CurrentTime: %.3f, DeltaMove: %.3f, PendingCount: %d",
+            PreviousPlayTime, CurrentPlayState.CurrentTime, DeltaMove, PendingNotifies.Num());
+        LogTimer = 0.0f;
+    }
 
     // 수집된 노티파이 처리
     for (const FPendingAnimNotify& Pending : PendingNotifies)

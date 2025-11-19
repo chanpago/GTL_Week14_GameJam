@@ -80,7 +80,8 @@ void AGameModeBase::PostLogin(APlayerController* NewPlayer)
 	{
 		if (UActorComponent* ActorComponent = NewPawn->AddNewComponent(UCameraComponent::StaticClass(), NewPawn->GetRootComponent())) {
 			auto* Camera = Cast<UCameraComponent>(ActorComponent);
-			Camera->SetRelativeLocation(FVector(-3, 0, 1)); 
+			Camera->SetRelativeLocation(FVector(-4, 0, 2.7));
+			Camera->SetRelativeRotationEuler(FVector(0, 14, 0));
 		}
 	}
 
