@@ -67,7 +67,6 @@ FBlueprintValue UK2Node_GetIsFalling::EvaluatePin(const UEdGraphPin* OutputPin, 
         {
             return FBlueprintValue(false); 
         }
-        std::cout << MoveComp->IsFalling()<< std::endl;
         return FBlueprintValue(MoveComp->IsFalling());
     }
 
@@ -111,8 +110,6 @@ FBlueprintValue UK2Node_GetVelocity::EvaluatePin(const UEdGraphPin* OutputPin, F
 
     FVector Velocity = MoveComp->GetVelocity();
 
-    //std::cout << "Velocity: " << Velocity.X << " " << Velocity.Y << " " << Velocity.Z << "\n";
-
     if (OutputPin->PinName == "X")
     {
         return FBlueprintValue(Velocity.X);
@@ -130,6 +127,51 @@ FBlueprintValue UK2Node_GetVelocity::EvaluatePin(const UEdGraphPin* OutputPin, F
 }
 
 void UK2Node_GetVelocity::GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const
+{
+    UBlueprintNodeSpawner* Spawner = UBlueprintNodeSpawner::Create(GetClass());
+    Spawner->MenuName = GetNodeTitle();
+    Spawner->Category = GetMenuCategory();
+    ActionRegistrar.AddAction(Spawner);
+}
+
+// ----------------------------------------------------------------
+//	[GetSpeed] 
+// ----------------------------------------------------------------
+
+IMPLEMENT_CLASS(UK2Node_GetSpeed, UK2Node)
+
+UK2Node_GetSpeed::UK2Node_GetSpeed()
+{
+    TitleColor = ImColor(100, 200, 100);
+}
+
+void UK2Node_GetSpeed::AllocateDefaultPins()
+{
+    // 속력은 스칼라 값이므로 Float 핀 하나만 생성
+    CreatePin(EEdGraphPinDirection::EGPD_Output, FEdGraphPinCategory::Float, "Speed");
+}
+
+FBlueprintValue UK2Node_GetSpeed::EvaluatePin(const UEdGraphPin* OutputPin, FBlueprintContext* Context)
+{
+    auto* MoveComp = GetMovementFromContext(Context);
+
+    // 컴포넌트가 없으면 속력 0 반환
+    if (!MoveComp)
+    {
+        return FBlueprintValue(0.0f);
+    }
+
+    if (OutputPin->PinName == "Speed")
+    {
+        // Velocity 벡터의 길이를 구해서 반환 (FVector::Length() 가정)
+        float Speed = MoveComp->GetVelocity().Size();
+        return FBlueprintValue(Speed);
+    }
+
+    return FBlueprintValue(0.0f);
+}
+
+void UK2Node_GetSpeed::GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const
 {
     UBlueprintNodeSpawner* Spawner = UBlueprintNodeSpawner::Create(GetClass());
     Spawner->MenuName = GetNodeTitle();

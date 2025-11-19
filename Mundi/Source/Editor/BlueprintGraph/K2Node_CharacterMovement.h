@@ -65,3 +65,27 @@ public:
     virtual void GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const override;
 };
 
+// ----------------------------------------------------------------
+//	[GetSpeed] 이동 속력(Scalar) 반환 노드
+// ----------------------------------------------------------------
+UCLASS(DisplayName = "Get Speed", Description = "캐릭터의 현재 이동 속력(Speed)을 반환한다.")
+class UK2Node_GetSpeed : public UK2Node
+{
+    DECLARE_CLASS(UK2Node_GetSpeed, UK2Node);
+
+public:
+    UK2Node_GetSpeed();
+
+    // --- UEdGraphNode 인터페이스 ---
+public:
+    virtual FString GetNodeTitle() const override { return "Get Speed"; }
+    virtual bool IsNodePure() const override { return true; }
+    virtual void AllocateDefaultPins() override;
+    virtual FBlueprintValue EvaluatePin(const UEdGraphPin* OutputPin, FBlueprintContext* Context) override;
+
+    // --- UK2Node 인터페이스 ---
+public:
+    virtual FString GetMenuCategory() const override { return "캐릭터 무브먼트"; };
+    virtual void GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const override;
+};
+
