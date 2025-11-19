@@ -271,6 +271,7 @@
     <ClCompile Include="Source\Editor\BlueprintGraph\K2Node_Literal.cpp" />
     <ClCompile Include="Source\Editor\BlueprintGraph\K2Node_Math.cpp" />
     <ClCompile Include="Source\Editor\BlueprintGraph\K2Node_Misc.cpp" />
+    <ClCompile Include="Source\Editor\FBX\BlendSpace\BlendSpace1D.cpp" />
     <ClCompile Include="Source\Editor\FBX\FBXAnimationCache.cpp" />
     <ClCompile Include="Source\Editor\FBX\FBXAnimationLoader.cpp" />
     <ClCompile Include="Source\Editor\FBX\FbxLoader.cpp" />
@@ -761,6 +762,7 @@
     <ClInclude Include="Source\Editor\BlueprintGraph\K2Node_Math.h" />
     <ClInclude Include="Source\Editor\BlueprintGraph\K2Node_Misc.h" />
     <ClInclude Include="Source\Editor\Clipboard\ClipboardManager.h" />
+    <ClInclude Include="Source\Editor\FBX\BlendSpace\BlendSpace1D.h" />
     <ClInclude Include="Source\Editor\FBX\FBXAnimationCache.h" />
     <ClInclude Include="Source\Editor\FBX\FBXAnimationLoader.h" />
     <ClInclude Include="Source\Editor\FBX\FbxLoader.h" />

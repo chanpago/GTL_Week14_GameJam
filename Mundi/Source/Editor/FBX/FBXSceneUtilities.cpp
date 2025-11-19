@@ -191,3 +191,15 @@ bool FBXSceneUtilities::NodeContainsSkeletonInImmediateChildren(FbxNode* InNode)
 
 	return false;
 }
+
+// 본 이름 정규화 (접두어 제거)
+// "mixamorig:Hips" → "Hips", "Character1:Spine" → "Spine"
+FString FBXSceneUtilities::NormalizeBoneName(const FString& BoneName)
+{
+	size_t ColonPos = BoneName.find(':');
+	if (ColonPos != std::string::npos)
+	{
+		return BoneName.substr(ColonPos + 1);
+	}
+	return BoneName;
+}

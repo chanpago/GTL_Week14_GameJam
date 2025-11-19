@@ -26,4 +26,8 @@ public:
 
 	// 노드의 바인드 포즈 행렬 가져오기
 	static FbxAMatrix GetBindPoseMatrix(FbxNode* Node);
+
+	// 본 이름 정규화 (접두어 제거)
+	// "mixamorig:Hips" → "Hips", "Character1:Spine" → "Spine"
+	static FString NormalizeBoneName(const FString& BoneName);
 };

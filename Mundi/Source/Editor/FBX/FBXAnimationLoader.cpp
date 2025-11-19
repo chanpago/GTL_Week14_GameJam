@@ -332,7 +332,8 @@ void FBXAnimationLoader::BuildBoneNodeMap(FbxNode* RootNode, TMap<FName, FbxNode
 		FbxNodeAttribute* Attribute = RootNode->GetNodeAttributeByIndex(i);
 		if (Attribute && Attribute->GetAttributeType() == FbxNodeAttribute::eSkeleton)
 		{
-			FName BoneName(RootNode->GetName());
+			// 본 이름 정규화 (접두어 제거: "mixamorig:Hips" → "Hips")
+			FName BoneName(FBXSceneUtilities::NormalizeBoneName(FString(RootNode->GetName())));
 			OutBoneNodeMap.Add(BoneName, RootNode);
 			break;
 		}

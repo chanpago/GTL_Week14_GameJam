@@ -51,7 +51,8 @@ void FBXSkeletonLoader::LoadSkeletonFromNode(FbxNode* InNode, FSkeletalMeshData&
 		{
 			FBone BoneInfo{};
 
-			BoneInfo.Name = FString(InNode->GetName());
+			// 본 이름 정규화 (접두어 제거: "mixamorig:Hips" → "Hips")
+			BoneInfo.Name = FBXSceneUtilities::NormalizeBoneName(FString(InNode->GetName()));
 
 			BoneInfo.ParentIndex = ParentNodeIndex;
 
