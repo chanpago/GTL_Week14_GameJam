@@ -35,8 +35,8 @@ const bool UParticleSystemComponent::bPropertiesRegistered = []() {
 
 BEGIN_PROPERTIES(UParticleSystemComponent)
     MARK_AS_COMPONENT("파티클 컴포넌트", "파티클을 생성하는 컴포넌트")
+    ADD_PROPERTY(UParticleSystem*, Template, "Particle", true)
 END_PROPERTIES()
-
 
 // ===== Lua Binding =====
 

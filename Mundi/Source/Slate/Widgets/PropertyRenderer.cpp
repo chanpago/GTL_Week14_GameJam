@@ -22,6 +22,7 @@
 #include "BlueprintGraph/AnimBlueprintCompiler.h"
 #include "ImGui/imgui_curve.hpp"
 #include "Source/Runtime/Engine/Animation/AnimationStateMachine.h"
+#include"Source/Runtime/Engine/Particle/ParticleSystem.h"
 #include "Source/Runtime/Engine/Animation/AnimInstance.h"
 
 // 정적 멤버 변수 초기화
@@ -112,6 +113,10 @@ bool UPropertyRenderer::RenderProperty(const FProperty& Property, void* ObjectIn
 
 	case EPropertyType::Material:
 		bChanged = RenderMaterialProperty(Property, ObjectInstance);
+		break;
+
+	case EPropertyType::ParticleSystem:
+		bChanged = RenderParticleSystemProperty(Property, ObjectInstance);
 		break;
 
 	case EPropertyType::SRV:
@@ -1890,4 +1895,44 @@ bool UPropertyRenderer::RenderTransformProperty(const FProperty& Prop, void* Ins
 	ImGui::PopID();
 
 	return bAnyChanged;
+}
+
+bool UPropertyRenderer::RenderParticleSystemProperty(const FProperty& Prop, void* Instance)
+{
+	// Get the particle system pointer from the property
+	UParticleSystem** PSPtr = Prop.GetValuePtr<UParticleSystem*>(Instance);
+	if (!PSPtr)
+		return false;
+
+	UParticleSystem* CurrentPS = *PSPtr;
+	FString CurrentName = CurrentPS ? CurrentPS->GetName() : "None";
+
+	ImGui::Text("%s:", Prop.Name);
+	ImGui::SameLine();
+	ImGui::TextColored(ImVec4(0.7f, 0.7f, 1.0f, 1.0f), "%s", CurrentName.c_str());
+
+	// Particle Viewer 버튼
+	if (ImGui::Button("Particle Viewer"))
+	{
+		if (!USlateManager::GetInstance().IsParticleViewerOpen())
+		{
+			if (CurrentPS)
+			{
+				USlateManager::GetInstance().OpenParticleViewerWithSystem(CurrentPS);
+			}
+			else
+			{
+				USlateManager::GetInstance().OpenParticleViewer();
+			}
+		}
+		else
+		{
+			USlateManager::GetInstance().CloseParticleViewer();
+		}
+	}
+
+	// TODO: Particle System 선택 콤보박스 (나중에 추가)
+	// ImGui::Combo("##PS", ...)
+
+	return false;
 }

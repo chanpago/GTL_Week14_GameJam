@@ -29,12 +29,14 @@ public:
 	void ActivateSystem() { bAutoActivate = true; }
 	void DeactivateSystem() { bAutoActivate = false; }
 
-	// 렌더링을 위한 MeshBatch 수집 함수 
+	// 렌더링을 위한 MeshBatch 수집 함수
 	void CollectMeshBatches(TArray<FMeshBatchElement>& OutMeshBatchElements, const FSceneView* View) override;
 
-private:	
 	/** 파티클 시스템 에셋 */
+	UPROPERTY(EditAnywhere, Category = "Particle", DisplayName = "파티클 시스템")
 	UParticleSystem* Template = nullptr;
+
+private:
 
 	/** 런타임 데이터 */
 	TArray<FParticleEmitterInstance*> EmitterInstances;

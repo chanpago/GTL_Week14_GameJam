@@ -241,6 +241,47 @@ void USlateManager::CloseSkeletalMeshViewer()
     SkeletalViewerWindow = nullptr;
 }
 
+// ============================================================
+// Particle Viewer
+// ============================================================
+void USlateManager::OpenParticleViewer()
+{
+    if (ParticleViewerWindow)
+        return;
+
+    ParticleViewerWindow = new SParticleViewerWindow();
+
+    // 창 크기/위치 설정
+    const float toolbarHeight = 50.0f;
+    const float availableHeight = Rect.GetHeight() - toolbarHeight;
+    const float w = Rect.GetWidth() * 0.85f;
+    const float h = availableHeight * 0.85f;
+    const float x = Rect.Left + (Rect.GetWidth() - w) * 0.5f;
+    const float y = Rect.Top + toolbarHeight + (availableHeight - h) * 0.5f;
+
+    ParticleViewerWindow->Initialize(x, y, w, h, World, Device);
+}
+
+void USlateManager::OpenParticleViewerWithSystem(UParticleSystem* ParticleSystem)
+{
+    if (!ParticleViewerWindow)
+    {
+        OpenParticleViewer();
+    }
+
+    if (ParticleViewerWindow && ParticleSystem)
+    {
+        ParticleViewerWindow->LoadParticleSystem(ParticleSystem);
+    }
+}
+
+void USlateManager::CloseParticleViewer()
+{
+    if (!ParticleViewerWindow) return;
+    delete ParticleViewerWindow;
+    ParticleViewerWindow = nullptr;
+}
+
 void USlateManager::CloseAnimationGraphEditor()
 {
     if (!AnimationGraphEditorWindow)
@@ -450,6 +491,11 @@ void USlateManager::Render()
         SkeletalViewerWindow->OnRender();
     }
 
+    if (ParticleViewerWindow)
+    {
+        ParticleViewerWindow->OnRender();
+    }
+
     if (AnimationGraphEditorWindow)
     {
         AnimationGraphEditorWindow->OnRender();
@@ -461,6 +507,11 @@ void USlateManager::RenderAfterUI()
     if (SkeletalViewerWindow)
     {
         SkeletalViewerWindow->OnRenderViewport();
+    }
+
+    if (ParticleViewerWindow)
+    {
+        ParticleViewerWindow->OnRenderViewport();
     }
 }
 
@@ -481,6 +532,17 @@ void USlateManager::Update(float DeltaSeconds)
     if (SkeletalViewerWindow)
     {
         SkeletalViewerWindow->OnUpdate(DeltaSeconds);
+    }
+
+    if (ParticleViewerWindow)
+    {
+        ParticleViewerWindow->OnUpdate(DeltaSeconds);
+
+        // 창이 닫혔으면 정리
+        if (!ParticleViewerWindow->IsOpen())
+        {
+            CloseParticleViewer();
+        }
     }
 
     // 콘솔 애니메이션 업데이트

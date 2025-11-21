@@ -6,6 +6,7 @@
 #include "Windows/SSplitterH.h"
 #include "Windows/SViewportWindow.h"
 #include "Windows/SSkeletalMeshViewerWindow.h"
+#include "Windows/Viewer/ParticleViewerWindow.h"
 
 class UAnimationGraph;
 class SAnimGraphEditorWindow;
@@ -85,6 +86,12 @@ public:
     bool IsSkeletalMeshViewerOpen() const { return SkeletalViewerWindow != nullptr; }
     bool IsAnimationGraphEditorOpen() const { return AnimationGraphEditorWindow != nullptr;}
 
+    // Particle Viewer
+    void OpenParticleViewer();
+    void OpenParticleViewerWithSystem(UParticleSystem* ParticleSystem);
+    void CloseParticleViewer();
+    bool IsParticleViewerOpen() const { return ParticleViewerWindow != nullptr; }
+
 private:
     FRect Rect; // 이전엔 SWindow로부터 상속받던 영역 정보
 
@@ -129,6 +136,9 @@ private:
 
     // Detached skeletal mesh viewer window
     SSkeletalMeshViewerWindow* SkeletalViewerWindow = nullptr;
+
+    // Particle Viewer window
+    SParticleViewerWindow* ParticleViewerWindow = nullptr;
 
     // 애니메이션 그래프 편집기
     SGraphEditorWindow* AnimationGraphEditorWindow = nullptr;

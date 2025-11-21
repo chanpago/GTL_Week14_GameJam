@@ -17,6 +17,7 @@ enum class EPropertyType : uint8
 	SkeletalMesh,
 	StaticMesh,     // UStaticMesh* 타입 (리소스 선택 UI)
 	Material,		// UMaterial* 타입 (리소스 선택 UI)
+	ParticleSystem,	// UParticleSystem* 타입 (리소스 선택 UI)
 	Array,			// TArray 용으로 추가
 	SRV,
 	ScriptFile,
