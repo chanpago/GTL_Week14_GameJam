@@ -11,6 +11,8 @@
 #include <ObjManager.h>
 #include <roapi.h>
 
+#include "Source/Runtime/Debug/CrashHandler.h"
+
 float UEditorEngine::ClientWidth = 1024.0f;
 float UEditorEngine::ClientHeight = 1024.0f;
 
@@ -292,6 +294,8 @@ void UEditorEngine::MainLoop()
 
     while (bRunning)
     {
+        FCrashHandler::Crash();
+
         QueryPerformanceCounter(&CurrTime);
         float DeltaSeconds = static_cast<float>((CurrTime.QuadPart - PrevTime.QuadPart) / double(Frequency.QuadPart));
         PrevTime = CurrTime;

@@ -10,6 +10,8 @@
 #include <cstring>
 #include <algorithm>
 
+#include "Source/Runtime/Debug/CrashHandler.h"
+
 using std::max;
 using std::min;
 
@@ -287,6 +289,10 @@ void UConsoleWidget::ExecCommand(const char* command_line)
 	if (Stricmp(command_line, "CLEAR") == 0)
 	{
 		ClearLog();
+	}
+	else if (Stricmp(command_line, "CRASH") == 0)
+	{
+		FCrashHandler::InjectCrash();
 	}
 	else if (Stricmp(command_line, "HELP") == 0)
 	{
