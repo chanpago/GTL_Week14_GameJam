@@ -146,6 +146,15 @@ void FParticleEmitterInstance::SpawnParticles(int32 Count, float StartTime, floa
             Particle->Location += Particle->Velocity * CurrentSpawnTime;
         }
 
+        if (CurrentLODLevel)
+        {
+            for (UParticleModule* Module : CurrentLODLevel->SpawnModules)
+            {
+                if (!Module || !Module->bEnabled) { continue; }
+                Module->Spawn(this, PayloadOffset, CurrentSpawnTime, Particle);
+            }
+        }
+        
         ParticleIndices[NewParticleIndex] = NewParticleIndex;
         ActiveParticles++;
         ParticleCounter++;
@@ -178,47 +187,57 @@ void FParticleEmitterInstance::Tick(float DeltaTime)
     CurrentLODLevel = Template->LODLevels[CurrentLODLevelIndex];
     if (!CurrentLODLevel || !CurrentLODLevel->bEnabled) { return; }
 
-    // Init에서 캐싱 하면 좋을듯
+    // Init에서 캐싱해두면 좋을듯.. 고민해봄
     UParticleModuleRequired* RequiredModule = CurrentLODLevel->RequiredModule;
     UParticleModuleSpawn* SpawnModule = nullptr;
+    
     for (UParticleModule* Module : CurrentLODLevel->SpawnModules)
     {
         SpawnModule = Cast<UParticleModuleSpawn>(Module);
-        if (RequiredModule) { break; } 
     }
 
-    float SpawnRate = SpawnModule ?
-        SpawnModule->GetSpawnRate(EmitterTime, 0.0f) : RequiredModule->SpawnRateBase;
-    float OldSpawnFraction = SpawnFraction;
-    SpawnFraction += SpawnRate * DeltaTime;
-    int32 NumToSpawn = static_cast<int32>(SpawnFraction);
-    
-    if (NumToSpawn > 0)
+    // ============================================================
+    // Spawn
+    // ============================================================
+    // 이미터가 끝났는지 체크
+    bool bEmitterFinished = RequiredModule && RequiredModule->EmitterLoops > 0 && LoopCount >= RequiredModule->EmitterLoops;
+
+    // 아직 안 끝났을 때만 스폰 시도
+    if (!bEmitterFinished)
     {
-        SpawnFraction -= static_cast<float>(NumToSpawn);
-
-        // 서브 프레임 보간 계산
-        float RateDivisor = (SpawnRate > 0.0f) ? SpawnRate : 1.0f;
-        float StartTime = -(OldSpawnFraction / RateDivisor);
-        float Increment = 1.0f / RateDivisor;
-
-        SpawnParticles(NumToSpawn, StartTime, Increment, Component->GetWorldLocation(), FVector::Zero());
-    }
-
-    // 버스트 스폰
-    if (SpawnModule)
-    {
-        float NewTime = EmitterTime + DeltaTime;
-
-        int32 BurstCount = SpawnModule->GetBurstCount(EmitterTime, 0.0f);
-        if (BurstCount > 0)
+        // [A] Continuous Spawn
+        float SpawnRate = SpawnModule ?
+            SpawnModule->GetSpawnRate(EmitterTime, 0.0f) : (RequiredModule ? RequiredModule->SpawnRateBase : 0.0f);
+        
+        float OldSpawnFraction = SpawnFraction;
+        SpawnFraction += SpawnRate * DeltaTime;
+        int32 NumToSpawn = static_cast<int32>(SpawnFraction);
+        
+        if (NumToSpawn > 0)
         {
-            // 버스트는 시간차 없이 한 번에 생성
-            SpawnParticles(BurstCount, 0.0f, 0.0f, Component->GetWorldLocation(), FVector::Zero());
+            SpawnFraction -= static_cast<float>(NumToSpawn);
+
+            float RateDivisor = (SpawnRate > 0.0f) ? SpawnRate : 1.0f;
+            float StartTime = -(OldSpawnFraction / RateDivisor);
+            float Increment = 1.0f / RateDivisor;
+
+            SpawnParticles(NumToSpawn, StartTime, Increment, Component->GetWorldLocation(), FVector::Zero());
+        }
+
+        // [B] Burst Spawn
+        if (SpawnModule)
+        {
+            int32 BurstCount = SpawnModule->GetBurstCount(EmitterTime, 0.0f);
+            if (BurstCount > 0)
+            {
+                SpawnParticles(BurstCount, 0.0f, 0.0f, Component->GetWorldLocation(), FVector::Zero());
+            }
         }
     }
     
-    // 살아있는 파티클 순회
+    // ============================================================
+    // Time Update & Kill
+    // ============================================================
     for (int32 i = 0; i < ActiveParticles; i++)
     {
         DECLARE_PARTICLE_PTR(Particle, ParticleData, ParticleStride, i);
@@ -231,30 +250,29 @@ void FParticleEmitterInstance::Tick(float DeltaTime)
             Particle->RelativeTime += Particle->OneOverMaxLifetime * DeltaTime;
         }
 
-        // 사망 판정
         if (Particle->RelativeTime >= 1.0f)
         {
             KillParticle(i);
-            // Swap & Pop이므로 동일한 인덱스 다시 조사해야함
-            i--; 
+            i--; // Swap & Pop 인덱스 보정
         }
     }
     
-    // 현재 LOD 레벨에 있는 Update 모듈들 실행
+    // ============================================================
+    // Module Update
+    // ============================================================
     for (UParticleModule* Module : CurrentLODLevel->UpdateModules)
     {
-        if (Module && Module->bEnabled)
-        {
-            // 모듈마다 오프셋이 다르다면 여기서 모듈별 오프셋을 넘겨줘야 함
-            Module->Update(this, 0, DeltaTime);
-        }
+        if (!Module || !Module->bEnabled) { continue; }
+        Module->Update(this, 0, DeltaTime);
     }
 
-
+    // ============================================================
+    // Emitter Time Update
+    // ============================================================
     EmitterTime += DeltaTime;
+    
     if (RequiredModule && RequiredModule->EmitterDuration > 0.0f)
     {
-        // 수명이 다했으면?
         if (EmitterTime >= RequiredModule->EmitterDuration)
         {
             // 무한 루프(0)거나 아직 횟수가 남았으면 리셋
@@ -263,13 +281,27 @@ void FParticleEmitterInstance::Tick(float DeltaTime)
                 EmitterTime = 0.0f;
                 LoopCount++;
             }
-            else
-            {
-                // 루프 끝남 -> 더 이상 스폰 안 함 (비활성화)
-                // Complete 처리는 컴포넌트 레벨에서 수행
-            }
         }
     }
+}
+
+bool FParticleEmitterInstance::IsComplete() const
+{
+    if (!CurrentLODLevel || !CurrentLODLevel->RequiredModule) return true;
+    
+    UParticleModuleRequired* Required = CurrentLODLevel->RequiredModule;
+    if (Required->EmitterLoops == 0 || LoopCount < Required->EmitterLoops)
+    {
+        return false;
+    }
+
+    if (ActiveParticles > 0)
+    {
+        return false;
+    }
+
+    // 루프도 끝났고 파티클도 다 사라짐
+    return true;
 }
 
 void UParticleEmitter::CacheEmitterModuleInfo()
