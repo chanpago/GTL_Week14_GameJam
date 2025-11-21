@@ -1,4 +1,6 @@
 ﻿#pragma once
+#include "Modules/ParticleModuleRequired.h"
+#include "Modules/ParticleModuleSpawn.h"
 
 class UParticleLODLevel;
 class UParticleSystemComponent;
@@ -51,6 +53,11 @@ struct FParticleEmitterInstance
     /** Emitter Loop 카운트 */
     int32 LoopCount = 0;
 
+    
+    /** 필수 모듈 캐싱(LOD에 따라 바뀜) */
+    UParticleModuleRequired* CachedRequiredModule;
+    UParticleModuleSpawn* CachedSpawnModule;
+
     // ============================================================
     // 메서드
     // ============================================================
@@ -77,6 +84,11 @@ struct FParticleEmitterInstance
 
     /** 파티클 업데이트 */
     void Tick(float DeltaTime);
+    
+    /** LOD에 따른 모듈 캐싱 업데이트 */
+    void UpdateModuleCache();
+
+    bool IsComplete() const;
 };
 
 class UParticleEmitter : public UObject

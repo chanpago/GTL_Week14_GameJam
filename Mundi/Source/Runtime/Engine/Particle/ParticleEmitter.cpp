@@ -13,14 +13,13 @@ void FParticleEmitterInstance::Init(UParticleEmitter* InTemplate, UParticleSyste
     Template = InTemplate;
     Component = InComponent;
 
-    UParticleLODLevel* LOD0 = Template->LODLevels[0];
-    UParticleModuleRequired* Required = LOD0->RequiredModule;
+    UpdateModuleCache();
 
-    if (Required)
+    if (CachedRequiredModule)
     {
-        MaxActiveParticles = Required->MaxParticles;
-        EmitterDuration = Required->EmitterDuration;
-        LoopCount = Required->EmitterLoops;
+        MaxActiveParticles = CachedRequiredModule->MaxParticles;
+        EmitterDuration = CachedRequiredModule->EmitterDuration;
+        LoopCount = CachedRequiredModule->EmitterLoops;
     }
     else
     {
@@ -182,32 +181,23 @@ void FParticleEmitterInstance::KillParticle(int32 Index)
 
 void FParticleEmitterInstance::Tick(float DeltaTime)
 {
+    UpdateModuleCache();
     if (!Template || !Component || !ParticleData) { return; }
-
-    CurrentLODLevel = Template->LODLevels[CurrentLODLevelIndex];
     if (!CurrentLODLevel || !CurrentLODLevel->bEnabled) { return; }
-
-    // Init에서 캐싱해두면 좋을듯.. 고민해봄
-    UParticleModuleRequired* RequiredModule = CurrentLODLevel->RequiredModule;
-    UParticleModuleSpawn* SpawnModule = nullptr;
-    
-    for (UParticleModule* Module : CurrentLODLevel->SpawnModules)
-    {
-        SpawnModule = Cast<UParticleModuleSpawn>(Module);
-    }
 
     // ============================================================
     // Spawn
     // ============================================================
     // 이미터가 끝났는지 체크
-    bool bEmitterFinished = RequiredModule && RequiredModule->EmitterLoops > 0 && LoopCount >= RequiredModule->EmitterLoops;
+    bool bEmitterFinished = CachedRequiredModule && CachedRequiredModule->EmitterLoops > 0
+                                && LoopCount >= CachedRequiredModule->EmitterLoops;
 
     // 아직 안 끝났을 때만 스폰 시도
     if (!bEmitterFinished)
     {
         // [A] Continuous Spawn
-        float SpawnRate = SpawnModule ?
-            SpawnModule->GetSpawnRate(EmitterTime, 0.0f) : (RequiredModule ? RequiredModule->SpawnRateBase : 0.0f);
+        float SpawnRate = CachedSpawnModule ? CachedSpawnModule->GetSpawnRate(EmitterTime, 0.0f)
+                            : (CachedSpawnModule ? CachedRequiredModule->SpawnRateBase : 0.0f);
         
         float OldSpawnFraction = SpawnFraction;
         SpawnFraction += SpawnRate * DeltaTime;
@@ -225,9 +215,9 @@ void FParticleEmitterInstance::Tick(float DeltaTime)
         }
 
         // [B] Burst Spawn
-        if (SpawnModule)
+        if (CachedSpawnModule)
         {
-            int32 BurstCount = SpawnModule->GetBurstCount(EmitterTime, 0.0f);
+            int32 BurstCount = CachedSpawnModule->GetBurstCount(EmitterTime, 0.0f);
             if (BurstCount > 0)
             {
                 SpawnParticles(BurstCount, 0.0f, 0.0f, Component->GetWorldLocation(), FVector::Zero());
@@ -271,18 +261,29 @@ void FParticleEmitterInstance::Tick(float DeltaTime)
     // ============================================================
     EmitterTime += DeltaTime;
     
-    if (RequiredModule && RequiredModule->EmitterDuration > 0.0f)
+    if (CachedRequiredModule && CachedRequiredModule->EmitterDuration > 0.0f)
     {
-        if (EmitterTime >= RequiredModule->EmitterDuration)
+        if (EmitterTime >= CachedRequiredModule->EmitterDuration)
         {
             // 무한 루프(0)거나 아직 횟수가 남았으면 리셋
-            if (RequiredModule->EmitterLoops == 0 || LoopCount < RequiredModule->EmitterLoops)
+            if (CachedRequiredModule->EmitterLoops == 0 || LoopCount < CachedRequiredModule->EmitterLoops)
             {
                 EmitterTime = 0.0f;
                 LoopCount++;
             }
         }
     }
+}
+
+void FParticleEmitterInstance::UpdateModuleCache()
+{
+    if (!Template) { return; }
+    
+    CurrentLODLevel = Template->LODLevels[CurrentLODLevelIndex];
+    if (!CurrentLODLevel || !CurrentLODLevel->bEnabled) { return; }
+
+    CachedRequiredModule = CurrentLODLevel->RequiredModule;
+    CachedSpawnModule = CurrentLODLevel->SpawnModule;
 }
 
 bool FParticleEmitterInstance::IsComplete() const

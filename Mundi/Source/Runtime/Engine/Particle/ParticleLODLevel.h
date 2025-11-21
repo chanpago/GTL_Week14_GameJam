@@ -2,6 +2,7 @@
 
 class UParticleModule;
 class UParticleModuleRequired;
+class UParticleModuleSpawn;
 class UParticleModuleTypeDataBase;
 
 class UParticleLODLevel : public UObject
@@ -11,6 +12,7 @@ public:
     
 public:
     UParticleModuleRequired* RequiredModule = nullptr;
+    UParticleModuleSpawn* SpawnModule = nullptr;
     UParticleModuleTypeDataBase* TypeDataModule = nullptr;
 
     TArray<UParticleModule*> SpawnModules;
