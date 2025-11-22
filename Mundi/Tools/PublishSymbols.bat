@@ -14,7 +14,7 @@ if "%CONFIG%"=="" (
 :: ========================================================
 :: [Setup 1] Path to symstore.exe
 :: ========================================================
-set TOOL_DIR=C:\Program Files (x86)\Windows Kits\10\Debuggers\x64
+set TOOL_DIR=%~dp0SymStore
 
 :: ========================================================
 :: [Setup 2] Build Output Directory (Relative Path)
