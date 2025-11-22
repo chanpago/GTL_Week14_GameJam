@@ -10,6 +10,8 @@ public:
 	static void Crash();
 		
 private:
+	static FString GetSymbolSearchPath();
+	
 	static bool bCrashInjection;
 	static wchar_t DumpDirectory[MAX_PATH];
 };
