@@ -122,7 +122,7 @@ void UParticleSystemComponent::ReleaseParticleBuffers()
 
 void UParticleSystemComponent::CollectMeshBatches(TArray<FMeshBatchElement>& OutMeshBatchElements, const FSceneView* View)
 {
-    if (!IsVisible() || EmitterRenderData.IsEmpty())
+    if (!IsVisible())
     {
         return;
     }
@@ -172,9 +172,11 @@ void UParticleSystemComponent::BuildParticleBatch(TArray<FMeshBatchElement>& Out
         return;
     }
 
-    const uint32 ClampedCount = MaxDebugParticles > 0
+    // 임시
+    const uint32 ClampedCount = 1000;
+    /*MaxDebugParticles > 0
         ? std::min<uint32>(ParticleCount, static_cast<uint32>(MaxDebugParticles))
-        : ParticleCount;
+        : ParticleCount;*/
 
     if (!EnsureParticleBuffers(ClampedCount))
     {
@@ -323,22 +325,21 @@ void UParticleSystemComponent::BuildEmitterRenderData()
     }
     EmitterRenderData.Empty();
 
-    if (EmitterInstances.IsEmpty())
-        return;
-
-    // 2) 각 Instance -> DynamicData 생성
-    for (int32 EmitterIdx = 0; EmitterIdx < EmitterInstances.Num(); ++EmitterIdx)
+    if (!EmitterInstances.IsEmpty())
     {
-        FParticleEmitterInstance* Inst = EmitterInstances[EmitterIdx];
-        if (!Inst || Inst->ActiveParticles <= 0)
-            continue;
-
-        const EEmitterRenderType Type = Inst->GetDynamicType();
-
-        FDynamicEmitterDataBase* NewData = nullptr;
-
-        switch (Type)
+        // 2) 각 Instance -> DynamicData 생성
+        for (int32 EmitterIdx = 0; EmitterIdx < EmitterInstances.Num(); ++EmitterIdx)
         {
+            FParticleEmitterInstance* Inst = EmitterInstances[EmitterIdx];
+            if (!Inst || Inst->ActiveParticles <= 0)
+                continue;
+
+            const EEmitterRenderType Type = Inst->GetDynamicType();
+
+            FDynamicEmitterDataBase* NewData = nullptr;
+
+            switch (Type)
+            {
             case EEmitterRenderType::Sprite:
             {
                 auto* SpriteData = new FDynamicSpriteEmitterData();
@@ -376,14 +377,71 @@ void UParticleSystemComponent::BuildEmitterRenderData()
                 NewData = MeshData;
                 break;
             }
-        }
+            }
 
-        if (NewData)
-        {
-            NewData->EmitterType = Type;
-            EmitterRenderData.Add(NewData);
+            if (NewData)
+            {
+                NewData->EmitterType = Type;
+                EmitterRenderData.Add(NewData);
+            }
         }
     }
+
+    if (EmitterRenderData.IsEmpty() && bEnableDebugEmitter)
+    {
+        BuildDebugEmitterData();
+    }
+}
+
+void UParticleSystemComponent::BuildDebugEmitterData()
+{
+    if (!bEnableDebugEmitter)
+    {
+        return;
+    }
+
+    constexpr int32 DebugCount = 3;
+    const FVector DebugPositions[DebugCount] = {
+        FVector(0.0f, 0.0f, 100.0f),
+        FVector(80.0f, 20.0f, 120.0f),
+        FVector(-60.0f, -40.0f, 90.0f)
+    };
+    const FLinearColor DebugColors[DebugCount] = {
+        FLinearColor(1.0f, 0.2f, 0.2f, 0.85f),
+        FLinearColor(0.2f, 1.0f, 0.3f, 0.85f),
+        FLinearColor(0.2f, 0.4f, 1.0f, 0.85f)
+    };
+    const float DebugSizes[DebugCount] = { 50.0f, 70.0f, 90.0f };
+
+    auto* SpriteData = new FDynamicSpriteEmitterData();
+    SpriteData->EmitterIndex = -1;
+    SpriteData->SortMode = EParticleSortMode::ByViewDepth;
+    SpriteData->SortPriority = 0;
+    SpriteData->Material = ParticleMaterial;
+
+    auto& Replay = SpriteData->Source;
+    Replay.EmitterType = EEmitterRenderType::Sprite;
+    Replay.ActiveParticleCount = DebugCount;
+    Replay.ParticleStride = sizeof(FBaseParticle);
+    Replay.DataContainer.Allocate(DebugCount * Replay.ParticleStride, DebugCount);
+
+    for (int32 Index = 0; Index < DebugCount; ++Index)
+    {
+        uint8* ParticleBase = Replay.DataContainer.ParticleData + Replay.ParticleStride * Index;
+        auto* Particle = reinterpret_cast<FBaseParticle*>(ParticleBase);
+        std::memset(Particle, 0, sizeof(FBaseParticle));
+
+        Particle->Location = DebugPositions[Index];
+        const float Size = DebugSizes[Index];
+        Particle->Size = FVector(Size, Size, 1.0f);
+        Particle->Color = DebugColors[Index];
+        Particle->RelativeTime = 0.0f;
+        Particle->OneOverMaxLifetime = 1.0f;
+
+        Replay.DataContainer.ParticleIndices[Index] = static_cast<uint16>(Index);
+    }
+
+    EmitterRenderData.Add(SpriteData);
 }
 
 UMaterialInterface* UParticleSystemComponent::GetMaterial(uint32 InSectionIndex) const
