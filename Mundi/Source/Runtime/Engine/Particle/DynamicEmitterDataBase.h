@@ -51,11 +51,84 @@ struct FDynamicEmitterDataBase {
 
 // FDynamicSpriteEmitterDataBase 에서 헷갈려서 아래 네이밍으로 바꿈
 // 정렬 속성 상속을 위한 중간 struct
+// TODO : cpp로 옮겨!
 struct FDynamicTranslucentEmitterDataBase : public FDynamicEmitterDataBase
 {
     virtual const FDynamicEmitterReplayDataBase* GetSource() const = 0;
 
-    // ... (SortParticles 그대로)
+    const FBaseParticle* GetParticle(int32 Idx) const
+    {
+        const FDynamicEmitterReplayDataBase* Src = GetSource();
+        if (!Src || !Src->DataContainer.ParticleData)
+            return nullptr;
+
+        const uint8* BasePtr =
+            Src->DataContainer.ParticleData +
+            Src->ParticleStride * Idx;
+
+        return reinterpret_cast<const FBaseParticle*>(BasePtr);
+    }
+
+    FVector GetParticlePosition(int32 Idx) const
+    {
+        if (const FBaseParticle* P = GetParticle(Idx))
+            return P->Location;
+        return FVector::Zero();
+    }
+
+    float GetParticleAge(int32 Idx) const
+    {
+        if (const FBaseParticle* P = GetParticle(Idx))
+            return P->RelativeTime;
+        return 0.0f;
+    }
+
+    void SortParticles(const FVector& ViewOrigin, const FVector& ViewDir, TArray<int32>& OutIndices) const
+    {
+        const auto* Src = GetSource();
+        const int32 Num = Src->ActiveParticleCount;
+
+        if (Num == 0 || SortMode == EParticleSortMode::None)
+            return;
+
+        // 인덱스 초기화
+        OutIndices.SetNum(Num);
+        for (int32 i = 0; i < Num; ++i)
+            OutIndices[i] = i;
+
+        // 정렬 키 계산
+        TArray<float> Keys;
+        Keys.SetNum(Num);
+
+        for (int32 i = 0; i < Num; ++i)
+        {
+            FVector Pos = GetParticlePosition(i);
+
+            switch (SortMode)
+            {
+            case EParticleSortMode::ByDistance:
+                Keys[i] = (Pos - ViewOrigin).SizeSquared();
+                break;
+
+            case EParticleSortMode::ByViewDepth:
+                Keys[i] = FVector::Dot(Pos - ViewOrigin, ViewDir);
+                break;
+
+            case EParticleSortMode::ByAge:
+                Keys[i] = GetParticleAge(i);
+                break;
+
+            default:
+                Keys[i] = 0.f;
+                break;
+            }
+        }
+
+        // Back-to-front (큰 값이 먼저)
+        OutIndices.Sort([&Keys](int32 A, int32 B) {
+            return Keys[A] > Keys[B];
+            });
+    }
 };
 
 struct FDynamicSpriteEmitterData : public FDynamicTranslucentEmitterDataBase
@@ -91,3 +164,4 @@ struct FDynamicMeshEmitterData : public FDynamicTranslucentEmitterDataBase
 
     UMaterialInterface* Material = nullptr;
 };
+
