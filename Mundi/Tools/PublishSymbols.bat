@@ -24,7 +24,7 @@ set BIN_DIR=%~dp0..\..\Binaries\%CONFIG%
 :: ========================================================
 :: [Setup 3] Symbol Server Path
 :: ========================================================
-set STORE_PATH=\\DESKTOP-8MV163M\SymbolStore
+set STORE_PATH=\\172.21.11.109\SymbolStore
 
 :: ========================================================
 :: [Setup 4] Version Tag (Auto-generated from Date_Time)
