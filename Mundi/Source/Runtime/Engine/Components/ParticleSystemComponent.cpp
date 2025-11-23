@@ -41,28 +41,53 @@ UParticleSystemComponent::~UParticleSystemComponent()
 void UParticleSystemComponent::InitParticles()
 {
     DestroyParticles();
-    if (!Template) { return; }
+    if (!Template)
+    {
+        UE_LOG("[ParticleSystemComponent::InitParticles] Template is NULL!");
+        return;
+    }
+
+    UE_LOG("[ParticleSystemComponent::InitParticles] Template: %s, Emitters: %d",
+           Template->GetName().c_str(), Template->Emitters.Num());
 
     // 에셋에 정의된 이미터 개수만큼 인스턴스 생성
     for (int32 i = 0; i < Template->Emitters.Num(); i++)
     {
         UParticleEmitter* EmitterAsset = Template->Emitters[i];
-        
+
         // 이미터가 유효하고 켜져있다면
         if (EmitterAsset)
         {
+            UE_LOG("[ParticleSystemComponent::InitParticles] Creating instance for Emitter[%d]: %s",
+                   i, EmitterAsset->GetName().c_str());
             FParticleEmitterInstance* NewInst = new FParticleEmitterInstance();
             NewInst->Init(EmitterAsset, this);
             EmitterInstances.Add(NewInst);
         }
+        else
+        {
+            UE_LOG("[ParticleSystemComponent::InitParticles] Emitter[%d] is NULL!", i);
+        }
     }
 
     if (bAutoActivate) { ActivateSystem(); }
+    UE_LOG("[ParticleSystemComponent::InitParticles] Completed. EmitterInstances: %d", EmitterInstances.Num());
 }
 
 void UParticleSystemComponent::TickComponent(float DeltaTime)
 {
     Super::TickComponent(DeltaTime);
+
+    static bool bFirstTick = true;
+    if (bFirstTick)
+    {
+        UE_LOG("[ParticleSystemComponent::TickComponent] First Tick!");
+        UE_LOG("[ParticleSystemComponent::TickComponent] bIsActive: %s, Template: %s, EmitterInstances: %d",
+               bIsActive ? "true" : "false",
+               Template ? Template->GetName().c_str() : "NULL",
+               EmitterInstances.Num());
+        bFirstTick = false;
+    }
 
     if (!bIsActive || !Template) return;
 
@@ -81,7 +106,7 @@ void UParticleSystemComponent::TickComponent(float DeltaTime)
     {
         OnParticleSystemFinished.Broadcast(this);
         DeactivateSystem();
-        
+
         if (bAutoDestroy)
         {
             GetOwner()->Destroy();

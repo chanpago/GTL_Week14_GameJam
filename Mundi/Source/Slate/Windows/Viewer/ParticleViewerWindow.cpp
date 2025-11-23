@@ -829,13 +829,13 @@ void SParticleViewerWindow::LoadParticleSystem(UParticleSystem* ParticleSystem)
     // 컴포넌트를 World에 등록
     PreviewComponent->RegisterComponent(PreviewWorld);
 
-    // 컴포넌트 초기화 및 활성화
+    // Actor의 BeginPlay 호출 (InitializeComponent 호출)
+    PreviewActor->BeginPlay();
+
+    // 컴포넌트 초기화 및 활성화 (BeginPlay 이후에!)
     PreviewComponent->InitParticles();
     PreviewComponent->ActivateSystem();
     PreviewComponent->SetActive(true);  // bIsActive를 명시적으로 true로 설정
-
-    // Actor의 BeginPlay 호출로 컴포넌트 완전 초기화
-    PreviewActor->BeginPlay();
 
     UE_LOG("Particle system loaded and spawned in preview world");
 }
