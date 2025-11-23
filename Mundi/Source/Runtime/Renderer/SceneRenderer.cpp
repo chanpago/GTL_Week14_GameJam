@@ -1444,9 +1444,9 @@ void FSceneRenderer::DrawMeshBatches(TArray<FMeshBatchElement>& InMeshBatches, b
 			else if (Batch.Material)
 			{
 				const FMaterialInfo& MaterialInfo = Batch.Material->GetMaterialInfo();
-				UE_LOG("[SceneRenderer] Material: %s, DiffuseTexture: %s",
+				/*UE_LOG("[SceneRenderer] Material: %s, DiffuseTexture: %s",
 					   Batch.Material->GetName().c_str(),
-					   MaterialInfo.DiffuseTextureFileName.c_str());
+					   MaterialInfo.DiffuseTextureFileName.c_str());*/
 
 				if (!MaterialInfo.DiffuseTextureFileName.empty())
 				{

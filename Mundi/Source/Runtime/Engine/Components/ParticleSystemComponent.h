@@ -58,6 +58,26 @@ private:
 	UParticleSystem* Template = nullptr;
 
 private:
+	struct FDebugMeshParticleState
+	{
+		bool bEnabled = true;
+		bool bInitialized = false;
+
+		float  TimeSeconds = 0.f;
+
+		FVector BaseLocation = FVector(0.f, 0.f, 5.f);
+		FVector Velocity = FVector(0.f, 0.f, 5.f);
+		FVector CurrentLocation = FVector::Zero();
+
+		UStaticMesh* Mesh = nullptr;
+		UMaterialInterface* Material = nullptr;
+	};
+
+	FDebugMeshParticleState DebugMeshState;
+
+	void TickDebugMesh(float DeltaTime);
+	void BuildDebugMeshEmitterData();
+
 	/** 런타임 데이터 */
 	TArray<FParticleEmitterInstance*> EmitterInstances;
 
