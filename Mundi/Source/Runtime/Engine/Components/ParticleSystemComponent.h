@@ -67,7 +67,6 @@ private:
 	int MaxDebugParticles = 1000;
 	bool bEnableDebugEmitter = true;
 
-
 	ID3D11Buffer* ParticleVertexBuffer = nullptr;
 	ID3D11Buffer* ParticleIndexBuffer = nullptr;
 	uint32 ParticleVertexCapacity = 0;

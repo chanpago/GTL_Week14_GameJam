@@ -1,4 +1,4 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include "ParticleSystemComponent.h"
 #include "MeshBatchElement.h"
 #include "SceneView.h"
@@ -7,28 +7,8 @@
 
 UParticleSystemComponent::UParticleSystemComponent()
 {
-    // FOR TEST !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     bCanEverTick = true;  // 파티클 시스템은 매 프레임 Tick 필요
     bAutoActivate = true;
-
-    // 디버그용 파티클 3개
-    //FDynamicEmitterDataBase* P0 = new FDynamicEmitterDataBase();
-    //P0->Position = FVector(0, 0, 1);
-    //P0->Size = 3.0f;
-    //P0->Color = FLinearColor(1.0f, 0.0f, 0.0f, 0.5f);
-    //EmitterRenderData.Add(std::move(P0));
-
-    //FDynamicEmitterDataBase* P1 = new FDynamicEmitterDataBase();
-    //P1->Position = FVector(1, 0, 1);
-    //P1->Size = 4.0f;
-    //P1->Color = FLinearColor(0.0f, 1.0f, 0.0f, 0.5f);
-    //EmitterRenderData.Add(std::move(P1));
-
-    //FDynamicEmitterDataBase* P2 = new FDynamicEmitterDataBase();
-    //P2->Position = FVector(0, 1, 1.5);
-    //P2->Size = 5.0f;
-    //P2->Color = FLinearColor(0.0f, 0.0f, 1.0f, 0.5f);
-    //EmitterRenderData.Add(std::move(P2));
 
     MaxDebugParticles = 128; 
 }
