@@ -316,6 +316,7 @@ void UParticleLODLevel::ParseAndAddModule(JSON& ModuleJson)
         {
             FJsonSerializer::ReadVector(ModuleJson, "StartVelocity_Min", Velocity->StartVelocity.MinValue);
             FJsonSerializer::ReadVector(ModuleJson, "StartVelocity_Max", Velocity->StartVelocity.MaxValue);
+            FJsonSerializer::ReadVector(ModuleJson, "Gravity", Velocity->Gravity);
             FJsonSerializer::ReadBool(ModuleJson, "StartVelocity_bUseRange", Velocity->StartVelocity.bUseRange);
         }
         NewModule = Velocity;
@@ -380,6 +381,7 @@ JSON UParticleLODLevel::SerializeModule(UParticleModule* Module)
         ModuleJson["Type"] = "Velocity";
         ModuleJson["StartVelocity_Min"] = FJsonSerializer::VectorToJson(Velocity->StartVelocity.MinValue);
         ModuleJson["StartVelocity_Max"] = FJsonSerializer::VectorToJson(Velocity->StartVelocity.MaxValue);
+        ModuleJson["Gravity"] = FJsonSerializer::VectorToJson(Velocity->Gravity);
         ModuleJson["StartVelocity_bUseRange"] = Velocity->StartVelocity.bUseRange;
     }
     else if (auto* Size = Cast<UParticleModuleSize>(Module))

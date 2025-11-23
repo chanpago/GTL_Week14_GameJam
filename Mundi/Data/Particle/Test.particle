@@ -15,6 +15,7 @@
                     "Type" : "Size",
                     "bEnabled" : true
                   }, {
+                    "Gravity" : [0.000000, 0.000000, 0.000000],
                     "StartVelocity_Max" : [0.000000, 0.000000, 10.000000],
                     "StartVelocity_Min" : [0.000000, 0.000000, 1.000000],
                     "StartVelocity_bUseRange" : true,

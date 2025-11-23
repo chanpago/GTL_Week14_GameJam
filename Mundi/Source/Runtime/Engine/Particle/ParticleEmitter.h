@@ -13,8 +13,6 @@ class UParticleEmitter : public UObject
 
 public:
     UParticleEmitter();
-public:
-    UParticleEmitter();
     ~UParticleEmitter() override;
 
     UParticleLODLevel* AddLODLevel(int32 LODIndex = 0);
