@@ -114,7 +114,10 @@ void SParticleViewerWindow::OnRender()
     {
         if (ImGui::BeginMenu("File"))
         {
-            if (ImGui::MenuItem("Save")) {}
+            if (ImGui::MenuItem("Save"))
+            {
+                SaveParticleSystem();
+            }
             if (ImGui::MenuItem("Close")) { Close(); }
             ImGui::EndMenu();
         }
@@ -785,11 +788,20 @@ void SParticleViewerWindow::OnRenderViewport()
 
 void SParticleViewerWindow::LoadParticleSystem(const FString& Path)
 {
-    // TODO: 경로에서 파티클 시스템 로드
+    // 경로에서 파티클 시스템 로드
     UParticleSystem* LoadedSystem = UParticleSystem::LoadFromFile(Path);
     if (LoadedSystem)
     {
         LoadParticleSystem(LoadedSystem);
+
+        // 로드한 파일의 경로를 SavePath로 설정 (Save 시 같은 경로에 저장)
+        SavePath = Path;
+
+        UE_LOG("ParticleSystem loaded from: %s", Path.c_str());
+    }
+    else
+    {
+        UE_LOG("Failed to load ParticleSystem from: %s", Path.c_str());
     }
 }
 

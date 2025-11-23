@@ -418,6 +418,21 @@ void UContentBrowserWindow::HandleDoubleClick(FFileEntry& Entry)
     {
         UE_LOG("StaticMesh file clicked: %s", Entry.FileNameUTF8.c_str());
     }
+    else if (ext == ".particle")
+    {
+        // ParticleSystem 파일 로드
+        UParticleSystem* LoadedSystem = UParticleSystem::LoadFromFile(pathUTF8);
+        if (LoadedSystem)
+        {
+            // ParticleViewerWindow를 열고 로드된 시스템과 파일 경로 전달
+            USlateManager::GetInstance().OpenParticleViewerWithSystem(LoadedSystem, pathUTF8);
+            UE_LOG("Opening ParticleViewer for: %s", Entry.FileNameUTF8.c_str());
+        }
+        else
+        {
+            UE_LOG("Failed to load ParticleSystem from: %s", Entry.FileNameUTF8.c_str());
+        }
+    }
     else
     {
         UE_LOG("Unsupported file type: %s", ext.c_str());
@@ -437,6 +452,7 @@ const char* UContentBrowserWindow::GetIconForFile(const FFileEntry& Entry) const
     else if (ext == ".wav" || ext == ".mp3" || ext == ".ogg") return "[SND]";
     else if (ext == ".mat") return "[MAT]";
     else if (ext == ".level" || ext == ".json") return "[DATA]";
+    else if (ext == ".particle") return "[PART]";
 
     return "[FILE]";
 }

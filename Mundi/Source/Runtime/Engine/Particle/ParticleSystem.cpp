@@ -263,6 +263,12 @@ JSON UParticleSystem::SerializeToJson() const
                 RequiredJson["ScreenAlignment"] = static_cast<int>(Req->ScreenAlignment);
                 RequiredJson["SortMode"] = static_cast<int>(Req->SortMode);
 
+                // Material
+                if (Req->Material)
+                {
+                    RequiredJson["Material"] = Req->Material->GetFilePath();
+                }
+
                 // InitialSize
                 JSON SizeMinArr = JSON::Make(JSON::Class::Array);
                 SizeMinArr.append(Req->InitialSize.MinValue.X);
@@ -363,6 +369,16 @@ bool UParticleSystem::DeserializeFromJson(JSON& InJson)
         return false;
     }
 
+    // 기존 Emitter 모두 삭제 (로드 시 기본 Emitter가 생성되어 있으므로)
+    for (UParticleEmitter* Emitter : Emitters)
+    {
+        if (Emitter)
+        {
+            delete Emitter;
+        }
+    }
+    Emitters.Empty();
+
     // 기본 정보
     if (InJson.hasKey("Name"))
     {
@@ -416,6 +432,17 @@ bool UParticleSystem::DeserializeFromJson(JSON& InJson)
                         if (ReqJson.hasKey("BlendMode")) Req->BlendMode = static_cast<EBlendMode>(ReqJson["BlendMode"].ToInt());
                         if (ReqJson.hasKey("ScreenAlignment")) Req->ScreenAlignment = static_cast<EScreenAlignment>(ReqJson["ScreenAlignment"].ToInt());
                         if (ReqJson.hasKey("SortMode")) Req->SortMode = static_cast<ESortMode>(ReqJson["SortMode"].ToInt());
+
+                        // Material
+                        if (ReqJson.hasKey("Material"))
+                        {
+                            FString MaterialPath = ReqJson["Material"].ToString();
+                            Req->Material = UResourceManager::GetInstance().Load<UMaterial>(MaterialPath);
+                            if (!Req->Material)
+                            {
+                                UE_LOG("Failed to load material: %s", MaterialPath.c_str());
+                            }
+                        }
 
                         // InitialSize
                         if (ReqJson.hasKey("InitialSize_Min"))
