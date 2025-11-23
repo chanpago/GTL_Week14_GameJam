@@ -80,8 +80,8 @@ private:
     class UParticleModule* SelectedModule = nullptr;
 
     // Curve Editor state
-    float CurveZoom = 1.0f;          // 줌 레벨 (1.0 = 기본, 2.0 = 2배 확대)
-    FVector2D CurvePan = FVector2D(50.0f, 50.0f);  // 팬 오프셋 (중심점, 기본값은 50,50)
+    float CurveZoom = 10.0f;          // 줌 레벨 (1.0 = 기본, 2.0 = 2배 확대)
+    FVector2D CurvePan = FVector2D(5.0f, 5.0f);  // 팬 오프셋 (중심점, 초기값은 왼쪽 아래)
     bool bCurvePanning = false;      // 팬 드래그 중인지
     FVector2D CurvePanStart = FVector2D(0.0f, 0.0f);  // 드래그 시작 위치
 
