@@ -561,6 +561,43 @@ void SParticleViewerWindow::OnRender()
                     ImGui::DragFloat3("Start Size Max", &SizeModule->StartSize.MaxValue.X, 1.0f, 0.0f, 1000.0f);
                     ImGui::Checkbox("Use Range", &SizeModule->StartSize.bUseRange);
                 }
+                else if (auto* LocationModule = Cast<UParticleModuleLocation>(SelectedModule))
+                {
+                    ImGui::Text("Location Settings");
+
+                    // Distribution Type
+                    const char* DistTypes[] = { "Point", "Box", "Sphere", "Cylinder" };
+                    int CurrentDistType = (int)LocationModule->DistributionType;
+                    if (ImGui::Combo("Distribution Type", &CurrentDistType, DistTypes, IM_ARRAYSIZE(DistTypes)))
+                    {
+                        LocationModule->DistributionType = (ELocationDistributionType)CurrentDistType;
+                    }
+
+                    ImGui::Spacing();
+
+                    // 타입별 파라미터
+                    switch (LocationModule->DistributionType)
+                    {
+                    case ELocationDistributionType::Point:
+                        ImGui::DragFloat3("Start Location Min", &LocationModule->StartLocation.MinValue.X, 1.0f, -1000.0f, 1000.0f);
+                        ImGui::DragFloat3("Start Location Max", &LocationModule->StartLocation.MaxValue.X, 1.0f, -1000.0f, 1000.0f);
+                        ImGui::Checkbox("Use Range", &LocationModule->StartLocation.bUseRange);
+                        break;
+
+                    case ELocationDistributionType::Box:
+                        ImGui::DragFloat3("Box Extent", &LocationModule->BoxExtent.X, 1.0f, 0.0f, 1000.0f);
+                        break;
+
+                    case ELocationDistributionType::Sphere:
+                        ImGui::DragFloat("Sphere Radius", &LocationModule->SphereRadius, 1.0f, 0.0f, 1000.0f);
+                        break;
+
+                    case ELocationDistributionType::Cylinder:
+                        ImGui::DragFloat("Cylinder Radius", &LocationModule->CylinderRadius, 1.0f, 0.0f, 1000.0f);
+                        ImGui::DragFloat("Cylinder Height", &LocationModule->CylinderHeight, 1.0f, 0.0f, 1000.0f);
+                        break;
+                    }
+                }
                 else if (auto* VelocityModule = Cast<UParticleModuleVelocity>(SelectedModule))
                 {
                     ImGui::Text("Velocity Settings");

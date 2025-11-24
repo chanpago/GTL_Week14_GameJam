@@ -400,9 +400,17 @@ void UParticleLODLevel::ParseAndAddModule(JSON& ModuleJson)
         auto* Location = Cast<UParticleModuleLocation>(AddModule(UParticleModuleLocation::StaticClass()));
         if (Location)
         {
+            int32 DistType = 0;
+            FJsonSerializer::ReadInt32(ModuleJson, "DistributionType", DistType);
+            Location->DistributionType = (ELocationDistributionType)DistType;
+
             FJsonSerializer::ReadVector(ModuleJson, "StartLocation_Min", Location->StartLocation.MinValue);
             FJsonSerializer::ReadVector(ModuleJson, "StartLocation_Max", Location->StartLocation.MaxValue);
             FJsonSerializer::ReadBool(ModuleJson, "StartLocation_bUseRange", Location->StartLocation.bUseRange);
+            FJsonSerializer::ReadVector(ModuleJson, "BoxExtent", Location->BoxExtent);
+            FJsonSerializer::ReadFloat(ModuleJson, "SphereRadius", Location->SphereRadius);
+            FJsonSerializer::ReadFloat(ModuleJson, "CylinderRadius", Location->CylinderRadius);
+            FJsonSerializer::ReadFloat(ModuleJson, "CylinderHeight", Location->CylinderHeight);
         }
         NewModule = Location;
     }
@@ -528,9 +536,14 @@ JSON UParticleLODLevel::SerializeModule(UParticleModule* Module)
     else if (auto* Location = Cast<UParticleModuleLocation>(Module))
     {
         ModuleJson["Type"] = "Location";
+        ModuleJson["DistributionType"] = (int)Location->DistributionType;
         ModuleJson["StartLocation_Min"] = FJsonSerializer::VectorToJson(Location->StartLocation.MinValue);
         ModuleJson["StartLocation_Max"] = FJsonSerializer::VectorToJson(Location->StartLocation.MaxValue);
         ModuleJson["StartLocation_bUseRange"] = Location->StartLocation.bUseRange;
+        ModuleJson["BoxExtent"] = FJsonSerializer::VectorToJson(Location->BoxExtent);
+        ModuleJson["SphereRadius"] = Location->SphereRadius;
+        ModuleJson["CylinderRadius"] = Location->CylinderRadius;
+        ModuleJson["CylinderHeight"] = Location->CylinderHeight;
     }
     else if (auto* ColorOverLife = Cast<UParticleModuleColorOverLife>(Module))
     {
