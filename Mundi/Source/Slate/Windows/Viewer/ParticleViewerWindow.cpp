@@ -1,4 +1,4 @@
-﻿#include "pch.h"
+#include "pch.h"
 #include "ParticleViewerWindow.h"
 #include "Source/Runtime/Renderer/FViewport.h"
 #include "Source/Runtime/Renderer/FViewportClient.h"
