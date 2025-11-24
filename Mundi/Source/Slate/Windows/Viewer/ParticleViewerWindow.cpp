@@ -255,7 +255,7 @@ void SParticleViewerWindow::OnRender()
                 ImGui::Separator();
 
                 // 모듈 타입별로 속성 표시
-                if (auto* RequiredModule = dynamic_cast<UParticleModuleRequired*>(SelectedModule))
+                if (auto* RequiredModule = Cast<UParticleModuleRequired>(SelectedModule))
                 {
                     ImGui::Spacing();
 
@@ -510,28 +510,28 @@ void SParticleViewerWindow::OnRender()
                     // 2열 레이아웃 종료
                     ImGui::Columns(1);
                 }
-                else if (auto* SpawnModule = dynamic_cast<UParticleModuleSpawn*>(SelectedModule))
+                else if (auto* SpawnModule = Cast<UParticleModuleSpawn>(SelectedModule))
                 {
                     ImGui::Text("Spawn Settings");
                     ImGui::DragFloat("Spawn Rate Min", &SpawnModule->SpawnRate.MinValue, 0.1f, 0.0f, 1000.0f);
                     ImGui::DragFloat("Spawn Rate Max", &SpawnModule->SpawnRate.MaxValue, 0.1f, 0.0f, 1000.0f);
                     ImGui::Checkbox("Use Range", &SpawnModule->SpawnRate.bUseRange);
                 }
-                else if (auto* LifetimeModule = dynamic_cast<UParticleModuleLifetime*>(SelectedModule))
+                else if (auto* LifetimeModule = Cast<UParticleModuleLifetime>(SelectedModule))
                 {
                     ImGui::Text("Lifetime Settings");
                     ImGui::DragFloat("Lifetime Min", &LifetimeModule->Lifetime.MinValue, 0.01f, 0.0f, 100.0f);
                     ImGui::DragFloat("Lifetime Max", &LifetimeModule->Lifetime.MaxValue, 0.01f, 0.0f, 100.0f);
                     ImGui::Checkbox("Use Range", &LifetimeModule->Lifetime.bUseRange);
                 }
-                else if (auto* SizeModule = dynamic_cast<UParticleModuleSize*>(SelectedModule))
+                else if (auto* SizeModule = Cast<UParticleModuleSize>(SelectedModule))
                 {
                     ImGui::Text("Size Settings");
                     ImGui::DragFloat3("Start Size Min", &SizeModule->StartSize.MinValue.X, 1.0f, 0.0f, 1000.0f);
                     ImGui::DragFloat3("Start Size Max", &SizeModule->StartSize.MaxValue.X, 1.0f, 0.0f, 1000.0f);
                     ImGui::Checkbox("Use Range", &SizeModule->StartSize.bUseRange);
                 }
-                else if (auto* VelocityModule = dynamic_cast<UParticleModuleVelocity*>(SelectedModule))
+                else if (auto* VelocityModule = Cast<UParticleModuleVelocity>(SelectedModule))
                 {
                     ImGui::Text("Velocity Settings");
                     ImGui::DragFloat3("Start Velocity Min", &VelocityModule->StartVelocity.MinValue.X, 1.0f, -1000.0f, 1000.0f);
@@ -539,7 +539,7 @@ void SParticleViewerWindow::OnRender()
                     ImGui::Checkbox("Use Range", &VelocityModule->StartVelocity.bUseRange);
                     ImGui::DragFloat3("Gravity", &VelocityModule->Gravity.X, 1.0f, -10000.0f, 10000.0f);
                 }
-                else if (auto* ColorModule = dynamic_cast<UParticleModuleColor*>(SelectedModule))
+                else if (auto* ColorModule = Cast<UParticleModuleColor>(SelectedModule))
                 {
                     ImGui::Text("Color Settings");
                     ImGui::ColorEdit3("Start Color Min", &ColorModule->StartColor.MinValue.R);
@@ -548,7 +548,7 @@ void SParticleViewerWindow::OnRender()
                     ImGui::DragFloat("Start Alpha Min", &ColorModule->StartAlpha.MinValue, 0.01f, 0.0f, 1.0f);
                     ImGui::DragFloat("Start Alpha Max", &ColorModule->StartAlpha.MaxValue, 0.01f, 0.0f, 1.0f);
                 }
-                else if (auto* ColorOverLifeModule = dynamic_cast<UParticleModuleColorOverLife*>(SelectedModule))
+                else if (auto* ColorOverLifeModule = Cast<UParticleModuleColorOverLife>(SelectedModule))
                 {
                     ImGui::Text("Color Over Life Settings");
                     ImGui::Separator();
@@ -1248,6 +1248,36 @@ void SParticleViewerWindow::OnRender()
                                 CurvePanStart = FVector2D(io.MousePos.x, io.MousePos.y);
                             }
                         }
+                        else if (auto* ColorModule = dynamic_cast<UParticleModuleColorOverLife*>(SelectedModule))
+                        {
+                            // ColorOverLife - Alpha 커브 포인트
+                            ImVec2 p1Screen = WorldToScreen(ColorModule->AlphaPoint1Time, ColorModule->AlphaPoint1Value);
+                            ImVec2 p2Screen = WorldToScreen(ColorModule->AlphaPoint2Time, ColorModule->AlphaPoint2Value);
+
+                            // 마우스 위치와의 거리 계산
+                            float dist1 = sqrtf((io.MousePos.x - p1Screen.x) * (io.MousePos.x - p1Screen.x) +
+                                              (io.MousePos.y - p1Screen.y) * (io.MousePos.y - p1Screen.y));
+                            float dist2 = sqrtf((io.MousePos.x - p2Screen.x) * (io.MousePos.x - p2Screen.x) +
+                                              (io.MousePos.y - p2Screen.y) * (io.MousePos.y - p2Screen.y));
+
+                            const float clickRadius = 10.0f;
+
+                            if (dist1 < clickRadius && dist1 <= dist2)
+                            {
+                                DraggingPointIndex = 0;
+                                bDraggingPoint = true;
+                            }
+                            else if (dist2 < clickRadius)
+                            {
+                                DraggingPointIndex = 1;
+                                bDraggingPoint = true;
+                            }
+                            else
+                            {
+                                bCurvePanning = true;
+                                CurvePanStart = FVector2D(io.MousePos.x, io.MousePos.y);
+                            }
+                        }
                         else
                         {
                             // 다른 모듈이면 팬만
@@ -1291,6 +1321,26 @@ void SParticleViewerWindow::OnRender()
                                 // 단, 점1보다 오른쪽에 있어야 함
                                 SizeModule->Point2Time = FMath::Max(time, SizeModule->Point1Time + 0.1f);
                                 SizeModule->Point2Value = FVector(value, value, value);
+                            }
+                        }
+                        else if (auto* ColorModule = dynamic_cast<UParticleModuleColorOverLife*>(SelectedModule))
+                        {
+                            FVector2D worldPos = ScreenToWorld(io.MousePos);
+
+                            // X: 시간 (0~1)
+                            float time = FMath::Clamp(worldPos.X, 0.0f, 1.0f);
+                            // Y: Alpha 값 (0~1)
+                            float alpha = FMath::Clamp(worldPos.Y, 0.0f, 1.0f);
+
+                            if (DraggingPointIndex == 0)
+                            {
+                                ColorModule->AlphaPoint1Time = FMath::Min(time, ColorModule->AlphaPoint2Time - 0.01f);
+                                ColorModule->AlphaPoint1Value = alpha;
+                            }
+                            else if (DraggingPointIndex == 1)
+                            {
+                                ColorModule->AlphaPoint2Time = FMath::Max(time, ColorModule->AlphaPoint1Time + 0.01f);
+                                ColorModule->AlphaPoint2Value = alpha;
                             }
                         }
                     }
@@ -1395,7 +1445,7 @@ void SParticleViewerWindow::OnRender()
             // 선택된 모듈의 커브 그리기
             if (SelectedModule)
             {
-                if (auto* SizeModule = dynamic_cast<UParticleModuleSizeMultiplyLife*>(SelectedModule))
+                if (auto* SizeModule = Cast<UParticleModuleSizeMultiplyLife>(SelectedModule))
                 {
                     float p1Time = SizeModule->Point1Time;
                     float p1Value = SizeModule->Point1Value.X;
@@ -1427,6 +1477,41 @@ void SParticleViewerWindow::OnRender()
 
                     // 점2 (노랑)
                     draw_list->AddCircleFilled(p2Screen, radius2, IM_COL32(255, 255, 100, 255));
+                    draw_list->AddCircle(p2Screen, radius2 + 1.0f, IM_COL32(255, 255, 255, 200), 0, 1.5f);
+                }
+                else if (auto* ColorModule = Cast<UParticleModuleColorOverLife>(SelectedModule))
+                {
+                    // ColorOverLife - Alpha 커브 (0~1 범위)
+                    float p1Time = ColorModule->AlphaPoint1Time;
+                    float p1Value = ColorModule->AlphaPoint1Value;
+                    float p2Time = ColorModule->AlphaPoint2Time;
+                    float p2Value = ColorModule->AlphaPoint2Value;
+
+                    // 1. 점1 이전: 왼쪽 끝(0)부터 점1까지 수평선
+                    ImVec2 leftStart = WorldToScreen(0.0f, p1Value);
+                    ImVec2 leftEnd = WorldToScreen(p1Time, p1Value);
+                    draw_list->AddLine(leftStart, leftEnd, IM_COL32(100, 200, 255, 255), 2.0f);
+
+                    // 2. 점1에서 점2까지 선형 보간
+                    ImVec2 p1Screen = WorldToScreen(p1Time, p1Value);
+                    ImVec2 p2Screen = WorldToScreen(p2Time, p2Value);
+                    draw_list->AddLine(p1Screen, p2Screen, IM_COL32(100, 200, 255, 255), 2.0f);
+
+                    // 3. 점2 이후: 점2부터 오른쪽 끝(1)까지 수평선
+                    ImVec2 rightStart = WorldToScreen(p2Time, p2Value);
+                    ImVec2 rightEnd = WorldToScreen(1.0f, p2Value);
+                    draw_list->AddLine(rightStart, rightEnd, IM_COL32(100, 200, 255, 255), 2.0f);
+
+                    // 키포인트 그리기
+                    float radius1 = (DraggingPointIndex == 0) ? 8.0f : 6.0f;
+                    float radius2 = (DraggingPointIndex == 1) ? 8.0f : 6.0f;
+
+                    // 점1 (파랑)
+                    draw_list->AddCircleFilled(p1Screen, radius1, IM_COL32(100, 150, 255, 255));
+                    draw_list->AddCircle(p1Screen, radius1 + 1.0f, IM_COL32(255, 255, 255, 200), 0, 1.5f);
+
+                    // 점2 (하늘색)
+                    draw_list->AddCircleFilled(p2Screen, radius2, IM_COL32(150, 255, 255, 255));
                     draw_list->AddCircle(p2Screen, radius2 + 1.0f, IM_COL32(255, 255, 255, 200), 0, 1.5f);
                 }
             }

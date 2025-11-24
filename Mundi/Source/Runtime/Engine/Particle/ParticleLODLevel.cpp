@@ -411,6 +411,13 @@ void UParticleLODLevel::ParseAndAddModule(JSON& ModuleJson)
             FJsonSerializer::ReadFloat(ModuleJson, "AlphaOverLife_Min", ColorOverLife->AlphaOverLife.MinValue);
             FJsonSerializer::ReadFloat(ModuleJson, "AlphaOverLife_Max", ColorOverLife->AlphaOverLife.MaxValue);
             FJsonSerializer::ReadBool(ModuleJson, "AlphaOverLife_bUseRange", ColorOverLife->AlphaOverLife.bUseRange);
+
+            // Alpha 커브 2-point 시스템
+            FJsonSerializer::ReadFloat(ModuleJson, "AlphaPoint1Time", ColorOverLife->AlphaPoint1Time);
+            FJsonSerializer::ReadFloat(ModuleJson, "AlphaPoint1Value", ColorOverLife->AlphaPoint1Value);
+            FJsonSerializer::ReadFloat(ModuleJson, "AlphaPoint2Time", ColorOverLife->AlphaPoint2Time);
+            FJsonSerializer::ReadFloat(ModuleJson, "AlphaPoint2Value", ColorOverLife->AlphaPoint2Value);
+
             FJsonSerializer::ReadBool(ModuleJson, "bUseColorOverLife", ColorOverLife->bUseColorOverLife);
             FJsonSerializer::ReadBool(ModuleJson, "bUseAlphaOverLife", ColorOverLife->bUseAlphaOverLife);
         }
@@ -517,6 +524,13 @@ JSON UParticleLODLevel::SerializeModule(UParticleModule* Module)
         ModuleJson["AlphaOverLife_Min"] = ColorOverLife->AlphaOverLife.MinValue;
         ModuleJson["AlphaOverLife_Max"] = ColorOverLife->AlphaOverLife.MaxValue;
         ModuleJson["AlphaOverLife_bUseRange"] = ColorOverLife->AlphaOverLife.bUseRange;
+
+        // Alpha 커브 2-point 시스템
+        ModuleJson["AlphaPoint1Time"] = ColorOverLife->AlphaPoint1Time;
+        ModuleJson["AlphaPoint1Value"] = ColorOverLife->AlphaPoint1Value;
+        ModuleJson["AlphaPoint2Time"] = ColorOverLife->AlphaPoint2Time;
+        ModuleJson["AlphaPoint2Value"] = ColorOverLife->AlphaPoint2Value;
+
         ModuleJson["bUseColorOverLife"] = ColorOverLife->bUseColorOverLife;
         ModuleJson["bUseAlphaOverLife"] = ColorOverLife->bUseAlphaOverLife;
     }
