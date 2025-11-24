@@ -29,25 +29,31 @@ set STORE_PATH=\\%SERVER_IP%\SymbolStore
 
 echo [SymStore] Checking server availability (timeout: 3 seconds)...
 
-:: Create temporary PowerShell script for timeout check
+:: Create temporary PowerShell script with Job timeout
 set "PS_SCRIPT=%TEMP%\check_symstore_%RANDOM%.ps1"
 
 (
-echo $ErrorActionPreference = 'Stop'
-echo $timeout = 3
-echo try {
-echo     $result = Test-Path -Path '%STORE_PATH%' -PathType Container -ErrorAction Stop
+echo $timeoutSec = 3
+echo $job = Start-Job -ScriptBlock {
+echo     param($path^)
+echo     Test-Path -Path $path -PathType Container
+echo } -ArgumentList '%STORE_PATH%'
+echo.
+echo $completed = Wait-Job $job -Timeout $timeoutSec
+echo.
+echo if ($completed^) {
+echo     $result = Receive-Job $job
+echo     Remove-Job $job -Force
 echo     if ($result^) { exit 0 } else { exit 1 }
-echo } catch {
+echo } else {
+echo     Remove-Job $job -Force
 echo     exit 1
 echo }
 ) > "%PS_SCRIPT%"
 
-:: Run PowerShell script with timeout
 powershell -NoProfile -ExecutionPolicy Bypass -File "%PS_SCRIPT%"
 set RESULT=%ERRORLEVEL%
 
-:: Cleanup
 del "%PS_SCRIPT%" 2>nul
 
 if %RESULT% NEQ 0 (
@@ -66,7 +72,7 @@ echo [SymStore] Server is accessible.
 set "NOW_TIME=%time: =0%"
 set VERSION_TAG=Build_%CONFIG%_%date:~0,4%-%date:~5,2%-%date:~8,2%_%NOW_TIME:~0,2%%NOW_TIME:~3,2%
 
-echo.
+
 echo ========================================================
 echo   Target Config : %CONFIG%
 echo   Source Path   : %BIN_DIR%
