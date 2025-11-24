@@ -16,11 +16,11 @@ void UParticleModuleRotation::Spawn(FParticleEmitterInstance* Owner, int32 Offse
     if (!ParticleBase)
         return;
 
-    // 랜덤 시드 생성 (파티클 카운터 기반)
-    float RandomSeed = (float)(Owner->ParticleCounter % 1000) / 1000.0f;
+    // 랜덤 값 생성 (0~1 범위)
+    float RandomValue = Owner->GetRandomFloat();
 
     // 초기 회전각 설정 (라디안 단위)
-    float RotationValue = StartRotation.GetValue(RandomSeed);
+    float RotationValue = StartRotation.GetValue(RandomValue);
 
     ParticleBase->Rotation = RotationValue;
     ParticleBase->BaseRotation = RotationValue;
