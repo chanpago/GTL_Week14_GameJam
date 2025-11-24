@@ -510,7 +510,8 @@ void UWorld::SetLevel(std::unique_ptr<ULevel> InLevel)
 			{
 				Actor->SetWorld(this);
 				Actor->RegisterAllComponents(this);
-}
+				Actor->BeginPlay();
+			}
         }
     }
 

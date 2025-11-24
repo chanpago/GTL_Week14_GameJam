@@ -226,6 +226,35 @@ void UObject::Serialize(const bool bInIsLoading, JSON& InOutHandle)
 			}
 			break;
 		}
+		case EPropertyType::ParticleSystem:
+		{
+			UParticleSystem** Value = Prop.GetValuePtr<UParticleSystem*>(this);
+			if (bInIsLoading)
+			{
+				FString ParticlePath;
+				FJsonSerializer::ReadString(InOutHandle, Prop.Name, ParticlePath);
+				if (!ParticlePath.empty())
+				{
+					*Value = RESOURCE.Load<UParticleSystem>(ParticlePath);
+				}
+				else
+				{
+					*Value = nullptr;
+				}
+			}
+			else
+			{
+				if (*Value)
+				{
+					InOutHandle[Prop.Name] = (*Value)->GetFilePath().c_str();
+				}
+				else
+				{
+					InOutHandle[Prop.Name] = "";
+				}
+			}
+			break;
+		}
 		case EPropertyType::Material:
 		{
 			UMaterial** Value = Prop.GetValuePtr<UMaterial*>(this);
