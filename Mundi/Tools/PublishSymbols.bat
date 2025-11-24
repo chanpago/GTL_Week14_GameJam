@@ -27,12 +27,16 @@ set BIN_DIR=%~dp0..\..\Binaries\%CONFIG%
 set SERVER_IP=172.21.11.109
 set STORE_PATH=\\%SERVER_IP%\SymbolStore
 
-echo [SymStore] Checking server availability (timeout: 3 seconds)...
+echo [SymStore] Checking server availability...
 
-:: Use PowerShell with timeout for reliable network path check
-powershell -NoProfile -ExecutionPolicy Bypass -Command "$timeout=3000; $process=Start-Process cmd.exe -ArgumentList '/c','dir','\\\%SERVER_IP%\SymbolStore','/a','>nul','2>&1' -WindowStyle Hidden -PassThru; $process | Wait-Process -Timeout $timeout -ErrorAction SilentlyContinue; if($process.HasExited){if($process.ExitCode -eq 0){exit 0}else{exit 1}}else{Stop-Process -Id $process.Id -Force; exit 1}"
+:: Simple and fast check - create a test file
+set "TEST_FILE=%STORE_PATH%\test_%RANDOM%.tmp"
+echo test > "%TEST_FILE%" 2>nul
 
-if errorlevel 1 (
+if exist "%TEST_FILE%" (
+    del "%TEST_FILE%" 2>nul
+    echo [SymStore] Server is accessible.
+) else (
     echo.
     echo [Warning] Cannot access Symbol Store path: "%STORE_PATH%"
     echo           Server might be unreachable or you lack permissions.
@@ -40,7 +44,6 @@ if errorlevel 1 (
     exit /b 0
 )
 
-echo [SymStore] Server is accessible.
 
 :: ========================================================
 :: [Setup 4] Version Tag (Auto-generated from Date_Time)
