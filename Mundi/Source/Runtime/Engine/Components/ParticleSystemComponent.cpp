@@ -312,6 +312,7 @@ void UParticleSystemComponent::BuildSpriteParticleBatch(TArray<FMeshBatchElement
 
             const FVector2D Size = FVector2D(Particle->Size.X, Particle->Size.Y);
             const FLinearColor Color = Particle->Color;
+            const float Rotation = Particle->Rotation;
 
             // 4개 코너 버텍스 생성
             for (int32 CornerIndex = 0; CornerIndex < 4; ++CornerIndex)
@@ -321,6 +322,7 @@ void UParticleSystemComponent::BuildSpriteParticleBatch(TArray<FMeshBatchElement
                 Vertex.Corner = CornerOffsets[CornerIndex];
                 Vertex.Size = Size;
                 Vertex.Color = Color;
+                Vertex.Rotation = Rotation;
             }
 
             ++WrittenParticles;
