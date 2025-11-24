@@ -21,6 +21,21 @@
                     "StartVelocity_bUseRange" : true,
                     "Type" : "Velocity",
                     "bEnabled" : true
+                  }, {
+                    "AlphaOverLife_Max" : 1.000000,
+                    "AlphaOverLife_Min" : 1.000000,
+                    "AlphaOverLife_bUseRange" : false,
+                    "AlphaPoint1Time" : 0.000000,
+                    "AlphaPoint1Value" : 0.427350,
+                    "AlphaPoint2Time" : 1.000000,
+                    "AlphaPoint2Value" : 0.000000,
+                    "ColorOverLife_Max" : [1.000000, 1.000000, 1.000000, 1.000000],
+                    "ColorOverLife_Min" : [1.000000, 1.000000, 1.000000, 1.000000],
+                    "ColorOverLife_bUseRange" : false,
+                    "Type" : "ColorOverLife",
+                    "bEnabled" : true,
+                    "bUseAlphaOverLife" : true,
+                    "bUseColorOverLife" : false
                   }],
                 "RequiredModule" : {
                   "BlendMode" : 3,
