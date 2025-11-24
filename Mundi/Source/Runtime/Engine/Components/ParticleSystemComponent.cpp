@@ -14,6 +14,8 @@
 
 UParticleSystemComponent::UParticleSystemComponent()
 {
+    SetActive(true);
+    bTickInEditor = true;
     bCanEverTick = true;  // 파티클 시스템은 매 프레임 Tick 필요
     bAutoActivate = true;
 
@@ -75,7 +77,19 @@ void UParticleSystemComponent::DestroyParticles()
     }
     EmitterInstances.Empty();
     ClearEmitterRenderData();
-    bIsActive = false;
+}
+
+void UParticleSystemComponent::BeginPlay()
+{
+    Super::BeginPlay();
+    InitParticles();
+}
+
+void UParticleSystemComponent::EndPlay()
+{
+    DestroyParticles();
+    ReleaseParticleBuffers();
+    Super::EndPlay();
 }
 
 // ============================================================================
@@ -136,6 +150,15 @@ void UParticleSystemComponent::CollectMeshBatches(TArray<FMeshBatchElement>& Out
 
     // 이번 프레임 끝에 DynamicData 파괴
     ClearEmitterRenderData();
+}
+
+void UParticleSystemComponent::DuplicateSubObjects()
+{
+    Super::DuplicateSubObjects();
+    EmitterInstances.Empty();
+    EmitterRenderData.Empty();
+    ParticleVertexBuffer = nullptr;
+    ParticleIndexBuffer = nullptr;
 }
 
 void UParticleSystemComponent::BuildEmitterRenderData()

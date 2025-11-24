@@ -13,6 +13,7 @@
 #include "StaticMeshComponent.h"
 #include "LightComponentBase.h"
 #include "LightComponent.h"
+#include "ParticleSystemComponent.h"
 #include "PointLightComponent.h"
 #include "SpotLightComponent.h"
 #include "PlatformProcess.h"
@@ -1967,6 +1968,12 @@ bool UPropertyRenderer::RenderParticleSystemProperty(const FProperty& Prop, void
     }
     
     ImGui::PopID();
+
+	if (bValueChanged)
+	{
+		UParticleSystemComponent* PSC = static_cast<UParticleSystemComponent*>(Instance);
+		PSC->SetTemplate(*PSPtr);
+	}
 
     return bValueChanged;
 }

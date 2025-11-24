@@ -50,6 +50,7 @@ public:
         // 틱을 진짜 돌릴지 최종 판단(액터 Tick에서 이걸로 거른다)
         return bIsActive && bCanEverTick && bTickEnabled && bRegistered;
     }
+    bool bTickInEditor = false; 
 
     // ─────────────── Owner/World
     void   SetOwner(AActor* InOwner) { Owner = InOwner; }

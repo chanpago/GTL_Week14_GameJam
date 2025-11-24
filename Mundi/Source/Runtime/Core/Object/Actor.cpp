@@ -57,15 +57,22 @@ void AActor::BeginPlay()
 
 void AActor::Tick(float DeltaSeconds)
 {
-	// 에디터에서 틱 Off면 스킵
-	if (!bTickInEditor && World->bPie == false) return;
-	
+	bool bIsEditor = World->bPie == false;
 	for (UActorComponent* Comp : OwnedComponents)
 	{
-		if (Comp && Comp->IsComponentTickEnabled())
+		if (!Comp || !Comp->IsComponentTickEnabled()) continue;
+
+		if (bIsEditor)
 		{
-			Comp->TickComponent(DeltaSeconds /*, … 필요 인자*/);
+			// 컴포넌트 에디터 틱 껐으면 스킵
+			if (!Comp->bTickInEditor)
+			{
+				continue; 
+			}
 		}
+
+		// 통과했으면 틱 실행
+		Comp->TickComponent(DeltaSeconds);
 	}
 }
 

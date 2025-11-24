@@ -259,10 +259,7 @@ void UWorld::Tick(float DeltaSeconds)
 			{
 				if (Actor->CanEverTick())
 				{
-					if (Actor->CanTickInEditor() || bPie)
-					{
-						Actor->Tick(GetDeltaTime(EDeltaTime::Game) * Actor->GetCustomTimeDillation());
-					}
+					Actor->Tick(GetDeltaTime(EDeltaTime::Game) * Actor->GetCustomTimeDillation());
 				}
 			}
 		}

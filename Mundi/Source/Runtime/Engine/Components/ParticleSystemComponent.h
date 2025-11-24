@@ -21,6 +21,9 @@ public:
 	// 컴포넌트 초기화 & LifeCycle
 	virtual void InitParticles();
 	virtual void DestroyParticles();
+
+	void BeginPlay() override;
+	void EndPlay() override;
 	void TickComponent(float DeltaTime) override;
 
 	// ParticleSystem 활성화/비활성화 제어
@@ -29,11 +32,13 @@ public:
 	void ResetAndActivate() { InitParticles(); ActivateSystem(); SetActive(true); }
 
 	// Template accessor
-	void SetTemplate(UParticleSystem* InTemplate) { Template = InTemplate; }
+	void SetTemplate(UParticleSystem* InTemplate) { Template = InTemplate; InitParticles(); }
 	UParticleSystem* GetTemplate() const { return Template; }
 
 	// 렌더링을 위한 MeshBatch 수집 함수
 	void CollectMeshBatches(TArray<FMeshBatchElement>& OutMeshBatchElements, const FSceneView* View) override;
+
+	void DuplicateSubObjects() override;
 
 private:
 	// sprite, mesh 나눠 BuildBatch

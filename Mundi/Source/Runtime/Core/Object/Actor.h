@@ -118,10 +118,6 @@ public:
 
     // 파티션
     void MarkPartitionDirty();
-
-    // 틱 플래그
-    void SetTickInEditor(bool b) { bTickInEditor = b; }
-    bool GetTickInEditor() const { return bTickInEditor; }
     
     float GetCustomTimeDillation();
     void  SetCustomTimeDillation(float Duration, float Dillation);
@@ -149,7 +145,7 @@ public:
     bool IsActorVisible() const;
 
     bool CanEverTick() const { return bCanEverTick; }
-	bool CanTickInEditor() const { return bTickInEditor; }
+    
     // ───── 충돌 관련 ─────────────────────────  
     void OnBeginOverlap(UPrimitiveComponent* MyComp, UPrimitiveComponent* OtherComp);
     void OnEndOverlap(UPrimitiveComponent* MyComp, UPrimitiveComponent* OtherComp);
@@ -186,8 +182,6 @@ protected:
     TSet<UActorComponent*> OwnedComponents;   // 모든 컴포넌트 (씬/비씬)
     TArray<USceneComponent*> SceneComponents; // 씬 컴포넌트들만 별도 캐시(트리/렌더/ImGui용)
     
-    bool bTickInEditor = false; // 에디터에서도 틱 허용
-
     UPROPERTY(EditAnywhere, Category="[액터]")
     bool bActorHiddenInGame = false;
 

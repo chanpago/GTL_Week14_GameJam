@@ -897,7 +897,6 @@ void SParticleViewerWindow::LoadParticleSystem(UParticleSystem* ParticleSystem)
     PreviewActor = PreviewWorld->SpawnActor<AActor>();
     PreviewActor->ObjectName = FName("ParticlePreviewActor");
     PreviewActor->SetActorLocation(FVector(0, 0, 0));
-    PreviewActor->SetTickInEditor(true);  // 에디터 모드에서도 Tick 활성화
 
     // ParticleSystemComponent 생성 및 추가
     PreviewComponent = Cast<UParticleSystemComponent>(PreviewActor->AddNewComponent(UParticleSystemComponent::StaticClass()));
