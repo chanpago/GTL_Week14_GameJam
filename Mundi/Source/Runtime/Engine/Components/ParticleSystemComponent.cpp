@@ -337,15 +337,10 @@ void UParticleSystemComponent::BuildSpriteParticleBatch_Instanced(
 
         const uint32 StartInstance = WrittenInstances;
 
-        TArray<int32> SortIndices;
-        SpriteData->SortParticles(ViewOrigin, ViewDir, GetWorldMatrix(), SortIndices);
-        const bool bUseSortIndices = (SortIndices.Num() == Src->ActiveParticleCount);
-
         for (int32 LocalIdx = 0; LocalIdx < Src->ActiveParticleCount; ++LocalIdx)
         {
             if (WrittenInstances >= ClampedCount) break;
-
-            const int32 ParticleIdx = bUseSortIndices ? SortIndices[LocalIdx] : LocalIdx;
+            const int32 ParticleIdx = Base->AsyncSortedIndices[LocalIdx];
             const FBaseParticle* Particle = SpriteData->GetParticle(ParticleIdx);
             if (!Particle) continue;
 
@@ -472,16 +467,11 @@ void UParticleSystemComponent::BuildSpriteParticleBatch_Immediate(
         if (!Src || Src->ActiveParticleCount <= 0) continue;
 
         const uint32 StartParticle = WrittenParticles;
-
-        TArray<int32> SortIndices;
-        SpriteData->SortParticles(ViewOrigin, ViewDir, GetWorldMatrix(), SortIndices);
-        const bool bUseSortIndices = (SortIndices.Num() == Src->ActiveParticleCount);
-
         for (int32 LocalIdx = 0; LocalIdx < Src->ActiveParticleCount; ++LocalIdx)
         {
             if (WrittenParticles >= ClampedCount) break;
 
-            const int32 ParticleIdx = bUseSortIndices ? SortIndices[LocalIdx] : LocalIdx;
+            const int32 ParticleIdx = Base->AsyncSortedIndices[LocalIdx];
             const FBaseParticle* Particle = SpriteData->GetParticle(ParticleIdx);
             if (!Particle) continue;
 
@@ -672,13 +662,9 @@ void UParticleSystemComponent::BuildMeshParticleBatch_Immediate(TArray<FDynamicE
             ViewDir = View->ViewRotation.RotateVector(FVector(1, 0, 0)).GetSafeNormal();
         }
 
-        TArray<int32> SortIndices;
-        MeshData->SortParticles(ViewOrigin, ViewDir, ComponentWorld, SortIndices);
-		const bool bUseSortIndices = (SortIndices.Num() == Src->ActiveParticleCount);
-
 		for (int32 LocalIdx = 0; LocalIdx < Src->ActiveParticleCount; ++LocalIdx)
 		{
-			const int32 ParticleIdx = bUseSortIndices ? SortIndices[LocalIdx] : LocalIdx;
+		    const int32 ParticleIdx = Base->AsyncSortedIndices[LocalIdx];
             const FBaseParticle* Particle = MeshData->GetParticle(ParticleIdx);
             if (!Particle)
                 continue;
@@ -826,18 +812,13 @@ void UParticleSystemComponent::BuildMeshParticleBatch_Instanced(
 		UMaterialInterface* Material = ResolveEmitterMaterial(*MeshData);
 		const uint32 StartInstance = WrittenInstances;
 
-		TArray<int32> SortIndices;
-		MeshData->SortParticles(ViewOrigin, ViewDir, ComponentWorld, SortIndices);
-		const bool bUseSortIndices = (SortIndices.Num() == Src->ActiveParticleCount);
-
 		for (int32 LocalIdx = 0; LocalIdx < Src->ActiveParticleCount; ++LocalIdx)
 		{
 			if (WrittenInstances >= ClampedCount)
 			{
 				break;
 			}
-
-			const int32 ParticleIdx = bUseSortIndices ? SortIndices[LocalIdx] : LocalIdx;
+		    const int32 ParticleIdx = Base->AsyncSortedIndices[LocalIdx];
 			const FBaseParticle* Particle = MeshData->GetParticle(ParticleIdx);
 			if (!Particle)
 			{
