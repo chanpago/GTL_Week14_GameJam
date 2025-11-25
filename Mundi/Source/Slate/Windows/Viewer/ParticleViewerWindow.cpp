@@ -2104,10 +2104,118 @@ void SParticleViewerWindow::RenderEmitterPanel(float Width, float Height)
                         UParticleLODLevel* LOD = Emitter->LODLevels[0];
                         if (LOD)
                         {
+                            float itemWidth = ImGui::GetContentRegionAvail().x;
+                            float buttonWidth = 20.0f;
+                            float rightMargin = 10.0f;
+                            float nameWidth = itemWidth - buttonWidth * 2 - rightMargin - 8;
+
+                            // TypeData 모듈 찾기 (Mesh 등)
+                            UParticleModuleTypeDataBase* TypeDataModule = nullptr;
+                            for (UParticleModule* Module : LOD->AllModulesCache)
+                            {
+                                if (UParticleModuleTypeDataBase* TD = Cast<UParticleModuleTypeDataBase>(Module))
+                                {
+                                    TypeDataModule = TD;
+                                    break;
+                                }
+                            }
+
+                            // 1. TypeData 슬롯 (Mesh 모듈 등) - Emitter 헤더 바로 아래
+                            ImGui::PushID("TypeDataSlot");
+                            if (TypeDataModule)
+                            {
+                                // TypeData 모듈이 있으면 표시 (파란색)
+                                bool isSelected = (SelectedModule == TypeDataModule);
+                                ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.2f, 0.4f, 0.8f, 0.8f));
+                                ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.3f, 0.5f, 0.9f, 0.9f));
+                                ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.4f, 0.6f, 1.0f, 1.0f));
+
+                                const char* typeName = "TypeData";
+                                if (Cast<UParticleModuleMesh>(TypeDataModule)) typeName = "Mesh";
+
+                                if (ImGui::Selectable(typeName, isSelected, 0, ImVec2(nameWidth, 20)))
+                                {
+                                    SelectedModule = TypeDataModule;
+                                }
+                                ImGui::PopStyleColor(3);
+                                ImGui::SameLine();
+                                ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+                                if (TypeDataModule->bEnabled)
+                                {
+                                    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.6f, 0.0f, 1.0f));
+                                    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.0f, 0.7f, 0.0f, 1.0f));
+                                    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.0f, 0.8f, 0.0f, 1.0f));
+                                    if (ImGui::Button("V##TD", ImVec2(buttonWidth, 20)))
+                                    {
+                                        TypeDataModule->bEnabled = false;
+                                    }
+                                    ImGui::PopStyleColor(3);
+                                }
+                                else
+                                {
+                                    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.8f, 0.0f, 0.0f, 1.0f));
+                                    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.9f, 0.0f, 0.0f, 1.0f));
+                                    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(1.0f, 0.0f, 0.0f, 1.0f));
+                                    if (ImGui::Button("X##TD", ImVec2(buttonWidth, 20)))
+                                    {
+                                        TypeDataModule->bEnabled = true;
+                                    }
+                                    ImGui::PopStyleColor(3);
+                                }
+                                ImGui::PopStyleVar();
+                                ImGui::SameLine();
+                                ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+                                if (ImGui::Button("C##TD", ImVec2(buttonWidth, 20)))
+                                {
+                                    SelectedModule = TypeDataModule;
+                                }
+                                ImGui::PopStyleVar();
+                            }
+                            else
+                            {
+                                // TypeData 모듈이 없으면 빈 슬롯 표시
+                                ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.3f, 0.3f, 0.3f, 0.5f));
+                                ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.4f, 0.4f, 0.4f, 0.6f));
+                                ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.3f, 0.3f, 0.3f, 0.5f));
+                                ImGui::Selectable("(None)", false, ImGuiSelectableFlags_Disabled, ImVec2(nameWidth, 20));
+                                ImGui::PopStyleColor(3);
+                                ImGui::SameLine();
+                                ImGui::Dummy(ImVec2(buttonWidth * 2 + 4, 20));
+                            }
+                            ImGui::PopID();
+
+                            // 2. Required 모듈 렌더링
+                            if (LOD->RequiredModule)
+                            {
+                                ImGui::PushID("RequiredModule");
+                                bool isSelected = (SelectedModule == LOD->RequiredModule);
+                                ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.8f, 0.7f, 0.0f, 0.8f));
+                                ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.9f, 0.8f, 0.1f, 0.9f));
+                                ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(1.0f, 0.9f, 0.2f, 1.0f));
+                                if (ImGui::Selectable("Required", true, 0, ImVec2(nameWidth, 20)))
+                                {
+                                    SelectedModule = LOD->RequiredModule;
+                                }
+                                ImGui::PopStyleColor(3);
+                                ImGui::SameLine();
+                                ImGui::Dummy(ImVec2(buttonWidth, 20));
+                                ImGui::SameLine();
+                                ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+                                if (ImGui::Button("C##Req", ImVec2(buttonWidth, 20)))
+                                {
+                                    SelectedModule = LOD->RequiredModule;
+                                }
+                                ImGui::PopStyleVar();
+                                ImGui::PopID();
+                            }
+
+                            // 3. 나머지 모듈들 렌더링 (Required, TypeData 제외)
                             for (int m = 0; m < LOD->AllModulesCache.Num(); m++)
                             {
                                 if (UParticleModule* Module = LOD->AllModulesCache[m])
                                 {
+                                    // Required와 TypeData는 이미 위에서 렌더링했으므로 skip
+                                    if (Cast<UParticleModuleRequired>(Module)) continue;
                                     if (Cast<UParticleModuleTypeDataBase>(Module)) continue;
 
                                     ImGui::PushID(m + 1000);
@@ -2121,40 +2229,28 @@ void SParticleViewerWindow::RenderEmitterPanel(float Width, float Height)
                                         displayName = fullName + prefixLen;
                                     }
 
-                                    bool isRequired = (strcmp(displayName, "Required") == 0);
                                     bool isSpawn = (strcmp(displayName, "Spawn") == 0);
 
-                                    float itemWidth = ImGui::GetContentRegionAvail().x;
-                                    float buttonWidth = 20.0f;
-                                    float rightMargin = 10.0f;
-                                    float nameWidth = itemWidth - buttonWidth * 2 - rightMargin - 8;
-
-                                    if (isRequired)
-                                    {
-                                        ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.8f, 0.7f, 0.0f, 0.8f));
-                                        ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.9f, 0.8f, 0.1f, 0.9f));
-                                        ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(1.0f, 0.9f, 0.2f, 1.0f));
-                                    }
-                                    else if (isSpawn)
+                                    if (isSpawn)
                                     {
                                         ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.8f, 0.2f, 0.2f, 0.8f));
                                         ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.9f, 0.3f, 0.3f, 0.9f));
                                         ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(1.0f, 0.4f, 0.4f, 1.0f));
                                     }
 
-                                    bool showAsSelected = isSelected || isRequired || isSpawn;
+                                    bool showAsSelected = isSelected || isSpawn;
                                     if (ImGui::Selectable(displayName, showAsSelected, 0, ImVec2(nameWidth, 20)))
                                     {
                                         SelectedModule = Module;
                                     }
 
-                                    if (isRequired || isSpawn)
+                                    if (isSpawn)
                                     {
                                         ImGui::PopStyleColor(3);
                                     }
 
                                     ImGui::SameLine();
-                                    if (!isRequired && !isSpawn)
+                                    if (!isSpawn)
                                     {
                                         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
                                         if (Module->bEnabled)
