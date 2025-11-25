@@ -1,6 +1,8 @@
 ﻿#pragma once
 #include "ParticleModule.h"
 
+class UMaterialInterface;
+
 // 블렌드 모드
 enum class EBlendMode : uint8
 {
@@ -43,7 +45,7 @@ public:
     bool bKillOnCompleted  = false;
 
     // ---- 렌더 기본 ----
-    UMaterial* Material = nullptr;
+    UMaterialInterface* Material = nullptr;  // UMaterial 또는 UMaterialInstanceDynamic
     EBlendMode BlendMode = EBlendMode::Alpha;
 
     EScreenAlignment ScreenAlignment = EScreenAlignment::CameraFacing;

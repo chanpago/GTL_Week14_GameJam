@@ -50,6 +50,14 @@ public:
     void DeleteSelectedEmitter();
 
 private:
+    // ===== 분리된 렌더링 함수 =====
+    void RenderMenuBar();
+    void RenderToolbar();
+    void RenderViewportPanel(float Width, float Height);
+    void RenderEmitterPanel(float Width, float Height);
+    void RenderCurveEditor(float Width, float Height);
+
+private:
     ID3D11Device* Device = nullptr;
 
     // Preview World (별도의 파티클 미리보기용 월드)
@@ -90,9 +98,9 @@ private:
     bool bDraggingPoint = false;     // 포인트 드래그 중인지
 
     // Layout state
-    float LeftPanelRatio = 0.25f;   // 25% of width
-    float RightPanelRatio = 0.25f;  // 25% of width
-    float BottomPanelRatio = 0.3f;  // 30% of Height                                               
+    float LeftPanelRatio = 0.25f;       // 좌측 패널 너비 비율
+    float LeftBottomRatio = 0.4f;       // 좌측 하단(Properties) 높이 비율
+    float RightBottomRatio = 0.3f;      // 우측 하단(커브에디터) 높이 비율                                               
                                                                                                    
     // Cached center region for viewport                                                           
     FRect CenterRect;                                                                              
