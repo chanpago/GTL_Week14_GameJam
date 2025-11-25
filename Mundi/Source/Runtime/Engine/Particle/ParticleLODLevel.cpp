@@ -14,6 +14,7 @@
 #include "Modules/ParticleModuleRotation.h"
 #include "Modules/ParticleModuleRotationRate.h"
 #include "Modules/ParticleModuleMesh.h"
+#include "Modules/ParticleModuleSubUV.h"
 
 IMPLEMENT_CLASS(UParticleLODLevel)
 
@@ -123,6 +124,23 @@ void UParticleLODLevel::Serialize(const bool bInIsLoading, JSON& InOutHandle)
                 {
                     Req->Material = UResourceManager::GetInstance().Load<UMaterial>(MatPath);
                     if (!Req->Material) UE_LOG("Failed to load material: %s", MatPath.c_str());
+
+                    // Material 내 텍스처 경로 로드 및 적용
+                    if (Req->Material)
+                    {
+                        FString DiffusePath, NormalPath;
+                        FJsonSerializer::ReadString(ReqJson, "DiffuseTexture", DiffusePath);
+                        FJsonSerializer::ReadString(ReqJson, "NormalTexture", NormalPath);
+
+                        if (!DiffusePath.empty() || !NormalPath.empty())
+                        {
+                            FMaterialInfo MatInfo = Req->Material->GetMaterialInfo();
+                            if (!DiffusePath.empty()) MatInfo.DiffuseTextureFileName = DiffusePath;
+                            if (!NormalPath.empty()) MatInfo.NormalTextureFileName = NormalPath;
+                            Req->Material->SetMaterialInfo(MatInfo);
+                            Req->Material->ResolveTextures();
+                        }
+                    }
                 }
 
                 FJsonSerializer::ReadVector(ReqJson, "InitialSize_Min", Req->InitialSize.MinValue);
@@ -136,6 +154,10 @@ void UParticleLODLevel::Serialize(const bool bInIsLoading, JSON& InOutHandle)
                 FJsonSerializer::ReadFloat(ReqJson, "InitialRotation_Min", Req->InitialRotation.MinValue);
                 FJsonSerializer::ReadFloat(ReqJson, "InitialRotation_Max", Req->InitialRotation.MaxValue);
                 FJsonSerializer::ReadBool(ReqJson, "InitialRotation_bUseRange", Req->InitialRotation.bUseRange);
+
+                // SubUV (스프라이트 시트)
+                FJsonSerializer::ReadInt32(ReqJson, "SubImages_Horizontal", Req->SubImages_Horizontal);
+                FJsonSerializer::ReadInt32(ReqJson, "SubImages_Vertical", Req->SubImages_Vertical);
             }
         }
         // -----------------------------------------------------------
@@ -201,6 +223,17 @@ void UParticleLODLevel::Serialize(const bool bInIsLoading, JSON& InOutHandle)
             if (RequiredModule->Material)
             {
                 RequiredJson["Material"] = RequiredModule->Material->GetFilePath();
+
+                // Material 내 텍스처 경로 저장
+                FMaterialInfo MatInfo = RequiredModule->Material->GetMaterialInfo();
+                if (!MatInfo.DiffuseTextureFileName.empty())
+                {
+                    RequiredJson["DiffuseTexture"] = MatInfo.DiffuseTextureFileName;
+                }
+                if (!MatInfo.NormalTextureFileName.empty())
+                {
+                    RequiredJson["NormalTexture"] = MatInfo.NormalTextureFileName;
+                }
             }
 
             // InitialSize
@@ -217,6 +250,10 @@ void UParticleLODLevel::Serialize(const bool bInIsLoading, JSON& InOutHandle)
             RequiredJson["InitialRotation_Min"] = RequiredModule->InitialRotation.MinValue;
             RequiredJson["InitialRotation_Max"] = RequiredModule->InitialRotation.MaxValue;
             RequiredJson["InitialRotation_bUseRange"] = RequiredModule->InitialRotation.bUseRange;
+
+            // SubUV (스프라이트 시트)
+            RequiredJson["SubImages_Horizontal"] = RequiredModule->SubImages_Horizontal;
+            RequiredJson["SubImages_Vertical"] = RequiredModule->SubImages_Vertical;
 
             InOutHandle["RequiredModule"] = RequiredJson;
         }
@@ -489,6 +526,23 @@ void UParticleLODLevel::ParseAndAddModule(JSON& ModuleJson)
         }
         NewModule = Mesh;
     }
+    else if (ModuleType == "SubUV")
+    {
+        auto* SubUV = Cast<UParticleModuleSubUV>(AddModule(UParticleModuleSubUV::StaticClass()));
+        if (SubUV)
+        {
+            FJsonSerializer::ReadFloat(ModuleJson, "SubImageIndex_Min", SubUV->SubImageIndex.MinValue);
+            FJsonSerializer::ReadFloat(ModuleJson, "SubImageIndex_Max", SubUV->SubImageIndex.MaxValue);
+            FJsonSerializer::ReadBool(ModuleJson, "SubImageIndex_bUseRange", SubUV->SubImageIndex.bUseRange);
+
+            int32 InterpMethodVal = 0;
+            if (FJsonSerializer::ReadInt32(ModuleJson, "InterpMethod", InterpMethodVal))
+                SubUV->InterpMethod = static_cast<ESubUVInterpMethod>(InterpMethodVal);
+
+            FJsonSerializer::ReadBool(ModuleJson, "bUseRealTime", SubUV->bUseRealTime);
+        }
+        NewModule = SubUV;
+    }
 
     if (NewModule)
     {
@@ -599,6 +653,15 @@ JSON UParticleLODLevel::SerializeModule(UParticleModule* Module)
         ModuleJson["MeshAssetPath"] = Mesh->MeshAssetPath;
         ModuleJson["OverrideMaterialPath"] = Mesh->OverrideMaterialPath;
         ModuleJson["bUseMeshMaterials"] = Mesh->bUseMeshMaterials;
+    }
+    else if (auto* SubUV = Cast<UParticleModuleSubUV>(Module))
+    {
+        ModuleJson["Type"] = "SubUV";
+        ModuleJson["SubImageIndex_Min"] = SubUV->SubImageIndex.MinValue;
+        ModuleJson["SubImageIndex_Max"] = SubUV->SubImageIndex.MaxValue;
+        ModuleJson["SubImageIndex_bUseRange"] = SubUV->SubImageIndex.bUseRange;
+        ModuleJson["InterpMethod"] = static_cast<int>(SubUV->InterpMethod);
+        ModuleJson["bUseRealTime"] = SubUV->bUseRealTime;
     }
     else
     {

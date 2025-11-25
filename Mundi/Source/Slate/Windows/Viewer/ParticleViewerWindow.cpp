@@ -1966,6 +1966,8 @@ void SParticleViewerWindow::OnRender()
                                 if (ImGui::MenuItem("SubUV"))
                                 {
                                     LOD->AddModule(UParticleModuleSubUV::StaticClass());
+                                    CurrentParticleSystem->BuildRuntimeCache();
+                                    PreviewComponent->ResetAndActivate();
                                 }
 
                                 ImGui::EndPopup();

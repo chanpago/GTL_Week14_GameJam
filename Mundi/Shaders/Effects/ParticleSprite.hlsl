@@ -72,7 +72,8 @@ PSInput mainVS(VSInput In)
     float4 projPos = mul(viewPos, ProjectionMatrix);
 
     Out.Position = projPos;
-    Out.UV = In.Corner * 0.5f + 0.5f; // (-1~1) → (0~1)
+    // DirectX는 V가 위에서 아래로 증가하므로 Y(V)를 반전
+    Out.UV = float2(In.Corner.x * 0.5f + 0.5f, -In.Corner.y * 0.5f + 0.5f);
     Out.Color = In.Color;
     Out.SubImageIndex = In.SubImageIndex;  // PS로 전달
 
@@ -126,8 +127,16 @@ float4 mainPS(PSInput In) : SV_TARGET
             float4 c0 = ParticleTex.Sample(ParticleSampler, uv0);
             float4 c1 = ParticleTex.Sample(ParticleSampler, uv1);
             float4 tex = lerp(c0, c1, alpha);
+            float4 finalColor = tex * In.Color;
 
-            return tex * In.Color;
+            // 알파가 0에 가까우면 discard
+            // 근데 굳이 해야할 필요 못느끼겠음 어차피 사라지는데 이게 뭐하는짓임?
+            if (finalColor.a < 0.01)
+            {
+                discard;
+            }
+            
+            return finalColor;
         }
     }
 
@@ -135,5 +144,11 @@ float4 mainPS(PSInput In) : SV_TARGET
     float4 tex = ParticleTex.Sample(ParticleSampler, uv);
     float4 color = tex * In.Color;
 
+    // 알파 또는 검은색에 가까우면 discard
+    if (color.a < 0.01 || (color.r < 0.005 && color.g < 0.005 && color.b < 0.005))
+    {
+        discard;
+    }
+    
     return color;
 }

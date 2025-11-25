@@ -313,7 +313,7 @@ void FParticleEmitterInstance::Tick(const FParticleSimulationContext& Context)
     for (UParticleModule* Module : CurrentLODLevel->UpdateModules)
     {
         if (!Module || !Module->bEnabled) { continue; }
-        Module->UpdateAsync(this, 0, Context);
+        Module->UpdateAsync(this, Module->PayloadOffset, Context);
     }
 
     // ============================================================
