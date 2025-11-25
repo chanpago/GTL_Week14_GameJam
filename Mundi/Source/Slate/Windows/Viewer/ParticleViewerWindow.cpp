@@ -1981,7 +1981,7 @@ void SParticleViewerWindow::SaveParticleSystem()
     // Create 이후 처음 저장하는 경우
     FWideString WideInitialPath = UTF8ToWide(ParticlePath.string());
     std::filesystem::path WidePath = FPlatformProcess::OpenSaveFileDialog(WideInitialPath, L"particle",L"Particle Files");
-    FString PathStr = WidePath.string();
+    FString PathStr = ResolveAssetRelativePath(WidePath.string(), ParticlePath.string());
     
     if (!WidePath.empty())
     {
