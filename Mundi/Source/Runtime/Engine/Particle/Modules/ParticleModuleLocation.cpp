@@ -29,20 +29,20 @@ void UParticleModuleLocation::Spawn(FParticleEmitterInstance* Owner, int32 Offse
 
     case ELocationDistributionType::Box:
         {
-            // 박스 영역 내 랜덤 위치
-            float rx = (RandomValue * 2.0f - 1.0f) * BoxExtent.X;
-            float ry = (fmodf(RandomValue * 7.919f, 1.0f) * 2.0f - 1.0f) * BoxExtent.Y;
-            float rz = (fmodf(RandomValue * 13.531f, 1.0f) * 2.0f - 1.0f) * BoxExtent.Z;
+            // 박스 영역 내 랜덤 위치 - 각 축마다 별도의 랜덤값 사용
+            float rx = (Owner->GetRandomFloat() * 2.0f - 1.0f) * BoxExtent.X;
+            float ry = (Owner->GetRandomFloat() * 2.0f - 1.0f) * BoxExtent.Y;
+            float rz = (Owner->GetRandomFloat() * 2.0f - 1.0f) * BoxExtent.Z;
             SpawnLocation = FVector(rx, ry, rz);
         }
         break;
 
     case ELocationDistributionType::Sphere:
         {
-            // 구 영역 내 랜덤 위치
-            float theta = RandomValue * 2.0f * PI;
-            float phi = fmodf(RandomValue * 7.919f, 1.0f) * PI;
-            float r = fmodf(RandomValue * 13.531f, 1.0f) * SphereRadius;
+            // 구 영역 내 랜덤 위치 - 각 파라미터마다 별도의 랜덤값 사용
+            float theta = Owner->GetRandomFloat() * 2.0f * PI;
+            float phi = Owner->GetRandomFloat() * PI;
+            float r = Owner->GetRandomFloat() * SphereRadius;
 
             SpawnLocation.X = r * sinf(phi) * cosf(theta);
             SpawnLocation.Y = r * sinf(phi) * sinf(theta);
@@ -52,10 +52,10 @@ void UParticleModuleLocation::Spawn(FParticleEmitterInstance* Owner, int32 Offse
 
     case ELocationDistributionType::Cylinder:
         {
-            // 원통 영역 내 랜덤 위치
-            float angle = RandomValue * 2.0f * PI;
-            float radius = fmodf(RandomValue * 7.919f, 1.0f) * CylinderRadius;
-            float height = (fmodf(RandomValue * 13.531f, 1.0f) * 2.0f - 1.0f) * CylinderHeight * 0.5f;
+            // 원통 영역 내 랜덤 위치 - 각 파라미터마다 별도의 랜덤값 사용
+            float angle = Owner->GetRandomFloat() * 2.0f * PI;
+            float radius = Owner->GetRandomFloat() * CylinderRadius;
+            float height = (Owner->GetRandomFloat() * 2.0f - 1.0f) * CylinderHeight * 0.5f;
 
             SpawnLocation.X = radius * cosf(angle);
             SpawnLocation.Y = radius * sinf(angle);
