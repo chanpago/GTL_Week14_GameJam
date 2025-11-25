@@ -548,7 +548,7 @@ void UParticleSystemComponent::BuildRibbonParticleBatch(TArray<FDynamicEmitterDa
         if (!Base || Base->EmitterType != EParticleType::Ribbon)
             continue;
 
-        const auto* Src = static_cast<const FDynamicRibbonEmitterReplayData*>(Base->GetSource());
+        const auto* Src = dynamic_cast<const FDynamicRibbonEmitterReplayData*>(Base->GetSource());
         if (Src && Src->ActiveParticleCount >= 2)
         {
             TotalSpinePoints += static_cast<uint32>(Src->ActiveParticleCount);

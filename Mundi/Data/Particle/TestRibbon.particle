@@ -21,20 +21,10 @@
                     "StartVelocity_bUseRange" : true,
                     "Type" : "Velocity",
                     "bEnabled" : true
-                  }, {
-                    "BoxExtent" : [100.000000, 100.000000, 100.000000],
-                    "CylinderHeight" : 200.000000,
-                    "CylinderRadius" : 100.000000,
-                    "DistributionType" : 0,
-                    "SphereRadius" : 100.000000,
-                    "StartLocation_Max" : [15.000000, 9.000000, 83.000000],
-                    "StartLocation_Min" : [67.000000, -21.000000, 38.000000],
-                    "StartLocation_bUseRange" : false,
-                    "Type" : "Location",
-                    "bEnabled" : true
                   }],
                 "RequiredModule" : {
                   "BlendMode" : 5,
+                  "DiffuseTexture" : "Data/Model/GatlingGun_Turret_Mat_baseColor.png",
                   "EmitterDelay" : 0.000000,
                   "EmitterDuration" : 1.000000,
                   "EmitterLoops" : 0,
@@ -47,7 +37,9 @@
                   "InitialSize_Max" : [50.000000, 50.000000, 1.000000],
                   "InitialSize_Min" : [50.000000, 50.000000, 1.000000],
                   "InitialSize_bUseRange" : false,
+                  "Material" : "GatlingGun_Turret_Mat",
                   "MaxParticles" : 1000,
+                  "NormalTexture" : "Data/Model/GatlingGun_Turret_Mat_normal.png",
                   "ScreenAlignment" : 0,
                   "SortMode" : 1,
                   "SpawnRateBase" : 10.000000,
@@ -66,7 +58,7 @@
                 "bEnabled" : true
               }],
             "Name" : "UParticleEmitter_11",
-            "RenderType" : 0
+            "RenderType" : 2
           }],
         "Name" : "UParticleSystem_6",
         "Type" : "ParticleSystem"

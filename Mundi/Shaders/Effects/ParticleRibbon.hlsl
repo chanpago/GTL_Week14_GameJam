@@ -121,5 +121,7 @@ float4 mainPS(PSInput In) : SV_TARGET
     if (col.a < 0.01f)
         discard;
 
+    return float4(1.0, 1.0, 0.0, 1.0);
+    
     return col;
 }
