@@ -50,6 +50,7 @@ private:
 	// sprite, mesh 나눠 BuildBatch
 	void BuildSpriteParticleBatch(TArray<FDynamicEmitterDataBase*>& EmitterRenderData, TArray<FMeshBatchElement>& OutMeshBatchElements, const FSceneView* View);
 	void BuildMeshParticleBatch(TArray<FDynamicEmitterDataBase*>& EmitterRenderData, TArray<FMeshBatchElement>& OutMeshBatchElements, const FSceneView* View);
+	void BuildBeamParticleBatch(TArray<FDynamicEmitterDataBase*>& EmitterRenderData, TArray<FMeshBatchElement>& OutMeshBatchElements, const FSceneView* View);
 	void BuildMeshParticleBatch_Instanced(
 		TArray<FDynamicEmitterDataBase*>& EmitterRenderData,
 		TArray<FMeshBatchElement>& OutMeshBatchElements,

@@ -259,7 +259,8 @@ enum class EWorldType : uint8
 enum class EParticleType : uint8
 {
     Sprite,
-    Mesh
+    Mesh,
+    Beam
 };
 
 enum class EParticleSortMode : uint8

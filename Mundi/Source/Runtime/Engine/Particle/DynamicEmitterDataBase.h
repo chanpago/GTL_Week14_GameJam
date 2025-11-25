@@ -204,3 +204,34 @@ struct FDynamicMeshEmitterData : public FDynamicTranslucentEmitterDataBase
     }
 };
 
+
+struct FDynamicBeamEmitterReplayData : public FDynamicEmitterReplayDataBase
+{
+    UParticleModuleRequired* RequiredModule = nullptr;
+
+    // 빔 세그먼트 데이터
+    int32 TessellationFactor = 10;
+    float NoiseFrequency = 0.0f;
+    float NoiseAmplitude = 0.0f;
+};
+
+struct FDynamicBeamEmitterData : public FDynamicEmitterDataBase
+{
+    FDynamicBeamEmitterReplayData Source;
+
+    FDynamicBeamEmitterData()
+    {
+        EmitterType = EParticleType::Beam;
+    }
+
+    ~FDynamicBeamEmitterData() override
+    {
+        Source.DataContainer.Free();
+    }
+
+    const FDynamicEmitterReplayDataBase* GetSource() const override
+    {
+        return &Source;
+    }
+};
+

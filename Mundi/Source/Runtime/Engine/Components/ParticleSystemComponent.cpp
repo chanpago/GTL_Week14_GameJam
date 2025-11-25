@@ -246,6 +246,7 @@ void UParticleSystemComponent::CollectMeshBatches(TArray<FMeshBatchElement>& Out
     // DynamicEmitterReplayDatabase -> MeshBatchElement
     BuildSpriteParticleBatch(CurrentData, OutMeshBatchElements, View);
     BuildMeshParticleBatch(CurrentData, OutMeshBatchElements, View);
+    BuildBeamParticleBatch(CurrentData, OutMeshBatchElements, View);
 }
 
 void UParticleSystemComponent::DuplicateSubObjects()
@@ -595,6 +596,17 @@ void UParticleSystemComponent::BuildMeshParticleBatch(TArray<FDynamicEmitterData
 	{
 		BuildMeshParticleBatch_Immediate(EmitterRenderData, OutMeshBatchElements, View);
 	}
+}
+
+void UParticleSystemComponent::BuildBeamParticleBatch(TArray<FDynamicEmitterDataBase*>& EmitterRenderData, TArray<FMeshBatchElement>& OutMeshBatchElements, const FSceneView* View)
+{
+    // 분기 없이 바로 Immediate 로직 구현
+    if (EmitterRenderData.IsEmpty())
+    {
+        return;
+    }
+    // 일단은 immediate 부터 구현 분기문 x
+    
 }
 
 void UParticleSystemComponent::BuildMeshParticleBatch_Immediate(TArray<FDynamicEmitterDataBase*>& EmitterRenderData, TArray<FMeshBatchElement>& OutMeshBatchElements, const FSceneView* View)
