@@ -15,6 +15,7 @@
 #include "Modules/ParticleModuleRotationRate.h"
 #include "Modules/ParticleModuleMesh.h"
 #include "Modules/ParticleModuleSubUV.h"
+#include "Material.h"
 
 IMPLEMENT_CLASS(UParticleLODLevel)
 
@@ -118,27 +119,50 @@ void UParticleLODLevel::Serialize(const bool bInIsLoading, JSON& InOutHandle)
                 if (FJsonSerializer::ReadInt32(ReqJson, "ScreenAlignment", AlignVal)) Req->ScreenAlignment = (EScreenAlignment)AlignVal;
                 if (FJsonSerializer::ReadInt32(ReqJson, "SortMode", SortVal)) Req->SortMode = (EParticleSortMode)SortVal;
 
-                // Material
+                // Material - 인스턴스 복제하여 파티클별 독립적인 텍스처 설정 지원
                 FString MatPath;
                 if (FJsonSerializer::ReadString(ReqJson, "Material", MatPath) && !MatPath.empty())
                 {
-                    Req->Material = UResourceManager::GetInstance().Load<UMaterial>(MatPath);
-                    if (!Req->Material) UE_LOG("Failed to load material: %s", MatPath.c_str());
-
-                    // Material 내 텍스처 경로 로드 및 적용
-                    if (Req->Material)
+                    UMaterial* BaseMaterial = UResourceManager::GetInstance().Load<UMaterial>(MatPath);
+                    if (!BaseMaterial)
                     {
+                        UE_LOG("Failed to load material: %s", MatPath.c_str());
+                    }
+                    else
+                    {
+                        // 텍스처 경로 읽기
                         FString DiffusePath, NormalPath;
                         FJsonSerializer::ReadString(ReqJson, "DiffuseTexture", DiffusePath);
                         FJsonSerializer::ReadString(ReqJson, "NormalTexture", NormalPath);
 
+                        // 커스텀 텍스처가 있으면 MaterialInstanceDynamic 생성
                         if (!DiffusePath.empty() || !NormalPath.empty())
                         {
-                            FMaterialInfo MatInfo = Req->Material->GetMaterialInfo();
-                            if (!DiffusePath.empty()) MatInfo.DiffuseTextureFileName = DiffusePath;
-                            if (!NormalPath.empty()) MatInfo.NormalTextureFileName = NormalPath;
-                            Req->Material->SetMaterialInfo(MatInfo);
-                            Req->Material->ResolveTextures();
+                            UMaterialInstanceDynamic* MID = UMaterialInstanceDynamic::Create(BaseMaterial);
+                            if (MID)
+                            {
+                                auto& RM = UResourceManager::GetInstance();
+                                if (!DiffusePath.empty())
+                                {
+                                    UTexture* DiffuseTex = RM.Load<UTexture>(DiffusePath, true);
+                                    if (DiffuseTex) MID->SetTextureParameterValue(EMaterialTextureSlot::Diffuse, DiffuseTex);
+                                }
+                                if (!NormalPath.empty())
+                                {
+                                    UTexture* NormalTex = RM.Load<UTexture>(NormalPath, false);
+                                    if (NormalTex) MID->SetTextureParameterValue(EMaterialTextureSlot::Normal, NormalTex);
+                                }
+                                Req->Material = MID;
+                            }
+                            else
+                            {
+                                Req->Material = BaseMaterial;
+                            }
+                        }
+                        else
+                        {
+                            // 커스텀 텍스처 없으면 원본 Material 사용
+                            Req->Material = BaseMaterial;
                         }
                     }
                 }
@@ -222,17 +246,40 @@ void UParticleLODLevel::Serialize(const bool bInIsLoading, JSON& InOutHandle)
             // Material
             if (RequiredModule->Material)
             {
-                RequiredJson["Material"] = RequiredModule->Material->GetFilePath();
+                // MaterialInstanceDynamic인 경우 부모 Material 경로 저장
+                UMaterialInstanceDynamic* MID = Cast<UMaterialInstanceDynamic>(RequiredModule->Material);
+                if (MID && MID->GetParentMaterial())
+                {
+                    RequiredJson["Material"] = MID->GetParentMaterial()->GetFilePath();
 
-                // Material 내 텍스처 경로 저장
-                FMaterialInfo MatInfo = RequiredModule->Material->GetMaterialInfo();
-                if (!MatInfo.DiffuseTextureFileName.empty())
-                {
-                    RequiredJson["DiffuseTexture"] = MatInfo.DiffuseTextureFileName;
+                    // 오버라이드된 텍스처 경로 저장
+                    const auto& OverriddenTextures = MID->GetOverriddenTextures();
+                    auto DiffuseIt = OverriddenTextures.find(EMaterialTextureSlot::Diffuse);
+                    if (DiffuseIt != OverriddenTextures.end() && DiffuseIt->second)
+                    {
+                        RequiredJson["DiffuseTexture"] = DiffuseIt->second->GetFilePath();
+                    }
+                    auto NormalIt = OverriddenTextures.find(EMaterialTextureSlot::Normal);
+                    if (NormalIt != OverriddenTextures.end() && NormalIt->second)
+                    {
+                        RequiredJson["NormalTexture"] = NormalIt->second->GetFilePath();
+                    }
                 }
-                if (!MatInfo.NormalTextureFileName.empty())
+                else
                 {
-                    RequiredJson["NormalTexture"] = MatInfo.NormalTextureFileName;
+                    // 일반 UMaterial인 경우
+                    RequiredJson["Material"] = RequiredModule->Material->GetFilePath();
+
+                    // Material 내 텍스처 경로 저장
+                    FMaterialInfo MatInfo = RequiredModule->Material->GetMaterialInfo();
+                    if (!MatInfo.DiffuseTextureFileName.empty())
+                    {
+                        RequiredJson["DiffuseTexture"] = MatInfo.DiffuseTextureFileName;
+                    }
+                    if (!MatInfo.NormalTextureFileName.empty())
+                    {
+                        RequiredJson["NormalTexture"] = MatInfo.NormalTextureFileName;
+                    }
                 }
             }
 

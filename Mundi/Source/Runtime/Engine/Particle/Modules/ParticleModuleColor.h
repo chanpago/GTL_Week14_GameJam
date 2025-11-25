@@ -5,6 +5,8 @@ class UParticleModuleColor : public UParticleModule
 {
     DECLARE_CLASS(UParticleModuleColor, UParticleModule)
 public:
+    UParticleModuleColor();
+
     // 초기 색상 (Spawn 시)
     FRawDistributionColor StartColor = FRawDistributionColor(FLinearColor(FVector(1.0f,1.0f,1.0f)));
 

@@ -6,6 +6,12 @@
 
 IMPLEMENT_CLASS(UParticleModuleColor)
 
+UParticleModuleColor::UParticleModuleColor()
+{
+    bSpawnModule = true;
+    bUpdateModule = true;
+}
+
 void UParticleModuleColor::Spawn(FParticleEmitterInstance* Owner, int32 Offset, float SpawnTime, FBaseParticle* ParticleBase)
 {
     if (!ParticleBase)
