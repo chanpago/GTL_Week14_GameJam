@@ -1,4 +1,4 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include "ParticleViewerWindow.h"
 #include "Source/Runtime/Renderer/FViewport.h"
 #include "Source/Runtime/Renderer/FViewportClient.h"
@@ -2875,6 +2875,11 @@ void SParticleViewerWindow::RenderEmitterPanel(float Width, float Height)
                                     typeName = "Beam";
                                     typeTooltip = "[Beam TypeData]\n두 점 사이를 연결하는 빔(레이저) 형태로 렌더링합니다.\n번개, 레이저 빔, 전기 효과 등에 사용됩니다.";
                                 }
+								else if (Cast<UParticleModuleRibbon>(TypeDataModule))
+								{
+									typeName = "Ribbon";
+									typeTooltip = "[Ribbon TypeData]\n부착된 액터의 꼬리(Trail) 형태로 파티클을 렌더링합니다. \n검 휘두르는 효과, 별똥별 등에 사용됩니다.";
+								}
 
                                 if (ImGui::Selectable(typeName, isSelected, 0, ImVec2(nameWidth, 20)))
                                 {
