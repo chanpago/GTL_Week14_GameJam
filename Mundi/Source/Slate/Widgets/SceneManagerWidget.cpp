@@ -165,6 +165,17 @@ void USceneManagerWidget::RenderWidget()
 
 	ImGui::EndChild();
 
+	// Delete 키 처리 - 이 위젯에 포커스가 있을 때만 처리
+	// (파티클 뷰어나 스켈레탈 뷰어 등 다른 창이 포커스 상태면 처리하지 않음)
+	if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) && ImGui::IsKeyPressed(ImGuiKey_Delete))
+	{
+		AActor* ActorToDelete = World->GetSelectionManager()->GetSelectedActor();
+		if (ActorToDelete && !ActorToDelete->IsPendingDestroy())
+		{
+			HandleActorDelete(ActorToDelete);
+		}
+	}
+
 	ImGui::Dummy(ImVec2(0, 1.0f));
 	ImGui::Text("%zu개 액터", World->GetActors().size());
 
