@@ -1,0 +1,174 @@
+{
+        "Emitters" : [{
+            "LODLevels" : [{
+                "LODIndex" : 0,
+                "Modules" : [{
+                    "Lifetime_Max" : 1.000000,
+                    "Lifetime_Min" : 10.000000,
+                    "Lifetime_bUseRange" : false,
+                    "Type" : "Lifetime",
+                    "bEnabled" : true
+                  }, {
+                    "StartSize_Max" : [10.000000, 10.000000, 10.000000],
+                    "StartSize_Min" : [0.050000, 1.500000, 10.000000],
+                    "StartSize_bUseRange" : false,
+                    "Type" : "Size",
+                    "bEnabled" : true
+                  }, {
+                    "Gravity" : [0.000000, 0.000000, -10.000000],
+                    "StartVelocity_Max" : [0.000000, 0.000000, 0.000000],
+                    "StartVelocity_Min" : [0.000000, 0.000000, -5.000000],
+                    "StartVelocity_bUseRange" : true,
+                    "Type" : "Velocity",
+                    "bEnabled" : true
+                  }, {
+                    "CollisionResponse" : 2,
+                    "EventName" : "Collision",
+                    "Friction" : 0.000000,
+                    "RadiusScale" : 10.000000,
+                    "Restitution" : 0.500000,
+                    "Type" : "Collision",
+                    "bEnabled" : true,
+                    "bWriteEvent" : true
+                  }, {
+                    "BoxExtent" : [10.000000, 10.000000, 1.000000],
+                    "CylinderHeight" : 200.000000,
+                    "CylinderRadius" : 100.000000,
+                    "DistributionType" : 1,
+                    "SphereRadius" : 100.000000,
+                    "StartLocation_Max" : [0.000000, 0.000000, 0.000000],
+                    "StartLocation_Min" : [0.000000, 0.000000, 0.000000],
+                    "StartLocation_bUseRange" : false,
+                    "Type" : "Location",
+                    "bEnabled" : true
+                  }],
+                "RequiredModule" : {
+                  "DiffuseTexture" : "Data/Bubble.PNG",
+                  "EmitterDelay" : 0.000000,
+                  "EmitterDuration" : 1.000000,
+                  "EmitterLoops" : 0,
+                  "InitialColor_Max" : [1.000000, 1.000000, 1.000000, 1.000000],
+                  "InitialColor_Min" : [1.000000, 1.000000, 1.000000, 1.000000],
+                  "InitialColor_bUseRange" : false,
+                  "InitialRotation_Max" : [0.000000, 0.000000, 0.000000],
+                  "InitialRotation_Min" : [0.000000, 0.000000, 0.000000],
+                  "InitialRotation_bUseRange" : false,
+                  "InitialSize_Max" : [50.000000, 50.000000, 1.000000],
+                  "InitialSize_Min" : [50.000000, 50.000000, 1.000000],
+                  "InitialSize_bUseRange" : false,
+                  "Material" : "texture",
+                  "MaxParticles" : 1000,
+                  "ScreenAlignment" : 1,
+                  "SortMode" : 1,
+                  "SpawnRateBase" : 10.000000,
+                  "SubImages_Horizontal" : 1,
+                  "SubImages_Vertical" : 1,
+                  "bUseLocalSpace" : false
+                },
+                "SpawnModule" : {
+                  "BurstList" : [],
+                  "SpawnRateOverTime_Max" : 50.000000,
+                  "SpawnRateOverTime_Min" : 10.000000,
+                  "SpawnRateOverTime_bUseRange" : true,
+                  "SpawnRateType" : 0,
+                  "SpawnRate_Max" : 20.000000,
+                  "SpawnRate_Min" : 20.000000,
+                  "SpawnRate_bUseRange" : false
+                },
+                "bEnabled" : true
+              }],
+            "Name" : "UParticleEmitter_18",
+            "RenderType" : 0
+          }, {
+            "LODLevels" : [{
+                "LODIndex" : 0,
+                "Modules" : [{
+                    "Lifetime_Max" : 0.400000,
+                    "Lifetime_Min" : 0.100000,
+                    "Lifetime_bUseRange" : true,
+                    "Type" : "Lifetime",
+                    "bEnabled" : true
+                  }, {
+                    "StartSize_Max" : [10.000000, 10.000000, 10.000000],
+                    "StartSize_Min" : [1.000000, 1.000000, 10.000000],
+                    "StartSize_bUseRange" : false,
+                    "Type" : "Size",
+                    "bEnabled" : true
+                  }, {
+                    "Count" : 1,
+                    "CountRange" : 0,
+                    "EventName" : "Collision",
+                    "InitialSpeed" : 10.000000,
+                    "Type" : "EventReceiverSpawn",
+                    "bEnabled" : true,
+                    "bUseEmitterDirection" : false,
+                    "bUseEmitterLocation" : true
+                  }, {
+                    "AlphaOverLife_Max" : 1.000000,
+                    "AlphaOverLife_Min" : 1.000000,
+                    "AlphaOverLife_bUseRange" : false,
+                    "AlphaPoint1Time" : 0.000000,
+                    "AlphaPoint1Value" : 1.000000,
+                    "AlphaPoint2Time" : 1.000000,
+                    "AlphaPoint2Value" : 0.000000,
+                    "ColorOverLife_Max" : [1.000000, 1.000000, 1.000000, 1.000000],
+                    "ColorOverLife_Min" : [1.000000, 1.000000, 1.000000, 1.000000],
+                    "ColorOverLife_bUseRange" : false,
+                    "Type" : "ColorOverLife",
+                    "bEnabled" : true,
+                    "bUseAlphaOverLife" : true,
+                    "bUseColorOverLife" : false
+                  }, {
+                    "Angle_Max" : 30.000000,
+                    "Angle_Min" : 20.000000,
+                    "Angle_bUseRange" : false,
+                    "Direction_X" : 0.000000,
+                    "Direction_Y" : 0.000000,
+                    "Direction_Z" : 1.000000,
+                    "Type" : "VelocityCone",
+                    "Velocity_Max" : 0.100000,
+                    "Velocity_Min" : 0.050000,
+                    "Velocity_bUseRange" : false,
+                    "bEnabled" : true
+                  }],
+                "RequiredModule" : {
+                  "DiffuseTexture" : "Data/Splash.PNG",
+                  "EmitterDelay" : 0.000000,
+                  "EmitterDuration" : 1.000000,
+                  "EmitterLoops" : 0,
+                  "InitialColor_Max" : [1.000000, 1.000000, 1.000000, 1.000000],
+                  "InitialColor_Min" : [1.000000, 1.000000, 1.000000, 1.000000],
+                  "InitialColor_bUseRange" : false,
+                  "InitialRotation_Max" : [0.000000, 0.000000, 0.000000],
+                  "InitialRotation_Min" : [0.000000, 0.000000, 0.000000],
+                  "InitialRotation_bUseRange" : false,
+                  "InitialSize_Max" : [50.000000, 50.000000, 1.000000],
+                  "InitialSize_Min" : [50.000000, 50.000000, 1.000000],
+                  "InitialSize_bUseRange" : false,
+                  "Material" : "texture",
+                  "MaxParticles" : 1000,
+                  "ScreenAlignment" : 0,
+                  "SortMode" : 1,
+                  "SpawnRateBase" : 10.000000,
+                  "SubImages_Horizontal" : 1,
+                  "SubImages_Vertical" : 1,
+                  "bUseLocalSpace" : false
+                },
+                "SpawnModule" : {
+                  "BurstList" : [],
+                  "SpawnRateOverTime_Max" : 50.000000,
+                  "SpawnRateOverTime_Min" : 10.000000,
+                  "SpawnRateOverTime_bUseRange" : true,
+                  "SpawnRateType" : 0,
+                  "SpawnRate_Max" : 0.000000,
+                  "SpawnRate_Min" : 0.000000,
+                  "SpawnRate_bUseRange" : false
+                },
+                "bEnabled" : true
+              }],
+            "Name" : "UParticleEmitter_19",
+            "RenderType" : 0
+          }],
+        "Name" : "NewParticleSystem",
+        "Type" : "ParticleSystem"
+      }
