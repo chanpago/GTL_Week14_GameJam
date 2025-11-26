@@ -325,14 +325,10 @@ void FParticleEmitterInstance::Tick(const FParticleSimulationContext& Context)
     bool bEmitterFinished = CachedRequiredModule && CachedRequiredModule->EmitterLoops > 0
                                 && LoopCount >= CachedRequiredModule->EmitterLoops;
 
-    // Emitter Delay 체크 - 딜레이 시간이 지나기 전에는 스폰하지 않음
-    float EmitterDelay = CachedRequiredModule ? CachedRequiredModule->EmitterDelay : 0.0f;
-    bool bDelayPassed = EmitterTime >= EmitterDelay;
-
     float RandomValue = GetRandomFloat();
 
-    // 아직 안 끝났고, 딜레이도 지났을 때만 스폰 시도
-    if (!bEmitterFinished && !Context.bSuppressSpawning && bDelayPassed)
+    // 아직 안 끝났을 때만 스폰 시도
+    if (!bEmitterFinished && !Context.bSuppressSpawning)
     {
         // [A] Continuous Spawn
         float SpawnRate = CachedSpawnModule ? CachedSpawnModule->GetSpawnRate(EmitterTime, RandomValue)
@@ -414,13 +410,10 @@ void FParticleEmitterInstance::Tick(const FParticleSimulationContext& Context)
     // Emitter Time Update
     // ============================================================
     EmitterTime += Context.DeltaTime;
-
+    
     if (CachedRequiredModule && CachedRequiredModule->EmitterDuration > 0.0f)
     {
-        // EmitterDelay + EmitterDuration이 실제 한 사이클의 총 시간
-        float TotalCycleTime = CachedRequiredModule->EmitterDelay + CachedRequiredModule->EmitterDuration;
-
-        if (EmitterTime >= TotalCycleTime)
+        if (EmitterTime >= CachedRequiredModule->EmitterDuration)
         {
             // 무한 루프(0)거나 아직 횟수가 남았으면 리셋
             if (CachedRequiredModule->EmitterLoops == 0 || LoopCount < CachedRequiredModule->EmitterLoops)
@@ -649,10 +642,6 @@ void FParticleEmitterInstance::BuildReplayData(FDynamicEmitterReplayDataBase& Ou
             RibbonOut.TrailHeads = RibbonTrailHeads;
             break;
         }
-
-
-        default:
-            break;
         case EParticleType::Beam:
         {
             auto& BeamOut = static_cast<FDynamicBeamEmitterReplayData&>(OutData);
@@ -683,6 +672,8 @@ void FParticleEmitterInstance::BuildReplayData(FDynamicEmitterReplayDataBase& Ou
             }
             break;
         }
+        default:
+            break;
     }
 }
 
