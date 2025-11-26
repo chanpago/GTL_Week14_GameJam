@@ -793,8 +793,9 @@ void USlateManager::OnMouseUp(FVector2D MousePos, uint32 Button)
         // do not return; still allow panels to finish mouse up
     }
 
-    if (ParticleViewerWindow && ParticleViewerWindow->Rect.Contains(MousePos))
+    if (ParticleViewerWindow)
     {
+        // 뷰포트 밖에서 마우스를 놓아도 드래그가 해제되도록 항상 처리
         ParticleViewerWindow->OnMouseUp(MousePos, Button);
         // do not return; still allow panels to finish mouse up
     }

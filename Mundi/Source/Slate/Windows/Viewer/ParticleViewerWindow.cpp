@@ -109,7 +109,7 @@ bool SParticleViewerWindow::Initialize(float StartX, float StartY, float Width, 
     // 카메라 설정
     ACameraActor* Camera = ViewportClient->GetCamera();
     Camera->SetActorLocation(FVector(3, 0, 2));
-    Camera->SetActorRotation(FVector(0, 30, -180));
+    Camera->SetRotationFromEulerAngles(FVector(0, 30, -180));
 
     Viewport->SetViewportClient(ViewportClient);
     PreviewWorld->SetEditorCameraActor(Camera);

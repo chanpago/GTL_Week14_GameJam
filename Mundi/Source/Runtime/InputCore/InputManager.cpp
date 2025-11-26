@@ -216,15 +216,9 @@ void UInputManager::ProcessMessage(HWND hWnd, UINT message, WPARAM wParam, LPARA
         break;
         
     case WM_RBUTTONUP:
-        if (!IsUIHover)
-        {
-            UpdateMouseButton(RightButton, false);
-            if (bEnableDebugLogging) UE_LOG("InputManager: Right Mouse UP");
-        }
-        else
-        {
-            if (bEnableDebugLogging) UE_LOG("InputManager: Right Mouse UP blocked by ImGui");
-        }
+        // 마우스 버튼 해제는 항상 처리 (드래그 중 UI 위에서 놓아도 해제되어야 함)
+        UpdateMouseButton(RightButton, false);
+        if (bEnableDebugLogging) UE_LOG("InputManager: Right Mouse UP");
         break;
         
     case WM_MBUTTONDOWN:

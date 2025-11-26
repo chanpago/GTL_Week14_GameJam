@@ -32,6 +32,13 @@ FViewportClient::~FViewportClient()
 
 void FViewportClient::Tick(float DeltaTime)
 {
+	// 마우스 우클릭이 해제되면 카메라 입력 모드 해제 (뷰포트 밖에서 마우스를 놓아도 동작)
+	if (PerspectiveCameraInput && !UInputManager::GetInstance().IsMouseButtonDown(RightButton))
+	{
+		PerspectiveCameraInput = false;
+		bIsMouseRightButtonDown = false;
+	}
+
 	if (PerspectiveCameraInput)
 	{
 		Camera->ProcessEditorCameraInput(DeltaTime);
