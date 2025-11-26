@@ -12,8 +12,6 @@
 #define PARTICLE_LIGHTING 0  // 기본값: 조명 비적용
 #endif
 
-#define PARTICLE_MESH_INSTANCING 0
-
 // Material 구조체
 struct FMaterial
 {
@@ -72,7 +70,6 @@ SamplerState g_Sample2 : register(s1);
 SamplerComparisonState g_ShadowSample : register(s2);
 SamplerState g_VSMSampler : register(s3);
 
-#if PARTICLE_MESH_INSTANCING
 struct FMeshParticleInstanceData
 {
     row_major float4x4 WorldMatrix;
@@ -81,7 +78,6 @@ struct FMeshParticleInstanceData
 };
 
 StructuredBuffer<FMeshParticleInstanceData> g_MeshParticleInstanceData : register(t14);
-#endif
 
 #if PARTICLE_LIGHTING
 // 조명 시스템 include
@@ -127,12 +123,11 @@ PS_INPUT mainVS(VS_INPUT Input)
     float4x4 LocalWorldMatrix = WorldMatrix;
     float3x3 LocalWorldInverseTranspose = (float3x3)WorldInverseTranspose;
     float4 CombinedColor = Input.Color;
-#if PARTICLE_MESH_INSTANCING
+
     FMeshParticleInstanceData InstanceData = g_MeshParticleInstanceData[Input.InstanceID];
     LocalWorldMatrix = InstanceData.WorldMatrix;
-    LocalWorldInverseTranspose = (float3x3)InstanceData.WorldInverseTranspose;
+    LocalWorldInverseTranspose = (float3x3) InstanceData.WorldInverseTranspose;
     CombinedColor *= InstanceData.Color;
-#endif
 
     float4 WorldPos = mul(float4(Input.Position, 1.0f), LocalWorldMatrix);
     Out.WorldPos = WorldPos.xyz;
