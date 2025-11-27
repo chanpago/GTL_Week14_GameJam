@@ -763,6 +763,11 @@ void UParticleSystemComponent::BuildRibbonParticleBatch(TArray<FDynamicEmitterDa
         {
             // 4-1) 이 trail의 head부터 NextIndex 따라가며 체인 구성
             TArray<int32> Chain;
+            // TODO : TrailIdx && TrailHeads 생명주기 제대로 관리
+            if (TrailIdx < 0 || TrailIdx >= static_cast<int32>(TrailHeads.size()))
+            {
+                return;
+            }
             int32 Current = TrailHeads[TrailIdx];
 
             // Safety guard: 무한루프 방지
