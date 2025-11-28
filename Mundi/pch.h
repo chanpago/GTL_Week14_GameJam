@@ -117,16 +117,16 @@ extern UWorld* GWorld;
 
 #ifdef _DEBUG
 #pragma comment(lib, "PhysXExtensions_static_64.lib")
-#pragma comment(lib, "PhysX_64.lib")
-#pragma comment(lib, "PhysXCommon_64.lib")
-#pragma comment(lib, "PhysXFoundation_64.lib")
+#pragma comment(lib, "PhysX_static_64.lib")
+#pragma comment(lib, "PhysXCommon_static_64.lib")
+#pragma comment(lib, "PhysXFoundation_static_64.lib")
 #pragma comment(lib, "PhysXPvdSDK_static_64.lib") 
 #else
 #pragma comment(lib, "PhysXExtensions_static_64.lib")
-#pragma comment(lib, "PhysX_64.lib")
-#pragma comment(lib, "PhysXCommon_64.lib")
-#pragma comment(lib, "PhysXFoundation_64.lib")
-#pragma comment(lib, "PhysXPvdSDK_static_64.lib")
+#pragma comment(lib, "PhysX_static_64.lib")
+#pragma comment(lib, "PhysXCommon_static_64.lib")
+#pragma comment(lib, "PhysXFoundation_static_64.lib")
+#pragma comment(lib, "PhysXPvdSDK_static_64.lib") 
 #endif
 
 // Integration code for PhysX 4.1
