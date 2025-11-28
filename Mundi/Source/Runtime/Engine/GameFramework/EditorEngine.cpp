@@ -221,7 +221,7 @@ bool UEditorEngine::Startup(HINSTANCE hInstance)
 
     GPU_PROFILER.Initialize(&RHIDevice);
 
-    InitPhysX();
+
 
     bRunning = true;
     return true;
@@ -382,9 +382,7 @@ void UEditorEngine::Shutdown()
     RHIDevice.Release();
 
     GPU_PROFILER.Shutdown();
-
-    // Shutdown PhysX
-    ShutdownPhysX();
+    
 
     SaveIniFile();
 }

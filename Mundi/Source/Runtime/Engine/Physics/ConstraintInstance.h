@@ -2,6 +2,8 @@
 #include "BodyInstance.h"
 
 
+class PxJoint; // 임시
+
 
 struct FConstraintLimitData;
 

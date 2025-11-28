@@ -13,7 +13,7 @@ public:
         PxRigidDynamic* rigidBody = nullptr;
         XMMATRIX        worldMatrix = XMMatrixIdentity();
 
-        void UpdateFromPhysics();
+        //void UpdateFromPhysics();
     };
 
 public:

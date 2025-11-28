@@ -138,7 +138,7 @@ void FPhysScene::StepSimulation(float dt)
     // 결과를 GameObject에 반영
     for (auto& obj : Objects)
     {
-        obj.UpdateFromPhysics();
+        //obj.UpdateFromPhysics();
     }
 }
 
@@ -163,7 +163,7 @@ FPhysScene::GameObject& FPhysScene::CreateBox(const PxVec3& pos, const PxVec3& h
     Scene->addActor(*obj.rigidBody);
 
     // 초기 worldMatrix 업데이트
-    obj.UpdateFromPhysics();
+    //obj.UpdateFromPhysics();
 
     Objects.push_back(obj);
     return Objects.back();

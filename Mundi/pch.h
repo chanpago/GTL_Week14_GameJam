@@ -129,5 +129,4 @@ extern UWorld* GWorld;
 #pragma comment(lib, "PhysXPvdSDK_static_64.lib") 
 #endif
 
-// PhysX Integration
-#include "PhysXIntegration.h"
+//#include <PxPhysicsAPI.h>

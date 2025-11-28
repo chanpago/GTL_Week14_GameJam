@@ -3,6 +3,8 @@
 
 class UPrimitiveComponent;
 class UBodySetup;
+
+class PxRigidActor; // 임시
 struct FPhysScene;
 
 
