@@ -198,6 +198,8 @@ public:
 
     // RTV Getters
     ID3D11RenderTargetView* GetBackBufferRTV() const { return BackBufferRTV; }
+    ID3D11RenderTargetView** GetDOFRTVs() { return DOFRTVs; }
+    ID3D11RenderTargetView* GetDOFRTV(int index) { return DOFRTVs[index]; }
 
 private:
 	void CreateDeviceAndSwapChain(HWND hWindow); // 여기서 디바이스, 디바이스 컨택스트, 스왑체인, 뷰포트를 초기화한다
