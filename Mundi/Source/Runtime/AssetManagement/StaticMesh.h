@@ -5,6 +5,7 @@
 
 class UStaticMeshComponent;
 class FMeshBVH;
+class UBodySetup;
 class UStaticMesh : public UResourceBase
 {
 public:
@@ -47,6 +48,10 @@ private:
     void CreateLocalBound(const FStaticMesh* InStaticMesh);
     void ReleaseResources();
 
+public:
+    UBodySetup* BodySetup = nullptr;
+
+private:
     FString CacheFilePath;  // 캐시된 소스 경로 (예: DerivedDataCache/cube.obj.bin)
 
     // GPU 리소스

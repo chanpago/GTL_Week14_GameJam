@@ -370,16 +370,6 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_StandAlone|x64'">true</ExcludedFromBuild>
     </FxCompile>
-    <FxCompile Include="Shaders\Effects\ParticleSprite_Instanced.hlsl">
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug_StandAlone|x64'">Vertex</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release_StandAlone|x64'">Vertex</ShaderType>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_StandAlone|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_StandAlone|x64'">true</ExcludedFromBuild>
-    </FxCompile>
     <FxCompile Include="Shaders\Materials\Fireball.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_StandAlone|x64'">true</ExcludedFromBuild>
@@ -470,7 +460,11 @@
     <ClCompile Include="Source\Runtime\Engine\Particle\ParticleLODLevel.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Particle\ParticleSystem.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Physics\BodyInstance.cpp" />
+    <ClCompile Include="Source\Runtime\Engine\Physics\BodySetup.cpp" />
+    <ClCompile Include="Source\Runtime\Engine\Physics\BodySetupCore.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Physics\ConstraintInstance.cpp" />
+    <ClCompile Include="Source\Runtime\Engine\Physics\FKShapeElem.cpp" />
+    <ClCompile Include="Source\Runtime\Engine\Physics\PhysicalMaterial.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Physics\PhysicsAsset.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Scripting\GameObject.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Scripting\LuaBindHelpers.cpp" />
@@ -970,7 +964,11 @@
     <ClInclude Include="Source\Runtime\Engine\Particle\ParticleStats.h" />
     <ClInclude Include="Source\Runtime\Engine\Particle\ParticleSystem.h" />
     <ClInclude Include="Source\Runtime\Engine\Physics\BodyInstance.h" />
+    <ClInclude Include="Source\Runtime\Engine\Physics\BodySetup.h" />
+    <ClInclude Include="Source\Runtime\Engine\Physics\BodySetupCore.h" />
     <ClInclude Include="Source\Runtime\Engine\Physics\ConstraintInstance.h" />
+    <ClInclude Include="Source\Runtime\Engine\Physics\FKShapeElem.h" />
+    <ClInclude Include="Source\Runtime\Engine\Physics\PhysicalMaterial.h" />
     <ClInclude Include="Source\Runtime\Engine\Physics\PhysicsAsset.h" />
     <ClInclude Include="Source\Runtime\Engine\Scripting\GameObject.h" />
     <ClInclude Include="Source\Runtime\Engine\Scripting\LuaBindHelpers.h" />

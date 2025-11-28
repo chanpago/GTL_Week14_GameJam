@@ -7,9 +7,6 @@
     <FxCompile Include="Shaders\Effects\ParticleMesh.hlsl">
       <Filter>Shaders\Effects</Filter>
     </FxCompile>
-    <FxCompile Include="Shaders\Effects\ParticleSprite_Instanced.hlsl">
-      <Filter>Shaders\Effects</Filter>
-    </FxCompile>
     <FxCompile Include="Shaders\Effects\ParticleSprite.hlsl">
       <Filter>Shaders\Effects</Filter>
     </FxCompile>
@@ -70,7 +67,9 @@
     <FxCompile Include="Shaders\Utility\SceneDepth_PS.hlsl">
       <Filter>Shaders\Utility</Filter>
     </FxCompile>
-    <FxCompile Include="Shaders\Effects\ParticleRibbon.hlsl" />
+    <FxCompile Include="Shaders\Effects\ParticleRibbon.hlsl">
+      <Filter>Shaders\Effects</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Runtime\Engine\Components\ParticleSystemComponent.cpp">
@@ -966,8 +965,34 @@
     <ClCompile Include="Generated\UParticleSystemComponent.generated.cpp">
       <Filter>Generated</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Runtime\Engine\Particle\Modules\ParticleModuleEventReceiverSpawn.cpp" />
-    <ClCompile Include="Source\Runtime\Engine\Particle\Modules\ParticleModuleRibbon.cpp" />
+    <ClCompile Include="PhysXIntegration.cpp" />
+    <ClCompile Include="Source\Runtime\Engine\Particle\Modules\ParticleModuleRibbon.cpp">
+      <Filter>Source\Runtime\Engine\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Runtime\Engine\Particle\Modules\ParticleModuleEventReceiverSpawn.cpp">
+      <Filter>Source\Runtime\Engine\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Runtime\Engine\Physics\ConstraintInstance.cpp">
+      <Filter>Source\Runtime\Engine\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Runtime\Engine\Physics\BodyInstance.cpp">
+      <Filter>Source\Runtime\Engine\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Runtime\Engine\Physics\PhysicsAsset.cpp">
+      <Filter>Source\Runtime\Engine\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Runtime\Engine\Physics\BodySetup.cpp">
+      <Filter>Source\Runtime\Engine\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Runtime\Engine\Physics\BodySetupCore.cpp">
+      <Filter>Source\Runtime\Engine\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Runtime\Engine\Physics\PhysicalMaterial.cpp">
+      <Filter>Source\Runtime\Engine\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Runtime\Engine\Physics\FKShapeElem.cpp">
+      <Filter>Source\Runtime\Engine\Physics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
@@ -2003,8 +2028,34 @@
     <ClInclude Include="Generated\UParticleSystemComponent.generated.h">
       <Filter>Generated</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Runtime\Engine\Particle\Modules\ParticleModuleEventReceiverSpawn.h" />
-    <ClInclude Include="Source\Runtime\Engine\Particle\Modules\ParticleModuleRibbon.h" />
+    <ClInclude Include="PhysXIntegration.h" />
+    <ClInclude Include="Source\Runtime\Engine\Physics\PhysicsAsset.h">
+      <Filter>Source\Runtime\Engine\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Runtime\Engine\Particle\Modules\ParticleModuleRibbon.h">
+      <Filter>Source\Runtime\Engine\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Runtime\Engine\Particle\Modules\ParticleModuleEventReceiverSpawn.h">
+      <Filter>Source\Runtime\Engine\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Runtime\Engine\Physics\ConstraintInstance.h">
+      <Filter>Source\Runtime\Engine\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Runtime\Engine\Physics\BodyInstance.h">
+      <Filter>Source\Runtime\Engine\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Runtime\Engine\Physics\BodySetup.h">
+      <Filter>Source\Runtime\Engine\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Runtime\Engine\Physics\BodySetupCore.h">
+      <Filter>Source\Runtime\Engine\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Runtime\Engine\Physics\PhysicalMaterial.h">
+      <Filter>Source\Runtime\Engine\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Runtime\Engine\Physics\FKShapeElem.h">
+      <Filter>Source\Runtime\Engine\Physics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Tools\CodeGenerator\generate.py">
@@ -2200,6 +2251,9 @@
     </Filter>
     <Filter Include="Generated">
       <UniqueIdentifier>{2a34e447-3279-495e-90bf-ab7f04ffa60a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Runtime\Engine\Physics">
+      <UniqueIdentifier>{f588b8ff-8b73-4380-93af-4a9cf9e84e22}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

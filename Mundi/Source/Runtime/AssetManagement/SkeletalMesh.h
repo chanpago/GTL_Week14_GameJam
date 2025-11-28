@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "ResourceBase.h"
+#include "../Physics/PhysicsAsset.h"
 
 class USkeletalMesh : public UResourceBase
 {
@@ -42,7 +43,11 @@ private:
     void CreateIndexBuffer(FSkeletalMeshData* InSkeletalMesh, ID3D11Device* InDevice);
     void ReleaseResources();
     
+public:
+    UPhysicsAsset* PhysicsAsset = nullptr;
+
 private:
+
     // GPU 리소스
     // ID3D11Buffer* VertexBuffer = nullptr; // W10 CPU Skinning이라 Component가 VB 소유
     ID3D11Buffer* IndexBuffer = nullptr;
