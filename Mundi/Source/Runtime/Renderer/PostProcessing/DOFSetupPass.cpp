@@ -92,7 +92,7 @@ void FDOFSetupPass::Execute(const FPostProcessModifier& M, FSceneView* View, D3D
     DOFSetupCB._Pad0 = 0.0f;
 
     RHIDevice->SetAndUpdateConstantBuffer(DOFSetupCB);
-1
+
     // b10: ViewportConstants
     FViewportConstants ViewportCB;
     ViewportCB.ViewportRect = FVector4(
