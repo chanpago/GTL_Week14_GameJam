@@ -18,19 +18,51 @@ void InitPhysX() {
     gFoundation = PxCreateFoundation(PX_PHYSICS_VERSION, gAllocator, gErrorCallback);
     gPhysics = PxCreatePhysics(PX_PHYSICS_VERSION, *gFoundation, physx::PxTolerancesScale());
     gMaterial = gPhysics->createMaterial(0.5f, 0.5f, 0.6f);
-    
+
     PxSceneDesc sceneDesc(gPhysics->getTolerancesScale());
     sceneDesc.gravity = PxVec3(0, -9.81f, 0);
-    
+
     SYSTEM_INFO SysInfo;
     GetSystemInfo(&SysInfo);
     int NumCores = SysInfo.dwNumberOfProcessors;
     int NumWorkerThreads = PxMax(1, NumCores - 1);
-    
+
     gDispatcher = PxDefaultCpuDispatcherCreate(NumWorkerThreads);
     sceneDesc.cpuDispatcher = gDispatcher;
     sceneDesc.filterShader = PxDefaultSimulationFilterShader;
-    gScene = gPhysics->createScene(sceneDesc);	
+    gScene = gPhysics->createScene(sceneDesc);
+}
+
+// PhysX Shutdown - Release in reverse order
+void ShutdownPhysX() {
+    // Clear game objects
+    gObjects.clear();
+
+    // Release PhysX resources in reverse order of creation
+    if (gScene) {
+        gScene->release();
+        gScene = nullptr;
+    }
+
+    if (gDispatcher) {
+        gDispatcher->release();
+        gDispatcher = nullptr;
+    }
+
+    if (gMaterial) {
+        gMaterial->release();
+        gMaterial = nullptr;
+    }
+
+    if (gPhysics) {
+        gPhysics->release();
+        gPhysics = nullptr;
+    }
+
+    if (gFoundation) {
+        gFoundation->release();
+        gFoundation = nullptr;
+    }
 }
 
 GameObject CreateBox(const PxVec3& pos, const PxVec3& halfExtents) {

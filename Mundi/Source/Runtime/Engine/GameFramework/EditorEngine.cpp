@@ -383,6 +383,9 @@ void UEditorEngine::Shutdown()
 
     GPU_PROFILER.Shutdown();
 
+    // Shutdown PhysX
+    ShutdownPhysX();
+
     SaveIniFile();
 }
 

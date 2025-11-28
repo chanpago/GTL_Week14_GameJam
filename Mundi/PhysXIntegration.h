@@ -32,5 +32,6 @@ extern std::vector<GameObject> gObjects;
 
 // PhysX Functions
 void InitPhysX();
+void ShutdownPhysX();
 GameObject CreateBox(const PxVec3& pos, const PxVec3& halfExtents);
 void Simulate(float dt);
