@@ -3,7 +3,7 @@
 
 class UPrimitiveComponent;
 class UBodySetup;
-struct FPhysicsWorld;
+struct FPhysScene;
 
 
 
@@ -14,10 +14,10 @@ struct FPhysicsWorld;
 
 struct FBodyInstance
 {
-    void InitDynamic(FPhysicsWorld& World, const FTransform& WorldTransform, float Mass);
-    void InitStatic(FPhysicsWorld& World, const FTransform& WorldTransform);
+    void InitDynamic(FPhysScene& World, const FTransform& WorldTransform, float Mass);
+    void InitStatic(FPhysScene& World, const FTransform& WorldTransform);
 
-    void Terminate(FPhysicsWorld& World);
+    void Terminate(FPhysScene& World);
 
     void AddForce(const FVector& Force);
     FTransform GetWorldTransform() const;

@@ -9,9 +9,9 @@ struct FConstraintInstance
 {
 
 public:
-    void InitD6(FPhysicsWorld& World, const FTransform& ParentFrame, const FTransform& ChildFrame, const FConstraintLimitData& Limits);
+    void InitD6(FPhysScene& World, const FTransform& ParentFrame, const FTransform& ChildFrame, const FConstraintLimitData& Limits);
 
-    void Terminate(FPhysicsWorld& World);
+    void Terminate(FPhysScene& World);
     
 public:
     FBodyInstance* ParentBody   = nullptr;
