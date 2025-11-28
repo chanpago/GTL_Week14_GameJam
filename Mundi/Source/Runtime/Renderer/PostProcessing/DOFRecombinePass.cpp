@@ -93,24 +93,32 @@ void FDOFRecombinePass::Execute(const FPostProcessModifier& M, FSceneView* View,
     DOFRecombineCB.IsOrthographic = (View->ProjectionMode == ECameraProjectionMode::Orthographic) ? 1 : 0;
     DOFRecombineCB._Pad0 = 0.0f;
 
+    // ViewRect UV 범위 계산 (게임 영역만 DOF 적용)
+    UINT swapChainWidth = RHIDevice->GetSwapChainWidth();
+    UINT swapChainHeight = RHIDevice->GetSwapChainHeight();
+    float swapW = static_cast<float>(swapChainWidth);
+    float swapH = static_cast<float>(swapChainHeight);
+
+    DOFRecombineCB.ViewRectMinUV = FVector2D(
+        View->ViewRect.MinX / swapW,
+        View->ViewRect.MinY / swapH
+    );
+    DOFRecombineCB.ViewRectMaxUV = FVector2D(
+        (View->ViewRect.MinX + View->ViewRect.Width()) / swapW,
+        (View->ViewRect.MinY + View->ViewRect.Height()) / swapH
+    );
+
     RHIDevice->SetAndUpdateConstantBuffer(DOFRecombineCB);
 
-    // b10: ViewportConstants
+    // b10: ViewportConstants - 전체 화면으로 설정 (texCoord 0~1)
     FViewportConstants ViewportCB;
-    ViewportCB.ViewportRect = FVector4(
-        View->ViewRect.MinX,
-        View->ViewRect.MinY,
-        View->ViewRect.Width(),
-        View->ViewRect.Height()
-    );
-    ViewportCB.ScreenSize = FVector4(
-        RHIDevice->GetViewportWidth(),
-        RHIDevice->GetViewportHeight(),
-        1.0f / RHIDevice->GetViewportWidth(),
-        1.0f / RHIDevice->GetViewportHeight()
-    );
+    ViewportCB.ViewportRect = FVector4(0.0f, 0.0f, swapW, swapH);
+    ViewportCB.ScreenSize = FVector4(swapW, swapH, 1.0f / swapW, 1.0f / swapH);
     RHIDevice->SetAndUpdateConstantBuffer(ViewportCB);
 
     // 7) Draw
     RHIDevice->DrawFullScreenQuad();
+
+    // 8) 스왑 확정 (다음 패스에서 결과 사용 가능)
+    SwapGuard.Commit();
 }

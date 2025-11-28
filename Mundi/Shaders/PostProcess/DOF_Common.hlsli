@@ -22,6 +22,7 @@ float LinearizeDepth(float rawDepth, float nearPlane, float farPlane, int isOrth
 
 // Circle of Confusion (CoC) 계산
 // 반환값: 양수 = Far Blur (원경), 음수 = Near Blur (근경), 0 = 선명
+// **주의**: 0~1 정규화된 값 반환 (픽셀 단위 아님)
 float CalculateCoC(
     float viewDepth,             // View-space depth (m 단위)
     float focalDistance,         // 초점 거리 (m)
@@ -30,8 +31,8 @@ float CalculateCoC(
     float focalRegion,           // 완전 선명 영역 (m)
     float nearTransition,        // 근경 전환 영역 (m)
     float farTransition,         // 원경 전환 영역 (m)
-    float maxNearBlurSize,       // 근경 최대 블러 (정규화, 0~1)
-    float maxFarBlurSize         // 원경 최대 블러 (정규화, 0~1)
+    float maxNearBlurSize,       // 근경 최대 블러 (pixels, 정규화용)
+    float maxFarBlurSize         // 원경 최대 블러 (pixels, 정규화용)
 )
 {
     // 1. 초점 영역 계산
@@ -49,17 +50,17 @@ float CalculateCoC(
 
     if (viewDepth < focalStart)
     {
-        // 근경 (Near Field) - 음수 CoC
+        // 근경 (Near Field) - 음수 CoC (0~1 정규화)
         float distance = focalStart - viewDepth;
         float normalizedCoC = saturate(distance / nearTransition);
-        coc = -normalizedCoC * maxNearBlurSize;
+        coc = -normalizedCoC;  // 0~1 정규화된 값 (픽셀 단위 아님)
     }
     else  // viewDepth > focalEnd
     {
-        // 원경 (Far Field) - 양수 CoC
+        // 원경 (Far Field) - 양수 CoC (0~1 정규화)
         float distance = viewDepth - focalEnd;
         float normalizedCoC = saturate(distance / farTransition);
-        coc = normalizedCoC * maxFarBlurSize;
+        coc = normalizedCoC;  // 0~1 정규화된 값 (픽셀 단위 아님)
     }
 
     return coc;

@@ -311,9 +311,19 @@ void APlayerCameraManager::StartDOF(
 	float MaxFarBlurSize,
 	int32 InPriority)
 {
+	// 기존 DOF Modifier 제거 (중복 방지)
+	for (int32 i = ActiveModifiers.Num() - 1; i >= 0; --i)
+	{
+		if (UCamMod_DOF* ExistingDOF = Cast<UCamMod_DOF>(ActiveModifiers[i]))
+		{
+			delete ExistingDOF;
+			ActiveModifiers.RemoveAt(i);
+		}
+	}
+
 	UCamMod_DOF* DOFModifier = new UCamMod_DOF();
 	DOFModifier->Priority = InPriority;
-	DOFModifier->bEnabled = true;  
+	DOFModifier->bEnabled = true;
 
 	DOFModifier->FocalDistance = FocalDistance;
 	DOFModifier->Fstop = Fstop;

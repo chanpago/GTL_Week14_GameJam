@@ -145,8 +145,8 @@ struct alignas(16) FDOFRecombineBufferType
     int32 IsOrthographic;
     float _Pad0;
 
-    FVector2D QuarterResTexelSize; // 1/4 해상도 텍셀 크기
-    FVector2D _Pad1;
+    FVector2D ViewRectMinUV;       // ViewRect 시작 UV (게임 영역)
+    FVector2D ViewRectMaxUV;       // ViewRect 끝 UV (게임 영역)
 };
 static_assert(sizeof(FDOFRecombineBufferType) % 16 == 0, "CB must be 16-byte aligned");
 

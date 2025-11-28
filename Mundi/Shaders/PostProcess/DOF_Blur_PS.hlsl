@@ -47,8 +47,8 @@ PS_OUTPUT mainPS(PS_INPUT input)
     }
 
     // 3. Variable Kernel Size (CoC에 비례)
-    // CoC는 0~1 정규화되어 있음 (MaxBlurSize 기준)
-    float kernelRadius = coc * BlurRadius;
+    // CoC는 0~1 정규화 값이므로 BlurRadius를 곱해 픽셀 단위로 변환
+    float kernelRadius = coc * BlurRadius;  // 0~1 * MaxBlurSize = 픽셀
     kernelRadius = max(kernelRadius, 1.0);  // 최소 1 픽셀
 
     // 4. Gaussian Blur (13-tap)

@@ -48,6 +48,9 @@ cbuffer DOFRecombineCB : register(b2)
     float FarClip;
     int IsOrthographic2;
     float _Pad0;
+
+    float2 ViewRectMinUV;          // ViewRect 시작 UV (게임 영역)
+    float2 ViewRectMaxUV;          // ViewRect 끝 UV (게임 영역)
 }
 
 cbuffer ViewportConstants : register(b10)
@@ -69,7 +72,15 @@ PS_OUTPUT mainPS(PS_INPUT input)
     // 1. 원본 씬 컬러 샘플링
     float4 sceneColor = g_SceneColorTex.Sample(g_PointClampSample, input.texCoord);
 
-    // 2. Depth 샘플링 및 CoC 계산
+    // 2. ViewRect 영역 체크 (게임 영역만 DOF 적용, UI 영역은 원본)
+    bool inViewRect = all(input.texCoord >= ViewRectMinUV) && all(input.texCoord <= ViewRectMaxUV);
+    if (!inViewRect)
+    {
+        output.Color = sceneColor;
+        return output;
+    }
+
+    // 3. Depth 샘플링 및 CoC 계산
     float rawDepth = g_SceneDepthTex.Sample(g_PointClampSample, input.texCoord).r;
     float viewDepth = LinearizeDepth(rawDepth, NearClip, FarClip, IsOrthographic2);
 
@@ -85,18 +96,18 @@ PS_OUTPUT mainPS(PS_INPUT input)
         MaxFarBlurSize
     );
 
-    // 3. CoC가 0이면 원본 그대로 (선명 영역)
+    // 4. CoC가 0이면 원본 그대로 (선명 영역)
     if (abs(CoC) < 0.001)
     {
         output.Color = sceneColor;
         return output;
     }
 
-    // 4. Blurred Field 샘플링 (1/4 해상도이므로 Linear Sampler로 업샘플)
+    // 5. Blurred Field 샘플링 (texCoord 그대로 사용 - DOF 텍스처와 같은 UV 비율)
     float4 farField = g_FarFieldTex.Sample(g_LinearClampSample, input.texCoord);
     float4 nearField = g_NearFieldTex.Sample(g_LinearClampSample, input.texCoord);
 
-    // 5. CoC에 따라 합성
+    // 6. CoC에 따라 합성
     float4 finalColor;
 
     if (CoC > 0.0)

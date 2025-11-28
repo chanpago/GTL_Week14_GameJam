@@ -1229,6 +1229,20 @@ void D3D11RHI::SetViewport(UINT width, UINT height)
     DeviceContext->RSSetViewports(1, &ViewportInfo);
 }
 
+UINT D3D11RHI::GetSwapChainWidth() const
+{
+    DXGI_SWAP_CHAIN_DESC desc;
+    SwapChain->GetDesc(&desc);
+    return desc.BufferDesc.Width;
+}
+
+UINT D3D11RHI::GetSwapChainHeight() const
+{
+    DXGI_SWAP_CHAIN_DESC desc;
+    SwapChain->GetDesc(&desc);
+    return desc.BufferDesc.Height;
+}
+
 void D3D11RHI::PSSetDefaultSampler(UINT StartSlot)
 {
 	DeviceContext->PSSetSamplers(StartSlot, 1, &DefaultSamplerState);

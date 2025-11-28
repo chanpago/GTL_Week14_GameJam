@@ -9,6 +9,16 @@ void FDOFBlurPass::Execute(const FPostProcessModifier& M, FSceneView* View, D3D1
 {
     if (!IsApplicable(M)) return;
 
+    // Viewport를 ViewRect/4 기준으로 설정 (게임 영역만)
+    D3D11_VIEWPORT quarterViewport;
+    quarterViewport.TopLeftX = View->ViewRect.MinX / 4.0f;
+    quarterViewport.TopLeftY = View->ViewRect.MinY / 4.0f;
+    quarterViewport.Width = View->ViewRect.Width() / 4.0f;
+    quarterViewport.Height = View->ViewRect.Height() / 4.0f;
+    quarterViewport.MinDepth = 0.0f;
+    quarterViewport.MaxDepth = 1.0f;
+    RHIDevice->GetDeviceContext()->RSSetViewports(1, &quarterViewport);
+
     // 셰이더 로드
     UShader* FullScreenVS = UResourceManager::GetInstance().Load<UShader>("Shaders/Utility/FullScreenTriangle_VS.hlsl");
     UShader* BlurPS = UResourceManager::GetInstance().Load<UShader>("Shaders/PostProcess/DOF_Blur_PS.hlsl");
@@ -35,18 +45,23 @@ void FDOFBlurPass::Execute(const FPostProcessModifier& M, FSceneView* View, D3D1
     RHIDevice->OMSetBlendState(false);
 
     // Viewport Constants (b10)
+    // ScreenSize = DOF 텍스처 크기 (SwapChain/4)
+    // ViewportRect = 유효 렌더링 영역 (Viewport/4)
+    UINT dofTexWidth = RHIDevice->GetSwapChainWidth() / 4;
+    UINT dofTexHeight = RHIDevice->GetSwapChainHeight() / 4;
+
     FViewportConstants ViewportCB;
     ViewportCB.ViewportRect = FVector4(
-        View->ViewRect.MinX,
-        View->ViewRect.MinY,
-        View->ViewRect.Width(),
-        View->ViewRect.Height()
+        View->ViewRect.MinX / 4.0f,
+        View->ViewRect.MinY / 4.0f,
+        View->ViewRect.Width() / 4.0f,
+        View->ViewRect.Height() / 4.0f
     );
     ViewportCB.ScreenSize = FVector4(
-        RHIDevice->GetViewportWidth(),
-        RHIDevice->GetViewportHeight(),
-        1.0f / RHIDevice->GetViewportWidth(),
-        1.0f / RHIDevice->GetViewportHeight()
+        static_cast<float>(dofTexWidth),
+        static_cast<float>(dofTexHeight),
+        1.0f / static_cast<float>(dofTexWidth),
+        1.0f / static_cast<float>(dofTexHeight)
     );
     RHIDevice->SetAndUpdateConstantBuffer(ViewportCB);
 
@@ -177,6 +192,16 @@ void FDOFBlurPass::Execute(const FPostProcessModifier& M, FSceneView* View, D3D1
         // SRV 언바인드
         RHIDevice->GetDeviceContext()->PSSetShaderResources(0, 1, &NullSRV);
     }
+
+    // Viewport를 전체 해상도로 복원
+    D3D11_VIEWPORT fullViewport;
+    fullViewport.TopLeftX = 0.0f;
+    fullViewport.TopLeftY = 0.0f;
+    fullViewport.Width = static_cast<float>(RHIDevice->GetViewportWidth());
+    fullViewport.Height = static_cast<float>(RHIDevice->GetViewportHeight());
+    fullViewport.MinDepth = 0.0f;
+    fullViewport.MaxDepth = 1.0f;
+    RHIDevice->GetDeviceContext()->RSSetViewports(1, &fullViewport);
 
     // RTV 복원
     RHIDevice->OMSetRenderTargets(ERTVMode::SceneColorTargetWithoutDepth);

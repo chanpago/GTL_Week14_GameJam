@@ -9,14 +9,28 @@ void FDOFSetupPass::Execute(const FPostProcessModifier& M, FSceneView* View, D3D
 {
     if (!IsApplicable(M)) return;
 
-    // 1) SRV 언바인드 (SceneColor + SceneDepth = 2개)
+    // 1) 스왑 + SRV 언바인드 (SceneColorSource를 읽기 위해)
+    //    DOFSetupPass는 DOFRTVs에 쓰므로 Commit() 안 함 → 소멸자에서 스왑 복원
+    FSwapGuard SwapGuard(RHIDevice, 0, 2);
+
+    // 2) SRV 언바인드 (SceneColor + SceneDepth = 2개)
     ID3D11ShaderResourceView* NullSRVs[2] = { nullptr, nullptr };
     RHIDevice->GetDeviceContext()->PSSetShaderResources(0, 2, NullSRVs);
 
-    // 2) MRT 설정: Far Field (RTV[0]), Near Field (RTV[1])
+    // 3) MRT 설정: Far Field (RTV[0]), Near Field (RTV[1])
     ID3D11RenderTargetView** DOFRTVs = RHIDevice->GetDOFRTVs();
 
     RHIDevice->OMSetCustomRenderTargets(2, DOFRTVs, nullptr);
+
+    // 2-1) Viewport를 ViewRect/4 기준으로 설정 (게임 영역만)
+    D3D11_VIEWPORT quarterViewport;
+    quarterViewport.TopLeftX = View->ViewRect.MinX / 4.0f;
+    quarterViewport.TopLeftY = View->ViewRect.MinY / 4.0f;
+    quarterViewport.Width = View->ViewRect.Width() / 4.0f;
+    quarterViewport.Height = View->ViewRect.Height() / 4.0f;
+    quarterViewport.MinDepth = 0.0f;
+    quarterViewport.MaxDepth = 1.0f;
+    RHIDevice->GetDeviceContext()->RSSetViewports(1, &quarterViewport);
 
     // 3) Clear RTV (검은색)
     float ClearColor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
@@ -94,6 +108,11 @@ void FDOFSetupPass::Execute(const FPostProcessModifier& M, FSceneView* View, D3D
     RHIDevice->SetAndUpdateConstantBuffer(DOFSetupCB);
 
     // b10: ViewportConstants
+    // ScreenSize = SceneColor 텍스처 크기 (SwapChain)
+    // ViewportRect = 유효 렌더링 영역 (현재 Viewport)
+    UINT sceneTexWidth = RHIDevice->GetSwapChainWidth();
+    UINT sceneTexHeight = RHIDevice->GetSwapChainHeight();
+
     FViewportConstants ViewportCB;
     ViewportCB.ViewportRect = FVector4(
         View->ViewRect.MinX,
@@ -102,10 +121,10 @@ void FDOFSetupPass::Execute(const FPostProcessModifier& M, FSceneView* View, D3D
         View->ViewRect.Height()
     );
     ViewportCB.ScreenSize = FVector4(
-        RHIDevice->GetViewportWidth(),
-        RHIDevice->GetViewportHeight(),
-        1.0f / RHIDevice->GetViewportWidth(),
-        1.0f / RHIDevice->GetViewportHeight()
+        static_cast<float>(sceneTexWidth),
+        static_cast<float>(sceneTexHeight),
+        1.0f / static_cast<float>(sceneTexWidth),
+        1.0f / static_cast<float>(sceneTexHeight)
     );
     RHIDevice->SetAndUpdateConstantBuffer(ViewportCB);
 
@@ -115,6 +134,16 @@ void FDOFSetupPass::Execute(const FPostProcessModifier& M, FSceneView* View, D3D
     // 9) SRV 언바인드
     RHIDevice->GetDeviceContext()->PSSetShaderResources(0, 2, NullSRVs);
 
-    // 10) RTV를 SceneColor로 복원
+    // 10) Viewport를 전체 해상도로 복원
+    D3D11_VIEWPORT fullViewport;
+    fullViewport.TopLeftX = 0.0f;
+    fullViewport.TopLeftY = 0.0f;
+    fullViewport.Width = static_cast<float>(RHIDevice->GetViewportWidth());
+    fullViewport.Height = static_cast<float>(RHIDevice->GetViewportHeight());
+    fullViewport.MinDepth = 0.0f;
+    fullViewport.MaxDepth = 1.0f;
+    RHIDevice->GetDeviceContext()->RSSetViewports(1, &fullViewport);
+
+    // 11) RTV를 SceneColor로 복원
     RHIDevice->OMSetRenderTargets(ERTVMode::SceneColorTargetWithoutDepth);
 }

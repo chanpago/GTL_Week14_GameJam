@@ -571,6 +571,16 @@ void FLuaManager::ExposeGlobalFunctions()
             {
                 Self->StartGamma(Gamma);
             }
+        },
+
+        // --- Depth of Field ---
+        // (Full) 9개 인수
+        "StartDOF", [](APlayerCameraManager* Self, float FocalDistance, float Fstop, float SensorWidth, float FocalRegion, float NearTransitionRegion, float FarTransitionRegion, float MaxNearBlurSize, float MaxFarBlurSize, int32 InPriority)
+        {
+            if (Self)
+            {
+                Self->StartDOF(FocalDistance, Fstop, SensorWidth, FocalRegion, NearTransitionRegion, FarTransitionRegion, MaxNearBlurSize, MaxFarBlurSize, InPriority);
+            }
         }
     );
 }
