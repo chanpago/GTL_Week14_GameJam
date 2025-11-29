@@ -91,7 +91,7 @@ float CalculateCoCSimple(
     return normalizedCoC * maxBlurSize * sign;
 }
 
-// 4x4 다운샘플 (Depth-Aware)
+// 4x4 다운샘플 (단순 박스 필터)
 float4 DownsampleSceneColor4x4(Texture2D sceneTex, SamplerState linearSampler, float2 uv, float2 texelSize)
 {
     // 2x2 박스 필터로 4개 샘플 평균
@@ -103,6 +103,147 @@ float4 DownsampleSceneColor4x4(Texture2D sceneTex, SamplerState linearSampler, f
     color += sceneTex.Sample(linearSampler, uv + float2( 0.5,  0.5) * texelSize);
 
     return color * 0.25;
+}
+
+// Bilateral 다운샘플 (깊이 기반 가중치로 엣지 보존)
+// depthSigma: 깊이 차이에 대한 감도 (낮을수록 엣지 보존 강함)
+float4 BilateralDownsample4x4(
+    Texture2D sceneTex,
+    Texture2D depthTex,
+    SamplerState linearSampler,
+    SamplerState pointSampler,
+    float2 uv,
+    float2 texelSize,
+    float nearPlane,
+    float farPlane,
+    int isOrthographic,
+    float depthSigma
+)
+{
+    // 샘플 오프셋 (2x2 패턴)
+    static const float2 offsets[4] = {
+        float2(-0.5, -0.5),
+        float2( 0.5, -0.5),
+        float2(-0.5,  0.5),
+        float2( 0.5,  0.5)
+    };
+
+    // 중심 깊이 (기준점)
+    float centerRawDepth = depthTex.Sample(pointSampler, uv).r;
+    float centerLinearDepth = LinearizeDepth(centerRawDepth, nearPlane, farPlane, isOrthographic);
+
+    float4 colorSum = float4(0, 0, 0, 0);
+    float weightSum = 0.0;
+
+    [unroll]
+    for (int i = 0; i < 4; i++)
+    {
+        float2 sampleUV = uv + offsets[i] * texelSize;
+
+        // 색상 샘플
+        float4 sampleColor = sceneTex.Sample(linearSampler, sampleUV);
+
+        // 깊이 샘플 및 선형화
+        float sampleRawDepth = depthTex.Sample(pointSampler, sampleUV).r;
+        float sampleLinearDepth = LinearizeDepth(sampleRawDepth, nearPlane, farPlane, isOrthographic);
+
+        // 깊이 차이 기반 가중치 (Bilateral Weight)
+        float depthDiff = abs(sampleLinearDepth - centerLinearDepth);
+        float depthWeight = exp(-depthDiff * depthDiff / (2.0 * depthSigma * depthSigma));
+
+        colorSum += sampleColor * depthWeight;
+        weightSum += depthWeight;
+    }
+
+    // 가중 평균 (0으로 나누기 방지)
+    return colorSum / max(weightSum, 0.0001);
+}
+
+// Bilateral 다운샘플 + CoC 반환 버전
+// 색상과 함께 중심 CoC도 계산하여 반환
+struct BilateralDownsampleResult
+{
+    float4 color;
+    float coc;
+    float linearDepth;
+};
+
+BilateralDownsampleResult BilateralDownsampleWithCoC(
+    Texture2D sceneTex,
+    Texture2D depthTex,
+    SamplerState linearSampler,
+    SamplerState pointSampler,
+    float2 uv,
+    float2 texelSize,
+    float nearPlane,
+    float farPlane,
+    int isOrthographic,
+    float depthSigma,
+    float focalDistance,
+    float focalRegion,
+    float nearTransition,
+    float farTransition,
+    float maxNearBlur,
+    float maxFarBlur
+)
+{
+    BilateralDownsampleResult result;
+
+    // 샘플 오프셋 (2x2 패턴)
+    static const float2 offsets[4] = {
+        float2(-0.5, -0.5),
+        float2( 0.5, -0.5),
+        float2(-0.5,  0.5),
+        float2( 0.5,  0.5)
+    };
+
+    // 중심 깊이
+    float centerRawDepth = depthTex.Sample(pointSampler, uv).r;
+    float centerLinearDepth = LinearizeDepth(centerRawDepth, nearPlane, farPlane, isOrthographic);
+
+    float4 colorSum = float4(0, 0, 0, 0);
+    float weightSum = 0.0;
+    float cocSum = 0.0;
+
+    [unroll]
+    for (int i = 0; i < 4; i++)
+    {
+        float2 sampleUV = uv + offsets[i] * texelSize;
+
+        // 색상 샘플
+        float4 sampleColor = sceneTex.Sample(linearSampler, sampleUV);
+
+        // 깊이 샘플 및 선형화
+        float sampleRawDepth = depthTex.Sample(pointSampler, sampleUV).r;
+        float sampleLinearDepth = LinearizeDepth(sampleRawDepth, nearPlane, farPlane, isOrthographic);
+
+        // 각 샘플의 CoC 계산
+        float sampleCoC = CalculateCoC(
+            sampleLinearDepth,
+            focalDistance,
+            focalRegion,
+            nearTransition,
+            farTransition,
+            maxNearBlur,
+            maxFarBlur
+        );
+
+        // 깊이 차이 기반 가중치
+        float depthDiff = abs(sampleLinearDepth - centerLinearDepth);
+        float depthWeight = exp(-depthDiff * depthDiff / (2.0 * depthSigma * depthSigma));
+
+        colorSum += sampleColor * depthWeight;
+        cocSum += sampleCoC * depthWeight;
+        weightSum += depthWeight;
+    }
+
+    // 가중 평균
+    float invWeight = 1.0 / max(weightSum, 0.0001);
+    result.color = colorSum * invWeight;
+    result.coc = cocSum * invWeight;
+    result.linearDepth = centerLinearDepth;
+
+    return result;
 }
 
 // Gaussian 가중치 (9-tap)

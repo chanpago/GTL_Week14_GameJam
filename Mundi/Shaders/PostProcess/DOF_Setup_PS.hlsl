@@ -63,19 +63,24 @@ PS_OUTPUT mainPS(PS_INPUT input)
 {
     PS_OUTPUT output;
 
-    // 1. 씬 컬러 다운샘플 (1/4 해상도이므로 4x4 샘플링)
+    // 1. Bilateral 다운샘플 (깊이 기반 가중치로 엣지 보존)
     float2 fullResTexelSize = ScreenSize.zw;  // 1.0 / ScreenSize
-    float4 sceneColor = DownsampleSceneColor4x4(g_SceneColorTex, g_LinearClampSample, input.texCoord, fullResTexelSize);
 
-    // 2. 깊이 샘플링 (Point 샘플러로 중앙값)
-    float rawDepth = g_SceneDepthTex.Sample(g_PointClampSample, input.texCoord).r;
+    // depthSigma: 깊이 감도 (m 단위, 작을수록 엣지 보존 강함)
+    // 일반적으로 0.5~2.0m 정도가 적절
+    float depthSigma = 1.0;
 
-    // 3. 선형 깊이로 변환 (View-space, m 단위)
-    float viewDepth = LinearizeDepth(rawDepth, NearClip, FarClip, IsOrthographic2);
-
-    // 4. CoC 계산
-    float CoC = CalculateCoC(
-        viewDepth,
+    BilateralDownsampleResult dsResult = BilateralDownsampleWithCoC(
+        g_SceneColorTex,
+        g_SceneDepthTex,
+        g_LinearClampSample,
+        g_PointClampSample,
+        input.texCoord,
+        fullResTexelSize,
+        NearClip,
+        FarClip,
+        IsOrthographic2,
+        depthSigma,
         FocalDistance,
         FocalRegion,
         NearTransitionRegion,
@@ -84,7 +89,10 @@ PS_OUTPUT mainPS(PS_INPUT input)
         MaxFarBlurSize
     );
 
-    // 5. Near/Far 분리 (CoC 기준으로 한쪽에만 출력 - 색 섞임 방지)
+    float4 sceneColor = dsResult.color;
+    float CoC = dsResult.coc;
+
+    // 2. Near/Far 분리 (CoC 기준으로 한쪽에만 출력 - 색 섞임 방지)
     if (CoC > 0.0)
     {
         // 원경: Far에만
