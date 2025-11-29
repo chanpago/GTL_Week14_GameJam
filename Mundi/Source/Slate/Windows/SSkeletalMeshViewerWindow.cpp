@@ -20,6 +20,7 @@
 #include "Source/Runtime/Engine/GameFramework/CameraActor.h"
 #include "Source/Runtime/Engine/Physics/PhysicsAsset.h"
 #include "Source/Runtime/Engine/Physics/BodySetup.h"
+#include <cstring>
 
 SSkeletalMeshViewerWindow::SSkeletalMeshViewerWindow()
 {
@@ -1192,6 +1193,71 @@ void SSkeletalMeshViewerWindow::OnRenderViewport()
     }
 }
 
+void SSkeletalMeshViewerWindow::LoadPhysicsAsset(UPhysicsAsset* PhysicsAsset)
+{
+    if (!ActiveState)
+    {
+        return;
+    }
+
+    ActiveState->CurrentPhysicsAsset = PhysicsAsset;
+
+    if (!PhysicsAsset)
+    {
+        return;
+    }
+
+    PhysicsAsset->BuildBodySetupIndexMap();
+
+    if (ActiveState->CurrentMesh)
+    {
+        ActiveState->CurrentMesh->PhysicsAsset = PhysicsAsset;
+    }
+}
+
+void SSkeletalMeshViewerWindow::SetPhysicsAssetSavePath(const FString& SavePath)
+{
+    if (!ActiveState || !ActiveState->CurrentPhysicsAsset)
+    {
+        return;
+    }
+
+    ActiveState->CurrentPhysicsAsset->SetFilePath(SavePath);
+}
+
+bool SSkeletalMeshViewerWindow::SavePhysicsAsset(ViewerState* State)
+{
+    if (!State || !State->CurrentPhysicsAsset)
+    {
+        return false;
+    }
+
+    FString TargetPath = State->CurrentPhysicsAsset->GetFilePath();
+
+    if (TargetPath.empty())
+    {
+        FWideString Initial = UTF8ToWide(GDataDir) + L"/NewPhysicsAsset.physics";
+        std::filesystem::path Selected = FPlatformProcess::OpenSaveFileDialog(Initial, L"physics", L"Physics Asset (*.physics)");
+        if (Selected.empty())
+        {
+            return false;
+        }
+
+        TargetPath = ResolveAssetRelativePath(WideToUTF8(Selected.wstring()), GDataDir);
+        State->CurrentPhysicsAsset->SetFilePath(TargetPath);
+    }
+
+    if (State->CurrentPhysicsAsset->SaveToFile(TargetPath))
+    {
+        UResourceManager::GetInstance().Add<UPhysicsAsset>(TargetPath, State->CurrentPhysicsAsset);
+        UE_LOG("Physics asset saved: %s", TargetPath.c_str());
+        return true;
+    }
+
+    UE_LOG("Failed to save physics asset: %s", TargetPath.c_str());
+    return false;
+}
+
 void SSkeletalMeshViewerWindow::OpenNewTab(const char* Name)
 {
     ViewerState* State = SkeletalViewerBootstrap::CreateViewerState(Name, World, Device);
@@ -2195,6 +2261,7 @@ void SSkeletalMeshViewerWindow::DrawAssetBrowserPanel(ViewerState* State)
 
                     // Assign to viewer state
                     State->CurrentPhysicsAsset = NewAsset;
+                    State->CurrentPhysicsAsset->SetFilePath(FString());
 
                     // Optionally attach to the currently loaded skeletal mesh so the preview can use it
                     if (State->CurrentMesh)
@@ -2209,6 +2276,36 @@ void SSkeletalMeshViewerWindow::DrawAssetBrowserPanel(ViewerState* State)
                     UE_LOG("Failed to create new UPhysicsAsset");
                 }
             }
+
+        if (State->CurrentPhysicsAsset)
+        {
+            ImGui::Spacing();
+            ImGui::PushStyleColor(ImGuiCol_Separator, ImVec4(0.60f, 0.45f, 0.35f, 0.7f));
+            ImGui::Separator();
+            ImGui::PopStyleColor();
+            ImGui::Spacing();
+
+            const FString& SavePath = State->CurrentPhysicsAsset->GetFilePath();
+            ImGui::Text("Active Physics Asset: %s", State->CurrentPhysicsAsset->GetName().ToString().c_str());
+            ImGui::Text("Save Path: %s", SavePath.empty() ? "<None>" : SavePath.c_str());
+
+            if (ImGui::Button("Browse Save Path"))
+            {
+                FString DefaultPath = SavePath.empty() ? (GDataDir + "/NewPhysicsAsset.physics") : SavePath;
+                FWideString Initial = UTF8ToWide(DefaultPath);
+                std::filesystem::path Selected = FPlatformProcess::OpenSaveFileDialog(Initial, L"physics", L"Physics Asset (*.physics)");
+                if (!Selected.empty())
+                {
+                    FString PathStr = ResolveAssetRelativePath(WideToUTF8(Selected.wstring()), GDataDir);
+                    State->CurrentPhysicsAsset->SetFilePath(PathStr);
+                }
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Save Physics Asset"))
+            {
+                SavePhysicsAsset(State);
+            }
+        }
         }
     }
 }
