@@ -4,6 +4,23 @@
 
 IMPLEMENT_CLASS(UPhysicsAsset)
 
+void UPhysicsAsset::BuildRuntimeCache()
+{
+    // 1) Body 이름 -> 인덱스 맵
+    BuildBodySetupIndexMap();
+
+    // 2) 각 BodySetup 캐시 (Bounds, Mass 등)
+    for (UBodySetup* Body : BodySetups)
+    {
+        if (!Body) continue;
+        if (Body->bCachedDataDirty)
+        {
+            Body->BuildCachedData();
+            Body->bCachedDataDirty = false;
+        }
+    }
+}
+
 void UPhysicsAsset::BuildBodySetupIndexMap()
 {
 	BodySetupIndexMap.Empty();
@@ -57,7 +74,8 @@ bool UPhysicsAsset::Load(const FString& InFilePath, ID3D11Device* InDevice)
 
     Serialize(true, Root);
     SetFilePath(NormalizePath(InFilePath)); 
-    BuildBodySetupIndexMap();
+    
+    BuildRuntimeCache();
 
     UE_LOG("[UPhysicsAsset] Loaded successfully: %s", InFilePath.c_str());
     return true;
@@ -130,13 +148,13 @@ void UPhysicsAsset::Serialize(const bool bInIsLoading, JSON& InOutHandle)
         Constraints.Empty();
         if (InOutHandle.hasKey("Constraints"))
         {
-            const JSON& ConstraintArray = InOutHandle["Constraints"];
+            JSON& ConstraintArray = InOutHandle["Constraints"];
             for (int32 i = 0; i < ConstraintArray.size(); ++i)
             {
-                const JSON& Item = ConstraintArray.at(i);
+                JSON& Item = ConstraintArray.at(i);
 
                 FPhysicsConstraintSetup Setup{};
-                Setup.Serialize(true, const_cast<JSON&>(Item));
+                Setup.Serialize(true, Item);
                 Constraints.Add(Setup);
             }
         }
@@ -178,5 +196,48 @@ void UPhysicsAsset::Serialize(const bool bInIsLoading, JSON& InOutHandle)
             ConstraintArray.append(ConstraintJson);
         } 
         InOutHandle["Constraints"] = ConstraintArray;
+    }
+}
+
+void FKAggregateGeom::Clear()
+{
+    SphereElements.Empty();
+    BoxElements.Empty();
+    SphylElements.Empty();
+    ConvexElements.Empty();
+}
+
+void FPhysicsConstraintSetup::Serialize(const bool bInIsLoading,  JSON& InOutHandle)
+{
+    if (bInIsLoading)
+    {
+        FString BodyAName;
+        if (FJsonSerializer::ReadString(InOutHandle, "BodyA", BodyAName))
+        {
+            BodyNameA = FName(BodyAName);
+        }
+        FString BodyBName;
+        if (FJsonSerializer::ReadString(InOutHandle, "BodyB", BodyBName))
+        {
+            BodyNameB = FName(BodyBName);
+        }
+
+        FJsonSerializer::ReadTransform(InOutHandle, "LocalFrameA", LocalFrameA);
+        FJsonSerializer::ReadTransform(InOutHandle, "LocalFrameB", LocalFrameB);
+        FJsonSerializer::ReadFloat(InOutHandle, "TwistMin", TwistLimitMin);
+        FJsonSerializer::ReadFloat(InOutHandle, "TwistMax", TwistLimitMax);
+        FJsonSerializer::ReadFloat(InOutHandle, "SwingY", SwingLimitY);
+        FJsonSerializer::ReadFloat(InOutHandle, "SwingZ", SwingLimitZ);
+    }
+    else
+    {
+        InOutHandle["BodyA"] = BodyNameA.ToString().c_str();
+        InOutHandle["BodyB"] = BodyNameB.ToString().c_str();
+        InOutHandle["LocalFrameA"] = FJsonSerializer::TransformToJson(LocalFrameA);
+        InOutHandle["LocalFrameB"] = FJsonSerializer::TransformToJson(LocalFrameB);
+        InOutHandle["TwistMin"] = TwistLimitMin;
+        InOutHandle["TwistMax"] = TwistLimitMax;
+        InOutHandle["SwingY"] = SwingLimitY;
+        InOutHandle["SwingZ"] = SwingLimitZ;
     }
 }

@@ -7,4 +7,24 @@ public:
     float DynamicFriction;
     float Restitution;
     float Density;
+    
+    void Serialize(const bool bInIsLoading, JSON& InOutHandle)
+    {
+        Super::Serialize(bInIsLoading, InOutHandle);
+
+        if (bInIsLoading)
+        {
+            FJsonSerializer::ReadFloat(InOutHandle, "StaticFriction", StaticFriction);
+            FJsonSerializer::ReadFloat(InOutHandle, "DynamicFriction", DynamicFriction);
+            FJsonSerializer::ReadFloat(InOutHandle, "Restitution", Restitution);
+            FJsonSerializer::ReadFloat(InOutHandle, "Density", Density);
+        }
+        else
+        {
+            InOutHandle["StaticFriction"] = StaticFriction;
+            InOutHandle["DynamicFriction"] = DynamicFriction;
+            InOutHandle["Restitution"] = Restitution;
+            InOutHandle["Density"] = Density;
+        }
+    }
 };

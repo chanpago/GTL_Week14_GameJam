@@ -17,6 +17,7 @@ struct FKAggregateGeom
     void Serialize(const bool bInIsLoading, JSON& InOutHandle);
 };
 
+class UPhysicalMaterial;
 class UBodySetup : public UBodySetupCore
 {
     DECLARE_CLASS(UBodySetup, UBodySetupCore)
@@ -27,17 +28,18 @@ public:
     float LinearDamping = 0.01f;  // 위치의 시간 당 변화량
     float AngularDamping = 0.05f; // 회전의 시간 당 변화량
 
-    // Material
-    // TODO : 직렬화 + 구조 짜기
-    class UPhysicalMaterial* PhysMaterial = nullptr;
+    UPhysicalMaterial* PhysMaterial = nullptr;
 
     // Collision Setting
     bool bSimulatePhysics = true; // false일 시 Static
     bool bEnableGravity = true;   // 위가 false면 의미없음
 
+    bool bCachedDataDirty = true;
+
     void AddSphere(const FKSphereElem& Elem);
     void AddBox(const FKBoxElem& Elem);
     void AddSphyl(const FKSphylElem& Elem);
 
+    void BuildCachedData();
     void Serialize(const bool bInIsLoading, JSON& InOutHandle) override;
 };

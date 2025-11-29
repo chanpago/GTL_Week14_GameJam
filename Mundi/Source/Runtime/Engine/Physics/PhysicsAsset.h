@@ -18,44 +18,8 @@ struct FPhysicsConstraintSetup
     float SwingLimitY; // y축 회전
     float SwingLimitZ;
 
-    void Serialize(const bool bInIsLoading, JSON& InOutHandle)
-    {
-        if (bInIsLoading)
-        {
-            FString BodyAName;
-            if (FJsonSerializer::ReadString(InOutHandle, "BodyA", BodyAName))
-            {
-                BodyNameA = FName(BodyAName);
-            }
-            FString BodyBName;
-            if (FJsonSerializer::ReadString(InOutHandle, "BodyB", BodyAName))
-            {
-                BodyNameB = FName(BodyBName);
-            }
-
-            FJsonSerializer::ReadTransform(InOutHandle, "LocalFrameA", LocalFrameA);
-            FJsonSerializer::ReadTransform(InOutHandle, "LocalFrameB", LocalFrameB);
-            FJsonSerializer::ReadFloat(InOutHandle, "TwistMin", TwistLimitMin);
-            FJsonSerializer::ReadFloat(InOutHandle, "TwistMax", TwistLimitMax);
-            FJsonSerializer::ReadFloat(InOutHandle, "SwingY", SwingLimitY);
-            FJsonSerializer::ReadFloat(InOutHandle, "SwingZ", SwingLimitZ);
-        }
-        else
-        {
-            JSON Item = JSON::Make(JSON::Class::Object);
-
-            Item["BodyA"] = BodyNameA.ToString().c_str();
-            Item["BodyB"] = BodyNameB.ToString().c_str();
-            Item["LocalFrameA"] = FJsonSerializer::TransformToJson(LocalFrameA);
-            Item["LocalFrameB"] = FJsonSerializer::TransformToJson(LocalFrameB);
-            Item["TwistMin"] = TwistLimitMin;
-            Item["TwistMax"] = TwistLimitMax;
-            Item["SwingY"] = SwingLimitY;
-            Item["SwingZ"] = SwingLimitZ;
-
-            InOutHandle["Constraints"] = Item;
-        }
-    }
+    void Clear();
+    void Serialize(const bool bInIsLoading, JSON& InOutHandle);
 };
 
 class UBodySetup;
@@ -79,6 +43,8 @@ public:
     // ====================================
     // 헬퍼 함수
     // ====================================
+    // Runtime에서 같은 자산을  쓸 때, 모두 원본 JSON을 직접 해석하지 않도록 파생 데이터 묶음을 제작해줌
+    void BuildRuntimeCache();
     void BuildBodySetupIndexMap();
 
     int32 FindBodyIndex(FName BodyName) const; 
@@ -99,10 +65,6 @@ public:
     bool SaveToFile(const FString& FilePath);
 
     void Serialize(const bool bInIsLoading, JSON& InOutHandle) override;
-
-    // Runtime에서 같은 자산을  쓸 때, 모두 원본 JSON을 직접 해석하지 않도록 파생 데이터 묶음을 제작해줌
-    // TODO :
-    void BuildRuntimeCache();
 
 private:
     FName Name;

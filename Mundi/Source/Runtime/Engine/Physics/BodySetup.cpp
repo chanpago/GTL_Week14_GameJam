@@ -1,7 +1,92 @@
 ﻿#include "pch.h"
 #include "BodySetup.h"
+#include "PhysicalMaterial.h"
 
 IMPLEMENT_CLASS(UBodySetup)
+
+void UBodySetup::AddSphere(const FKSphereElem& Elem)
+{
+    AggGeom.SphereElements.Add(Elem);
+    bCachedDataDirty = true;
+}
+
+void UBodySetup::AddBox(const FKBoxElem& Elem)
+{
+    AggGeom.BoxElements.Add(Elem);
+    bCachedDataDirty = true;
+}
+
+void UBodySetup::AddSphyl(const FKSphylElem& Elem)
+{
+    AggGeom.SphylElements.Add(Elem);
+    bCachedDataDirty = true;
+}
+
+void UBodySetup::BuildCachedData()
+{
+    // AggGeom을 돌면서 LocalBounds, Volume, Inertia 등 계산
+    // 예: CachedBounds, CachedMass 같은 멤버 만들어서 세팅
+}
+
+void UBodySetup::Serialize(const bool bInIsLoading, JSON& InOutHandle)
+{
+    // 부모 클래스의 직렬화 호출
+    Super::Serialize(bInIsLoading, InOutHandle);
+
+    if (bInIsLoading)
+    {
+        FString Bone;
+        if (FJsonSerializer::ReadString(InOutHandle, "Bone", Bone))
+        {
+            BoneName = FName(Bone);
+        }
+
+        FJsonSerializer::ReadFloat(InOutHandle, "Mass", Mass, Mass, false);
+        FJsonSerializer::ReadFloat(InOutHandle, "LinearDamping", LinearDamping, LinearDamping, false);
+        FJsonSerializer::ReadFloat(InOutHandle, "AngularDamping", AngularDamping, AngularDamping, false);
+        FJsonSerializer::ReadBool(InOutHandle,  "bSimulatePhysics", bSimulatePhysics, bSimulatePhysics, false);
+        FJsonSerializer::ReadBool(InOutHandle,  "bEnableGravity",  bEnableGravity,  bEnableGravity,  false);
+
+        AggGeom.Clear();
+        if (InOutHandle.hasKey("Aggregate"))
+        {
+            AggGeom.Serialize(true, InOutHandle["Aggregate"]);
+        }
+
+        // PhysMaterial (있을 수도, 없을 수도)
+        if (InOutHandle.hasKey("PhysMaterial"))
+        {
+            JSON& MatJson = InOutHandle["PhysMaterial"];
+            if (!PhysMaterial)
+            {
+                PhysMaterial = NewObject<UPhysicalMaterial>();
+            }
+            PhysMaterial->Serialize(true, MatJson);
+        }
+
+        bCachedDataDirty = true;
+    }
+    else
+    {
+        InOutHandle["Bone"] = BoneName.ToString().c_str();
+        InOutHandle["Mass"] = Mass;
+        InOutHandle["LinearDamping"] = LinearDamping;
+        InOutHandle["AngularDamping"] = AngularDamping;
+        InOutHandle["SimulatePhysics"] = bSimulatePhysics;
+        InOutHandle["EnableGravity"] = bEnableGravity;
+
+        JSON AggJson = JSON::Make(JSON::Class::Object);
+        AggGeom.Serialize(false, AggJson);
+        InOutHandle["Aggregate"] = AggJson;
+
+        if (PhysMaterial)
+        {
+            JSON MatJson = JSON::Make(JSON::Class::Object);
+            PhysMaterial->Serialize(false, MatJson);
+            InOutHandle["PhysMaterial"] = MatJson;
+        }
+    }
+}
 
 void FKAggregateGeom::Serialize(const bool bInIsLoading, JSON& InOutHandle)
 {
@@ -68,10 +153,10 @@ void FKAggregateGeom::Serialize(const bool bInIsLoading, JSON& InOutHandle)
             Out["HalfLength"] = Elem.HalfLength;
             Out["Rotation"] = FJsonSerializer::Vector4ToJson(FVector4(Elem.Rotation.X, Elem.Rotation.Y, Elem.Rotation.Z, Elem.Rotation.W));
         },
-        [](const JSON& In, FKSphylElem& Elem) 
+        [](const JSON& In, FKSphylElem& Elem)
         {
             FJsonSerializer::ReadVector(In, "Center", Elem.Center);
-            FJsonSerializer::ReadFloat(In, "Radius", Elem.Radius);        
+            FJsonSerializer::ReadFloat(In, "Radius", Elem.Radius);
             FJsonSerializer::ReadFloat(In, "HalfLength", Elem.HalfLength);
             FVector4 RotVec;
             FJsonSerializer::ReadVector4(In, "Rotation", RotVec);
@@ -97,7 +182,7 @@ void FKAggregateGeom::Serialize(const bool bInIsLoading, JSON& InOutHandle)
                 return;
             }
 
-            const JSON& VerticesJsonArray = In["Vertices"];
+            const JSON& VerticesJsonArray = In.at("Vertices");
             for (size_t i = 0; i < VerticesJsonArray.size(); ++i)
             {
                 const JSON& PointJson = VerticesJsonArray.at(i);
@@ -113,27 +198,4 @@ void FKAggregateGeom::Serialize(const bool bInIsLoading, JSON& InOutHandle)
                 Elem.Vertices.Add(V);
             }
         });
-}
-
-void UBodySetup::Serialize(const bool bInIsLoading, JSON& InOutHandle)
-{
-    // 부모 클래스의 직렬화 호출
-    Super::Serialize(bInIsLoading, InOutHandle);
-
-    if (bInIsLoading)
-    {
-        // 로딩 시: 기존 데이터를 지우고 "Aggregate" 키가 있으면 직렬화
-        AggGeom.Clear();
-        if (InOutHandle.hasKey("Aggregate"))
-        {
-            AggGeom.Serialize(true, InOutHandle["Aggregate"]);
-        }
-    }
-    else
-    {
-        // 저장 시: 새로운 JSON 객체를 만들고 AggGeom을 직렬화한 후 "Aggregate" 키에 할당
-        JSON Aggregate = JSON::Make(JSON::Class::Object);
-        AggGeom.Serialize(false, Aggregate);
-        InOutHandle["Aggregate"] = Aggregate;
-    }
 }
