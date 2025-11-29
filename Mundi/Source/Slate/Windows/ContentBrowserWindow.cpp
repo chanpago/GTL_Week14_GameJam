@@ -6,6 +6,7 @@
 #include "USlateManager.h"
 #include "ThumbnailManager.h"
 #include "Source/Runtime/Engine/Particle/ParticleSystem.h"
+#include "Source/Runtime/AssetManagement/ResourceManager.h"
 #include "Source/Runtime/Engine/Physics/PhysicsAsset.h"
 #include "Source/Runtime/Core/Object/ObjectFactory.h"
 #include <algorithm>
@@ -531,5 +532,7 @@ void UContentBrowserWindow::CreateNewPhysicsAssetForSkeletalMesh()
 
     // SkeletalMeshViewerWindow를 열고 저장 경로 전달
     FString SavePath = WideToUTF8(PhysicsPath.wstring());
+    NewAsset->SetFilePath(SavePath);
+    UResourceManager::GetInstance().Add<UPhysicsAsset>(SavePath, NewAsset);
     USlateManager::GetInstance().OpenSkeletalMeshViewerWithAsset(NewAsset, SavePath);
 }

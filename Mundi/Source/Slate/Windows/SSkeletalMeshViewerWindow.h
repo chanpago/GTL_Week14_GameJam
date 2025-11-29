@@ -1,20 +1,12 @@
 ﻿#pragma once
 #include "SWindow.h"
 #include "Source/Runtime/Engine/SkeletalViewer/ViewerState.h"
-#include <array>
-#include <unordered_map>
-
-struct FPhysicsAssetEditorState {
-    FString SavePath;
-    std::array<char, 260> PathBuffer{};
-};
+class UPhysicsAsset;
 
 class FViewport;
 class FViewportClient;
 class UWorld;
 struct ID3D11Device;
-struct FPhysicsAssetEditorState;
-
 class SSkeletalMeshViewerWindow : public SWindow
 {
 public:
@@ -49,7 +41,6 @@ private:
     // viwer를 닫을 때 자동으로 Notifies 정보 저장
     void SaveAllNotifiesOnClose();
 
-    FPhysicsAssetEditorState& GetPhysicsAssetEditorState(ViewerState* State);
 
 private:
 
@@ -88,7 +79,6 @@ public:
 private:
     void UpdateBoneTransformFromSkeleton(ViewerState* State);
    
-    void UpdatePhysicsAssetSavePath(ViewerState* State, const FString& Path);
     bool SavePhysicsAsset(ViewerState* State);
 
     void ApplyBoneTransform(ViewerState* State);
@@ -114,8 +104,6 @@ private:
     UTexture* IconNoLoop = nullptr;
 
 private:
-    std::unordered_map<ViewerState*, FPhysicsAssetEditorState> PhysicsEditorStates;
-
     // Notify editing state
     int32 SelectedNotifyIndex = -1;
     // Right-click capture for notify insertion

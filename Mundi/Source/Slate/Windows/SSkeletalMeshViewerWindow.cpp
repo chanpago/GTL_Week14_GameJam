@@ -1236,14 +1236,14 @@ bool SSkeletalMeshViewerWindow::SavePhysicsAsset(ViewerState* State)
 
     if (TargetPath.empty())
     {
-        FWideString Initial = UTF8ToWide(GDataDir + "/NewPhysicsAsset.physics");
+        FWideString Initial = UTF8ToWide(GDataDir) + L"/NewPhysicsAsset.physics";
         std::filesystem::path Selected = FPlatformProcess::OpenSaveFileDialog(Initial, L"physics", L"Physics Asset (*.physics)");
         if (Selected.empty())
         {
             return false;
         }
 
-        TargetPath = ResolveAssetRelativePath(WideToUTF8(Selected.string()), GDataDir);
+        TargetPath = ResolveAssetRelativePath(WideToUTF8(Selected.wstring()), GDataDir);
         State->CurrentPhysicsAsset->SetFilePath(TargetPath);
     }
 
@@ -1257,35 +1257,6 @@ bool SSkeletalMeshViewerWindow::SavePhysicsAsset(ViewerState* State)
     UE_LOG("Failed to save physics asset: %s", TargetPath.c_str());
     return false;
 }
-
-    auto& EditorState = GetPhysicsAssetEditorState(State);
-    FString TargetPath = EditorState.SavePath;
-
-    if (TargetPath.empty())
-    {
-        FWideString Initial = UTF8ToWide(GDataDir + L"/NewPhysicsAsset.physics\"");
-        std::filesystem::path Selected = FPlatformProcess::OpenSaveFileDialog(Initial, L"physics", L"Physics Asset (*.physics)");
-        if (Selected.empty())
-        {
-            return false;
-        }
-
-        TargetPath = ResolveAssetRelativePath(WideToUTF8(Selected.string()), GDataDir);
-        UpdatePhysicsAssetSavePath(State, TargetPath);
-    }
-
-    if (State->CurrentPhysicsAsset->SaveToFile(TargetPath))
-    {
-        State->CurrentPhysicsAsset->SetFilePath(TargetPath);
-        UResourceManager::GetInstance().Add<UPhysicsAsset>(TargetPath, State->CurrentPhysicsAsset);
-        UE_LOG("Physics asset saved: %s", TargetPath.c_str());
-        return true;
-    }
-
-    UE_LOG("Failed to save physics asset: %s", TargetPath.c_str());
-    return false;
-}
-
 
 void SSkeletalMeshViewerWindow::OpenNewTab(const char* Name)
 {
@@ -2246,7 +2217,6 @@ void SSkeletalMeshViewerWindow::DrawAssetBrowserPanel(ViewerState* State)
                         if (ImGui::Selectable(AssetName.c_str(), bIsSelected))
                         {
                             State->CurrentPhysicsAsset = PhysAsset;
-                            UpdatePhysicsAssetSavePath(State, PhysAsset->GetFilePath());
 
                             // ensure BodySetupIndexMap is built for quick lookups and apply to preview mesh
                             if (State->CurrentMesh)
@@ -2291,7 +2261,7 @@ void SSkeletalMeshViewerWindow::DrawAssetBrowserPanel(ViewerState* State)
 
                     // Assign to viewer state
                     State->CurrentPhysicsAsset = NewAsset;
-                    UpdatePhysicsAssetSavePath(State, FString());
+                    State->CurrentPhysicsAsset->SetFilePath(FString());
 
                     // Optionally attach to the currently loaded skeletal mesh so the preview can use it
                     if (State->CurrentMesh)
@@ -2309,38 +2279,25 @@ void SSkeletalMeshViewerWindow::DrawAssetBrowserPanel(ViewerState* State)
 
         if (State->CurrentPhysicsAsset)
         {
-            auto& EditorState = GetPhysicsAssetEditorState(State);
-            if (EditorState.SavePath.empty())
-            {
-                FString ExistingPath = State->CurrentPhysicsAsset->GetFilePath();
-                if (!ExistingPath.empty())
-                {
-                    UpdatePhysicsAssetSavePath(State, ExistingPath);
-                }
-            }
-
             ImGui::Spacing();
             ImGui::PushStyleColor(ImGuiCol_Separator, ImVec4(0.60f, 0.45f, 0.35f, 0.7f));
             ImGui::Separator();
             ImGui::PopStyleColor();
             ImGui::Spacing();
 
+            const FString& SavePath = State->CurrentPhysicsAsset->GetFilePath();
             ImGui::Text("Active Physics Asset: %s", State->CurrentPhysicsAsset->GetName().ToString().c_str());
-            ImGui::Text("Save Path:");
-            if (ImGui::InputText("##PhysicsAssetSavePath", EditorState.PathBuffer.data(), EditorState.PathBuffer.size()))
-            {
-                EditorState.SavePath = EditorState.PathBuffer.data();
-            }
+            ImGui::Text("Save Path: %s", SavePath.empty() ? "<None>" : SavePath.c_str());
 
             if (ImGui::Button("Browse Save Path"))
             {
-                FString DefaultPath = EditorState.SavePath.empty() ? (GDataDir + "/NewPhysicsAsset.physics") : EditorState.SavePath;
+                FString DefaultPath = SavePath.empty() ? (GDataDir + "/NewPhysicsAsset.physics") : SavePath;
                 FWideString Initial = UTF8ToWide(DefaultPath);
                 std::filesystem::path Selected = FPlatformProcess::OpenSaveFileDialog(Initial, L"physics", L"Physics Asset (*.physics)");
                 if (!Selected.empty())
                 {
-                    FString PathStr = ResolveAssetRelativePath(WideToUTF8(Selected.string()), GDataDir);
-                    UpdatePhysicsAssetSavePath(State, PathStr);
+                    FString PathStr = ResolveAssetRelativePath(WideToUTF8(Selected.wstring()), GDataDir);
+                    State->CurrentPhysicsAsset->SetFilePath(PathStr);
                 }
             }
             ImGui::SameLine();
