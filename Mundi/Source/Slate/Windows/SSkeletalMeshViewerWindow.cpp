@@ -20,6 +20,7 @@
 #include "Source/Runtime/Engine/GameFramework/CameraActor.h"
 #include "Source/Runtime/Engine/Physics/PhysicsAsset.h"
 #include "Source/Runtime/Engine/Physics/BodySetup.h"
+#include "Source/Runtime/Engine/Physics/PhysicalMaterial.h"
 
 SSkeletalMeshViewerWindow::SSkeletalMeshViewerWindow()
 {
@@ -618,7 +619,28 @@ void SSkeletalMeshViewerWindow::OnRender()
                     ImGui::Spacing();
                     ImGui::Checkbox("Simulate Physics", &Body->bSimulatePhysics);
                     ImGui::Checkbox("Enable Gravity", &Body->bEnableGravity);
+                    
+					// ======UPhysicalMaterial editing=======
+                    ImGui::Spacing();
+                    ImGui::PushStyleColor(ImGuiCol_Separator, ImVec4(0.45f, 0.55f, 0.70f, 0.5f));
+                    ImGui::Separator();
+                    ImGui::PopStyleColor();
+                    ImGui::Spacing();
 
+					ImGui::Text("Material Properties:");
+                    UPhysicalMaterial* PhysMat = Body->PhysMaterial;
+                    if (!PhysMat)
+                    {
+                        PhysMat = NewObject<UPhysicalMaterial>();
+                        Body->PhysMaterial = PhysMat;
+                    }
+					ImGui::DragFloat("Static Friction", &PhysMat->StaticFriction, 0.01f, 0.0f, 2.0f, "%.3f");
+					ImGui::DragFloat("Dynamic Friction", &PhysMat->DynamicFriction, 0.01f, 0.0f, 2.0f, "%.3f");
+					ImGui::DragFloat("Restitution", &PhysMat->Restitution, 0.01f, 0.0f, 1.0f, "%.3f");
+					ImGui::DragFloat("Density", &PhysMat->Density, 0.1f, 0.1f, 20.0f, "%.3f");
+
+
+					// =======Aggregate Geometry editing========
                     ImGui::Spacing();
                     ImGui::PushStyleColor(ImGuiCol_Separator, ImVec4(0.45f, 0.55f, 0.70f, 0.5f));
                     ImGui::Separator();
