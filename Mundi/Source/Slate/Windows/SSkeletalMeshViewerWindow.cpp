@@ -604,11 +604,11 @@ void SSkeletalMeshViewerWindow::OnRender()
                     ImGui::Text("Physics Properties:");
                     ImGui::Spacing();
 
-                    ImGui::PushItemWidth(-1);
+                    //ImGui::PushItemWidth(-1);
                     ImGui::DragFloat("Mass", &Body->Mass, 0.1f, 0.01f, 10000.0f, "%.3f");
                     ImGui::DragFloat("Linear Damping", &Body->LinearDamping, 0.001f, 0.0f, 100.0f, "%.3f");
                     ImGui::DragFloat("Angular Damping", &Body->AngularDamping, 0.001f, 0.0f, 100.0f, "%.3f");
-                    ImGui::PopItemWidth();
+                    //ImGui::PopItemWidth();
 
                     ImGui::Spacing();
                     ImGui::Checkbox("Simulate Physics", &Body->bSimulatePhysics);
@@ -642,10 +642,10 @@ void SSkeletalMeshViewerWindow::OnRender()
                             
                             if (ImGui::TreeNodeEx((void*)(intptr_t)si, ImGuiTreeNodeFlags_DefaultOpen, "Sphere [%d]", si))
                             {
-                                ImGui::PushItemWidth(-1);
+                                //ImGui::PushItemWidth(-1);
                                 ImGui::DragFloat3("Center", &S.Center.X, 0.1f, -10000.0f, 10000.0f, "%.2f");
                                 ImGui::DragFloat("Radius", &S.Radius, 0.1f, 0.1f, 10000.0f, "%.2f");
-                                ImGui::PopItemWidth();
+                                //ImGui::PopItemWidth();
                                 
                                 if (ImGui::Button("Remove Sphere"))
                                 {
@@ -685,17 +685,17 @@ void SSkeletalMeshViewerWindow::OnRender()
                             
                             if (ImGui::TreeNodeEx((void*)(intptr_t)bi, ImGuiTreeNodeFlags_DefaultOpen, "Box [%d]", bi))
                             {
-                                ImGui::PushItemWidth(-1);
+                                //ImGui::PushItemWidth(-1);
                                 ImGui::DragFloat3("Center", &B.Center.X, 0.1f, -10000.0f, 10000.0f, "%.2f");
                                 ImGui::DragFloat3("Extents", &B.Extents.X, 0.1f, 0.1f, 10000.0f, "%.2f");
                                 
                                 // Rotation as Euler angles
                                 FVector EulerDeg = B.Rotation.ToEulerZYXDeg();
-                                if (ImGui::DragFloat3("Rotation (XYZ)", &EulerDeg.X, 0.5f, -180.0f, 180.0f, "%.2f°"))
+                                if (ImGui::DragFloat3("Rotation", &EulerDeg.X, 0.5f, -180.0f, 180.0f, "%.2f°"))
                                 {
                                     B.Rotation = FQuat::MakeFromEulerZYX(EulerDeg);
                                 }
-                                ImGui::PopItemWidth();
+                                //ImGui::PopItemWidth();
                                 
                                 if (ImGui::Button("Remove Box"))
                                 {
@@ -736,18 +736,18 @@ void SSkeletalMeshViewerWindow::OnRender()
                             
                             if (ImGui::TreeNodeEx((void*)(intptr_t)si, ImGuiTreeNodeFlags_DefaultOpen, "Capsule [%d]", si))
                             {
-                                ImGui::PushItemWidth(-1);
+                                //ImGui::PushItemWidth(-1);
                                 ImGui::DragFloat3("Center", &S.Center.X, 0.1f, -10000.0f, 10000.0f, "%.2f");
                                 ImGui::DragFloat("Radius", &S.Radius, 0.1f, 0.1f, 10000.0f, "%.2f");
                                 ImGui::DragFloat("Half Length", &S.HalfLength, 0.1f, 0.1f, 10000.0f, "%.2f");
                                 
                                 // Rotation as Euler angles
                                 FVector EulerDeg = S.Rotation.ToEulerZYXDeg();
-                                if (ImGui::DragFloat3("Rotation (XYZ)", &EulerDeg.X, 0.5f, -180.0f, 180.0f, "%.2f°"))
+                                if (ImGui::DragFloat3("Rotation", &EulerDeg.X, 0.5f, -180.0f, 180.0f, "%.2f°"))
                                 {
                                     S.Rotation = FQuat::MakeFromEulerZYX(EulerDeg);
                                 }
-                                ImGui::PopItemWidth();
+                                //ImGui::PopItemWidth();
                                 
                                 if (ImGui::Button("Remove Capsule"))
                                 {
