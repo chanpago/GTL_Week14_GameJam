@@ -71,6 +71,8 @@ private:
     bool bIsOpen = true;
     bool bSavedOnClose = false;
 
+	std::filesystem::path PhysicsAssetPath;
+
 public:
     bool IsOpen() const { return bIsOpen; }
     void Close() { bIsOpen = false; }
