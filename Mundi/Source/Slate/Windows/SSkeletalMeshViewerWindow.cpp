@@ -550,13 +550,9 @@ void SSkeletalMeshViewerWindow::OnRender()
                                                 assert(Skeleton && "Skeleton must be valid when adding constraints");
                                                 if (Skeleton)
                                                 {
-                                                    // Find bone indices
                                                     int32 ParentBoneIndex = Skeleton->FindBoneIndex(MatchedBody->BoneName.ToString());
                                                     int32 ChildBoneIndex = Skeleton->FindBoneIndex(ChildBody->BoneName.ToString());
 
-                                                    // Create new constraint with:
-                                                    // - MatchedBody (right-clicked body) as parent (BodyA)
-                                                    // - ChildBody (selected from menu) as child (BodyB)
                                                     FPhysicsConstraintSetup NewConstraint;
                                                     NewConstraint.BodyNameA = MatchedBody->BoneName;  // Parent body
                                                     NewConstraint.BodyNameB = ChildBody->BoneName;    // Child body
@@ -565,13 +561,10 @@ void SSkeletalMeshViewerWindow::OnRender()
                                                     if (ParentBoneIndex != INDEX_NONE && ChildBoneIndex != INDEX_NONE &&
                                                         ActiveState->PreviewActor && ActiveState->PreviewActor->GetSkeletalMeshComponent())
                                                     {
-                                                        // Get world transforms for both bones
                                                         FTransform ParentWorldTransform = ActiveState->PreviewActor->GetSkeletalMeshComponent()->GetBoneWorldTransform(ParentBoneIndex);
                                                         FTransform ChildWorldTransform = ActiveState->PreviewActor->GetSkeletalMeshComponent()->GetBoneWorldTransform(ChildBoneIndex);
 
-                                                        // Calculate relative transform: child relative to parent
-                                                        // LocalFrameA = ParentWorld^-1 * ChildWorld
-                                                        NewConstraint.LocalFrameA = ChildWorldTransform.GetRelativeTransform(ParentWorldTransform);
+                                                        NewConstraint.LocalFrameA = ParentWorldTransform.GetRelativeTransform(ChildWorldTransform);
                                                     }
                                                     else
                                                     {
@@ -580,10 +573,8 @@ void SSkeletalMeshViewerWindow::OnRender()
                                                         NewConstraint.LocalFrameA = FTransform();
                                                     }
 
-                                                    // LocalFrameB is identity (child bone's own local space)
                                                     NewConstraint.LocalFrameB = FTransform();
 
-                                                    // Initialize with default limits
                                                     NewConstraint.TwistLimitMin = -45.0f;
                                                     NewConstraint.TwistLimitMax = 45.0f;
                                                     NewConstraint.SwingLimitY = 45.0f;
