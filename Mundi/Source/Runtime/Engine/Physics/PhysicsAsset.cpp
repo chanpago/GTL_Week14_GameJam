@@ -5,6 +5,21 @@
 #include "SkeletalMeshComponent.h"
 IMPLEMENT_CLASS(UPhysicsAsset)
 
+namespace
+{
+    inline FVector InverseTransformPositionNoScale(const FTransform& Transform, const FVector& Point)
+    {
+        // Position -> subtract translation, then rotate by inverse
+        const FVector Local = Point - Transform.Translation;
+        return Transform.Rotation.Inverse().RotateVector(Local);
+    }
+
+    inline FQuat InverseTransformRotationNoScale(const FTransform& Transform, const FQuat& Rotation)
+    {
+        return Transform.Rotation.Inverse() * Rotation;
+    }
+}
+
 void UPhysicsAsset::BuildRuntimeCache()
 {
     // 1) Body 이름 -> 인덱스 맵
@@ -191,9 +206,12 @@ FKSphereElem UPhysicsAsset::FitSphereToBone(const FSkeleton* Skeleton, int32 Bon
     const float BoneLen = BoneDir.Size();
 
     FKSphereElem Elem;
-    Elem.Center = (Point.Start + Point.End) * 0.5f;
+    FVector WorldCenter = (Point.Start + Point.End) * 0.5f;
     Elem.Radius = FMath::Max(BoneLen * 0.5f, 0.1f);
 
+    FTransform BoneWorldTransform = CurrentSkeletal->GetBoneWorldTransform(BoneIndex);
+    BoneWorldTransform.Scale3D = FVector(1.f, 1.f, 1.f);
+    Elem.Center = InverseTransformPositionNoScale(BoneWorldTransform, WorldCenter);
     return Elem;
 }
 
@@ -215,17 +233,21 @@ FKBoxElem UPhysicsAsset::FitBoxToBone(const FSkeleton* Skeleton, int32 BoneIndex
         DirNorm.Normalize();
     }
 
-    const FVector Center = (Point.Start + Point.End) * 0.5f;
+    const FVector WorldCenter = (Point.Start + Point.End) * 0.5f;
     const float HalfDepth = FMath::Max(BoneLen * 0.5f, 0.1f);
     const float HalfWidth = FMath::Max(BoneLen * 0.15f, 0.1f);
 
     const FVector BoxAxis(0, 0, 1);
-    const FQuat Rot = FQuat::FindBetweenNormals(BoxAxis, DirNorm);
+    const FQuat WorldRot = FQuat::FindBetweenNormals(BoxAxis, DirNorm);
 
     FKBoxElem Elem;
-    Elem.Center = Center;
     Elem.Extents = FVector(HalfWidth, HalfWidth, HalfDepth);
-    Elem.Rotation = Rot;
+
+    FTransform BoneWorldTransform = CurrentSkeletal->GetBoneWorldTransform(BoneIndex);
+    BoneWorldTransform.Scale3D = FVector(1.f, 1.f, 1.f);
+
+    Elem.Center = InverseTransformPositionNoScale(BoneWorldTransform, WorldCenter);
+    Elem.Rotation = InverseTransformRotationNoScale(BoneWorldTransform, WorldRot);
 
     return Elem;
 }
@@ -248,24 +270,27 @@ FKSphylElem UPhysicsAsset::FitCapsuleToBone(const FSkeleton* Skeleton, int32 Bon
         DirNorm.Normalize();
     }
 
-    const FVector Center = (Point.Start + Point.End) * 0.5f;
+    const FVector WorldCenter = (Point.Start + Point.End) * 0.5f;
 
     const float Radius = FMath::Max(BoneLen * 0.25f, 0.1f);
     const float HalfLength = FMath::Max((BoneLen * 0.5f) - Radius, 0.0f);
 
     const FVector CapsuleAxis(0, 0, 1);
-    const FQuat Rot = FQuat::FindBetweenNormals(CapsuleAxis, DirNorm);
+    const FQuat WorldRot = FQuat::FindBetweenNormals(CapsuleAxis, DirNorm);
 
     FKSphylElem Elem;
-    Elem.Center = Center;
     Elem.Radius = Radius;
     Elem.HalfLength = HalfLength;
-    Elem.Rotation = Rot;
+
+    // 월드 center를 로컬 center로 바꾼다(그래야 추후 Build할 때 World로 이중변환 안 됨)
+    FTransform BoneWorldTransform = CurrentSkeletal->GetBoneWorldTransform(BoneIndex);
+    BoneWorldTransform.Scale3D = FVector(1.f, 1.f, 1.f); 
+
+    Elem.Center = InverseTransformPositionNoScale(BoneWorldTransform, WorldCenter);
+    Elem.Rotation = InverseTransformRotationNoScale(BoneWorldTransform, WorldRot);
 
     return Elem;
 }
-
-
 
 void UPhysicsAsset::GenerateConstraintsFromSkeleton(const FSkeleton* Skeleton, const TArray<int32>& BoneIndicesToCreate, USkeletalMeshComponent* SkeletalComponent)
 {
@@ -330,8 +355,6 @@ void UPhysicsAsset::GenerateConstraintsFromSkeleton(const FSkeleton* Skeleton, c
         Constraints.Add(Setup);
     }
 }
-
-
 
 bool UPhysicsAsset::Load(const FString& InFilePath, ID3D11Device* InDevice)
 {
