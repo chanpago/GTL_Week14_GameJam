@@ -56,6 +56,8 @@ void UStaticMeshComponent::TickComponent(float DeltaTime)
 	if (bSimulatePhysics && !bIsStaticPhysics && BodyInstance && BodyInstance->RigidActor)
 	{
 		FTransform PhysTransform = BodyInstance->GetWorldTransform();
+		// PhysX는 스케일을 지원하지 않으므로 기존 스케일 유지
+		PhysTransform.Scale3D = GetWorldTransform().Scale3D;
 		SetWorldTransform(PhysTransform);
 	}
 }

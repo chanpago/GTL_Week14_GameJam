@@ -24,6 +24,7 @@
 #include "Source/Runtime/Engine/Physics/BodySetup.h"
 #include "Source/Runtime/Engine/Physics/PhysicsTypes.h"
 #include "Source/Runtime/Engine/Physics/PhysicsAsset.h"
+#include "World.h"
 
 
 static FBodyInstance* FindBodyInstanceByName(const TArray<FBodyInstance*>& Bodies, const FName& BoneName)
@@ -78,6 +79,13 @@ void USkeletalMeshComponent::BeginPlay()
     UE_LOG("  Speed < 0.1: Idle animation");
     UE_LOG("  Speed 0.1 ~ 5.0: Walk animation");
     UE_LOG("  Speed >= 5.0: Run animation");
+
+    // PhysicsAsset이 있으면 물리 바디 생성
+    UWorld* World = GetWorld();
+    if (World && World->GetPhysScene() && PhysicsAsset)
+    {
+        InstantiatePhysicsAssetBodies(*World->GetPhysScene());
+    }
 }
 
 void USkeletalMeshComponent::TickComponent(float DeltaTime)
@@ -173,6 +181,12 @@ void USkeletalMeshComponent::TickComponent(float DeltaTime)
 void USkeletalMeshComponent::SetSkeletalMesh(const FString& PathFileName)
 {
     Super::SetSkeletalMesh(PathFileName);
+
+    // SkeletalMesh에 연결된 PhysicsAsset 참조
+    if (SkeletalMesh)
+    {
+        PhysicsAsset = SkeletalMesh->PhysicsAsset;
+    }
 
     if (SkeletalMesh && SkeletalMesh->GetSkeletalMeshData())
     {
