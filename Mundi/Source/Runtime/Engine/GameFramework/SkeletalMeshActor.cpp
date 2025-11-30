@@ -1,4 +1,4 @@
-﻿#include "pch.h"
+#include "pch.h"
 #include "SkeletalMeshActor.h"
 #include "World.h"
 #include "Source/Runtime/Engine/Physics/PhysicsAsset.h"
@@ -841,8 +841,6 @@ void ASkeletalMeshActor::BuildBodyLinesCache()
         // Build Sphere Elements
         for (const FKSphereElem& Sphere : Body->AggGeom.SphereElements)
         {
-            /*FVector LocalCenter = Sphere.Center;
-            float LocalRadius = Sphere.Radius*/;
             FVector LocalCenter = BoneLocalTransform.TransformPosition(Sphere.Center);
             float LocalRadius = Sphere.Radius * BoneLocalTransform.Scale3D.GetMaxValue();
 
@@ -1091,9 +1089,6 @@ void ASkeletalMeshActor::UpdateBodyTransforms()
         {
             FVector LocalCenter = BoneLocalTransform.TransformPosition(Sphere.Center);
             float LocalRadius = Sphere.Radius * BoneLocalTransform.Scale3D.GetMaxValue();
-
-            /*FVector LocalCenter = Sphere.Center;
-            float LocalRadius = Sphere.Radius;*/
 
             // XY plane
             for (int i = 0; i < NumSegments && LineIndex < BDL.SphereLines.Num(); ++i, ++LineIndex)

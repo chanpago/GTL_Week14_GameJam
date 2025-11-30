@@ -5,6 +5,7 @@
 #include "Source/Runtime/Engine/SkeletalViewer/SkeletalViewerBootstrap.h"
 #include "Source/Editor/PlatformProcess.h"
 #include "Source/Runtime/Engine/GameFramework/SkeletalMeshActor.h"
+#include "Source/Runtime/Engine/Components/SkeletalMeshComponent.h"
 #include "Source/Runtime/Engine/Components/LineComponent.h"
 #include "SelectionManager.h"
 #include "USlateManager.h"
@@ -2830,7 +2831,6 @@ void SSkeletalMeshViewerWindow::DrawAssetBrowserPanel(ViewerState* State)
                 {
                     ImGui::OpenPopup("ShapeTypePopup");
                 }
-
                 auto RebuildPhysicsAssetWithShape = [&](EAggCollisionShapeType ShapeType)
                     {
                         if (!State->CurrentMesh)
@@ -2839,12 +2839,26 @@ void SSkeletalMeshViewerWindow::DrawAssetBrowserPanel(ViewerState* State)
                             return;
                         }
 
+                        if (!State->CurrentPhysicsAsset)
+                        {
+                            UE_LOG("Cannot generate PhysicsAsset: No physics asset instance available");
+                            return;
+                        }
+
+                        USkeletalMeshComponent* SkeletalComponent = State->PreviewActor ? State->PreviewActor->GetSkeletalMeshComponent() : nullptr;
+                        if (!SkeletalComponent)
+                        {
+                            UE_LOG("Cannot generate PhysicsAsset: Preview skeletal mesh component missing");
+                            return;
+                        }
+
                         State->CurrentPhysicsAsset->CreateGenerateAllBodySetup(
                             ShapeType,
-                            State->CurrentMesh->GetSkeleton()
+                            State->CurrentMesh->GetSkeleton(),
+                            SkeletalComponent
                         );
 
-                        State->CurrentPhysicsAsset->SetFilePath(FString()); // 아직 파일 없음
+                        State->CurrentPhysicsAsset->SetFilePath(FString()); // 임시 저장 경로
                     };
 
                 if (ImGui::BeginPopup("ShapeTypePopup"))

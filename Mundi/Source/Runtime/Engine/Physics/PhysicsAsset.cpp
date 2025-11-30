@@ -2,30 +2,8 @@
 #include "PhysicsAsset.h"
 #include "BodySetup.h"
 #include "../Animation/AnimationAsset.h"
+#include "SkeletalMeshComponent.h"
 IMPLEMENT_CLASS(UPhysicsAsset)
-
-namespace
-{
-    FTransform GetComponentSpaceBindPose(const FSkeleton* Skeleton, int32 BoneIndex)
-    {
-        if (!Skeleton || BoneIndex < 0 || BoneIndex >= Skeleton->GetNumBones())
-        {
-            return FTransform();
-        }
-
-        FMatrix ChildMatrix = Skeleton->Bones[BoneIndex].BindPose;
-        int32 ParentIndex = Skeleton->Bones[BoneIndex].ParentIndex;
-
-        while (ParentIndex != INDEX_NONE)
-        // if (ParentIndex != INDEX_NONE)
-        {
-            ChildMatrix = (Skeleton->Bones[ParentIndex].BindPose * ChildMatrix);
-            ParentIndex = Skeleton->Bones[ParentIndex].ParentIndex;
-        }
-
-        return FTransform(ChildMatrix);
-    }
-}
 
 void UPhysicsAsset::BuildRuntimeCache()
 {
@@ -86,7 +64,7 @@ int32 UPhysicsAsset::FindConstraintIndex(FName BodyA, FName BodyB) const
 	return INDEX_NONE;
 }
 
-void UPhysicsAsset::CreateGenerateAllBodySetup(EAggCollisionShapeType ShapeType, FSkeleton* Skeleton)
+void UPhysicsAsset::CreateGenerateAllBodySetup(EAggCollisionShapeType ShapeType, FSkeleton* Skeleton, USkeletalMeshComponent* SkeletalComponent)
 {
     if (!Skeleton)
     {
@@ -103,6 +81,7 @@ void UPhysicsAsset::CreateGenerateAllBodySetup(EAggCollisionShapeType ShapeType,
     }
     BodySetups.Empty();
     Constraints.Empty();
+    CurrentSkeletal = SkeletalComponent;
 
     TArray<int32> BoneIndicesToCreate;
     SelectBonesForBodies(Skeleton, BoneIndicesToCreate);
@@ -141,7 +120,7 @@ void UPhysicsAsset::CreateGenerateAllBodySetup(EAggCollisionShapeType ShapeType,
         BodySetups.Add(Body);
     }
 
-    GenerateConstraintsFromSkeleton(Skeleton, BoneIndicesToCreate);
+    GenerateConstraintsFromSkeleton(Skeleton, BoneIndicesToCreate, SkeletalComponent);
     BuildRuntimeCache();
 }
 
@@ -167,8 +146,8 @@ void UPhysicsAsset::SelectBonesForBodies(const FSkeleton* Skeleton, TArray<int32
             continue;
         }
 
-        const FTransform ParentTransform(Skeleton->Bones[ParentIndex].BindPose);
-        const FTransform ChildTransform(Skeleton->Bones[BoneIndex].BindPose);
+        const FTransform ParentTransform(CurrentSkeletal->GetBoneWorldTransform(ParentIndex));
+        const FTransform ChildTransform(CurrentSkeletal->GetBoneWorldTransform(BoneIndex));
 
         const float Length = (ChildTransform.Translation - ParentTransform.Translation).Size();
         
@@ -197,12 +176,11 @@ FBonePoints UPhysicsAsset::GetBonePoints(const FSkeleton* Skeleton, int32 BoneIn
     }
 
     const int32 ParentIndex = Skeleton->GetParentIndex(BoneIndex);
-    // const FTransform ChildT = GetComponentSpaceBindPose(Skeleton, BoneIndex);
-    const FTransform ChildT = Skeleton->Bones[BoneIndex].BindPose;
+    const FTransform ChildT = CurrentSkeletal->GetBoneWorldTransform(BoneIndex);
     FTransform ParentT = ChildT;
     if (ParentIndex != INDEX_NONE && ParentIndex < NumBones)
     {
-        ParentT = Skeleton->Bones[ParentIndex].BindPose;
+        ParentT = CurrentSkeletal->GetBoneWorldTransform(ParentIndex);
     }
 
     Points.Start = ParentT.Translation;
@@ -296,7 +274,7 @@ FKSphylElem UPhysicsAsset::FitCapsuleToBone(const FSkeleton* Skeleton, int32 Bon
 
 
 
-void UPhysicsAsset::GenerateConstraintsFromSkeleton(const FSkeleton* Skeleton, const TArray<int32>& BoneIndicesToCreate)
+void UPhysicsAsset::GenerateConstraintsFromSkeleton(const FSkeleton* Skeleton, const TArray<int32>& BoneIndicesToCreate, USkeletalMeshComponent* SkeletalComponent)
 {
     if (!Skeleton)
     {
@@ -329,12 +307,27 @@ void UPhysicsAsset::GenerateConstraintsFromSkeleton(const FSkeleton* Skeleton, c
         Setup.BodyNameA = ParentBoneName;
         Setup.BodyNameB = ChildBoneName;
 
-        const FTransform ParentRef(Skeleton->Bones[ParentIndex].BindPose);
-        const FTransform ChildRef(Skeleton->Bones[BoneIndex].BindPose);
-        const FTransform JointWorld = ChildRef;
+        FTransform ParentWorldTransform;
+        FTransform ChildWorldTransform;
+        if (SkeletalComponent)
+        {
+            ParentWorldTransform = SkeletalComponent->GetBoneWorldTransform(ParentIndex);
+            ChildWorldTransform = SkeletalComponent->GetBoneWorldTransform(BoneIndex);
 
-        Setup.LocalFrameA = JointWorld.GetRelativeTransform(ParentRef);
-        Setup.LocalFrameB = JointWorld.GetRelativeTransform(ChildRef);
+            ParentWorldTransform.Scale3D = FVector(1.0f, 1.0f, 1.0f);
+            ChildWorldTransform.Scale3D = FVector(1.0f, 1.0f, 1.0f);
+        }
+        else
+        {
+            ParentWorldTransform = SkeletalComponent->GetBoneWorldTransform(ParentIndex);
+            ChildWorldTransform = SkeletalComponent->GetBoneWorldTransform(BoneIndex);
+
+            ParentWorldTransform.Scale3D = FVector(1.0f, 1.0f, 1.0f);
+            ChildWorldTransform.Scale3D = FVector(1.0f, 1.0f, 1.0f);
+        }
+
+        Setup.LocalFrameA = ParentWorldTransform.GetRelativeTransform(ChildWorldTransform);
+        Setup.LocalFrameB = FTransform();
 
         Setup.TwistLimitMin = DegreesToRadians(-45.0f);
         Setup.TwistLimitMax = DegreesToRadians(45.0f);

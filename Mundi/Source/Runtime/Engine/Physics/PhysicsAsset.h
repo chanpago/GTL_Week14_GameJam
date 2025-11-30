@@ -32,6 +32,7 @@ struct FBonePoints
 class UBodySetup;
 struct FSkeleton;
 struct FBonePoints;
+class USkeletalMeshComponent;
 class UPhysicsAsset : public UResourceBase
 {
 public:
@@ -65,14 +66,15 @@ public:
     // ====================================
     // 뷰어, 자동 PhysicsAsset 관련 함수
     // ====================================
-    void CreateGenerateAllBodySetup(EAggCollisionShapeType ShapeType, FSkeleton* Skeleton);
+    USkeletalMeshComponent* CurrentSkeletal = nullptr;
+    void CreateGenerateAllBodySetup(EAggCollisionShapeType ShapeType, FSkeleton* Skeleton, USkeletalMeshComponent* SkeletalComponent = nullptr);
     void SelectBonesForBodies(const FSkeleton* Skeleton, TArray<int32>& OutBones) const;
     FBonePoints GetBonePoints(const FSkeleton* Skeleton, int32 BoneIndex) const;
     FKSphereElem FitSphereToBone(const FSkeleton* Skeleton, int32 BoneIndex);
     FKBoxElem FitBoxToBone(const FSkeleton* Skeleton, int32 BoneIndex);
     FKSphylElem FitCapsuleToBone(const FSkeleton* Skeleton, int32 BoneIndex);
 
-    void GenerateConstraintsFromSkeleton(const FSkeleton* Skeleton, const TArray<int32>& BoneIndicesToCreate);
+    void GenerateConstraintsFromSkeleton(const FSkeleton* Skeleton, const TArray<int32>& BoneIndicesToCreate, USkeletalMeshComponent* SkeletalComponent = nullptr);
 
     // ====================================
     // Asset 직렬화
