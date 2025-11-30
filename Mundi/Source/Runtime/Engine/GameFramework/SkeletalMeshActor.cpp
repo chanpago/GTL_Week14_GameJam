@@ -841,8 +841,10 @@ void ASkeletalMeshActor::BuildBodyLinesCache()
         // Build Sphere Elements
         for (const FKSphereElem& Sphere : Body->AggGeom.SphereElements)
         {
-            FVector LocalCenter = BoneLocalTransform.TransformPosition(Sphere.Center);
-            float LocalRadius = Sphere.Radius * BoneLocalTransform.Scale3D.GetMaxValue();
+            FVector LocalCenter = Sphere.Center;
+            float LocalRadius = Sphere.Radius;
+            /*FVector LocalCenter = BoneLocalTransform.TransformPosition(Sphere.Center);
+            float LocalRadius = Sphere.Radius * BoneLocalTransform.Scale3D.GetMaxValue();*/
 
             // Draw 3 orthogonal circles (XY, XZ, YZ planes)
             // XY plane
@@ -888,6 +890,7 @@ void ASkeletalMeshActor::BuildBodyLinesCache()
             FVector LocalExtent = Box.Extents;
             FTransform ShapeLocalTransform(Box.Center, Box.Rotation, FVector::One());
             FTransform ShapeTransform = BoneLocalTransform.GetWorldTransform(ShapeLocalTransform);
+            FTransform::RemoveScaling(ShapeTransform);
 
             // Box의 8개 꼭지점 (local space)
             FVector LocalCorners[8] = {
@@ -927,8 +930,9 @@ void ASkeletalMeshActor::BuildBodyLinesCache()
             const float AbsScaleY = std::fabs(Scale3D.Y);
             const float AbsScaleZ = std::fabs(Scale3D.Z);
 
-            const float Radius = Capsule.Radius * FMath::Max(AbsScaleX, AbsScaleY);
-            const float HalfHeightAABB = Capsule.HalfLength * AbsScaleZ;
+            // const float Radius = Capsule.Radius * FMath::Max(AbsScaleX, AbsScaleY);
+            const float Radius = Capsule.Radius;
+            const float HalfHeightAABB = Capsule.HalfLength; // *AbsScaleZ;
             const float HalfHeightCylinder = FMath::Max(0.0f, HalfHeightAABB - Radius);
 
             // No scale in the transform matrix
@@ -1085,8 +1089,11 @@ void ASkeletalMeshActor::UpdateBodyTransforms()
         // Update Sphere Elements
         for (const FKSphereElem& Sphere : Body->AggGeom.SphereElements)
         {
-            FVector LocalCenter = BoneLocalTransform.TransformPosition(Sphere.Center);
-            float LocalRadius = Sphere.Radius * BoneLocalTransform.Scale3D.GetMaxValue();
+            /*FVector LocalCenter = BoneLocalTransform.TransformPosition(Sphere.Center);
+            float LocalRadius = Sphere.Radius * BoneLocalTransform.Scale3D.GetMaxValue();*/
+
+            FVector LocalCenter = Sphere.Center;
+            float LocalRadius = Sphere.Radius;
 
             // XY plane
             for (int i = 0; i < NumSegments && LineIndex < BDL.SphereLines.Num(); ++i, ++LineIndex)
@@ -1178,8 +1185,10 @@ void ASkeletalMeshActor::UpdateBodyTransforms()
             const float AbsScaleY = std::fabs(Scale3D.Y);
             const float AbsScaleZ = std::fabs(Scale3D.Z);
 
-            const float Radius = Capsule.Radius * FMath::Max(AbsScaleX, AbsScaleY);
-            const float HalfHeightAABB = Capsule.HalfLength * AbsScaleZ;
+            // const float Radius = Capsule.Radius * FMath::Max(AbsScaleX, AbsScaleY);
+            // const float HalfHeightAABB = Capsule.HalfLength * AbsScaleZ;
+            const float Radius = Capsule.Radius; // *FMath::Max(AbsScaleX, AbsScaleY);
+            const float HalfHeightAABB = Capsule.HalfLength; // *AbsScaleZ;
             const float HalfHeightCylinder = FMath::Max(0.0f, HalfHeightAABB - Radius);
 
             // No scale in the transform matrix

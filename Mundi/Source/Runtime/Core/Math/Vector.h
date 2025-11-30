@@ -1175,7 +1175,7 @@ struct alignas(16) FMatrix
 		
 		return invProj;
 	}
-	
+
 	// 이미 생성된 Perspective Projection 행렬의 역행렬을 계산합니다
 	FMatrix InversePerspectiveProjection() const
 	{
@@ -1439,6 +1439,33 @@ struct FTransform
 		FVector  TScale = FVector::Lerp(A.Scale3D, B.Scale3D, T);
 		FQuat    TRotation = FQuat::Slerp(A.Rotation, B.Rotation, T);
 		return FTransform(TPosition, TRotation, TScale);
+	}
+
+	static FTransform RemoveScaling(const FTransform& InTransform)
+	{
+		FMatrix M = InTransform.ToMatrix();
+
+		// 스케일 벡터 추출 (Row 벡터의 길이)
+		FVector Row0(M.M[0][0], M.M[0][1], M.M[0][2]);
+		FVector Row1(M.M[1][0], M.M[1][1], M.M[1][2]);
+		FVector Row2(M.M[2][0], M.M[2][1], M.M[2][2]);
+
+		const float ScaleX = Row0.Size();
+		const float ScaleY = Row1.Size();
+		const float ScaleZ = Row2.Size();
+
+		if (ScaleX > 0) Row0 /= ScaleX;
+		if (ScaleY > 0) Row1 /= ScaleY;
+		if (ScaleZ > 0) Row2 /= ScaleZ;
+
+		// 정규화된 회전 + 기존 위치로 다시 구성
+		FMatrix NoScale;
+		NoScale.M[0][0] = Row0.X; NoScale.M[0][1] = Row0.Y; NoScale.M[0][2] = Row0.Z; NoScale.M[0][3] = M.M[0][3];
+		NoScale.M[1][0] = Row1.X; NoScale.M[1][1] = Row1.Y; NoScale.M[1][2] = Row1.Z; NoScale.M[1][3] = M.M[1][3];
+		NoScale.M[2][0] = Row2.X; NoScale.M[2][1] = Row2.Y; NoScale.M[2][2] = Row2.Z; NoScale.M[2][3] = M.M[2][3];
+		NoScale.M[3][0] = 0.0f;   NoScale.M[3][1] = 0.0f;   NoScale.M[3][2] = 0.0f;   NoScale.M[3][3] = 1.0f;
+
+		return FTransform(NoScale);
 	}
 
 	/**

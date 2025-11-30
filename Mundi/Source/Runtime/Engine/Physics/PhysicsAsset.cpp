@@ -17,6 +17,7 @@ namespace
         int32 ParentIndex = Skeleton->Bones[BoneIndex].ParentIndex;
 
         while (ParentIndex != INDEX_NONE)
+        // if (ParentIndex != INDEX_NONE)
         {
             ChildMatrix = (Skeleton->Bones[ParentIndex].BindPose * ChildMatrix);
             ParentIndex = Skeleton->Bones[ParentIndex].ParentIndex;
@@ -196,11 +197,12 @@ FBonePoints UPhysicsAsset::GetBonePoints(const FSkeleton* Skeleton, int32 BoneIn
     }
 
     const int32 ParentIndex = Skeleton->GetParentIndex(BoneIndex);
-    const FTransform ChildT = GetComponentSpaceBindPose(Skeleton, BoneIndex);
+    // const FTransform ChildT = GetComponentSpaceBindPose(Skeleton, BoneIndex);
+    const FTransform ChildT = Skeleton->Bones[BoneIndex].BindPose;
     FTransform ParentT = ChildT;
     if (ParentIndex != INDEX_NONE && ParentIndex < NumBones)
     {
-        ParentT = GetComponentSpaceBindPose(Skeleton, ParentIndex);
+        ParentT = Skeleton->Bones[ParentIndex].BindPose;
     }
 
     Points.Start = ParentT.Translation;
@@ -218,8 +220,8 @@ FKSphereElem UPhysicsAsset::FitSphereToBone(const FSkeleton* Skeleton, int32 Bon
     const float BoneLen = BoneDir.Size();
 
     FKSphereElem Elem;
-    Elem.Center = Point.End;
-    Elem.Radius = FMath::Max(BoneLen * 0.5f, 10.0f);
+    Elem.Center = (Point.Start + Point.End) * 0.5f;
+    Elem.Radius = FMath::Max(BoneLen * 0.5f, 0.1f);
 
     return Elem;
 }
@@ -243,8 +245,8 @@ FKBoxElem UPhysicsAsset::FitBoxToBone(const FSkeleton* Skeleton, int32 BoneIndex
     }
 
     const FVector Center = (Point.Start + Point.End) * 0.5f;
-    const float HalfDepth = FMath::Max(BoneLen * 0.5f, 10.0f);
-    const float HalfWidth = FMath::Max(BoneLen * 0.15f, 10.0f);
+    const float HalfDepth = FMath::Max(BoneLen * 0.5f, 0.1f);
+    const float HalfWidth = FMath::Max(BoneLen * 0.15f, 0.1f);
 
     const FVector BoxAxis(0, 0, 1);
     const FQuat Rot = FQuat::FindBetweenNormals(BoxAxis, DirNorm);
@@ -277,7 +279,7 @@ FKSphylElem UPhysicsAsset::FitCapsuleToBone(const FSkeleton* Skeleton, int32 Bon
 
     const FVector Center = (Point.Start + Point.End) * 0.5f;
 
-    const float Radius = FMath::Max(BoneLen * 0.25f, 10.0f);
+    const float Radius = FMath::Max(BoneLen * 0.25f, 0.1f);
     const float HalfLength = FMath::Max((BoneLen * 0.5f) - Radius, 0.0f);
 
     const FVector CapsuleAxis(0, 0, 1);
