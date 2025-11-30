@@ -459,6 +459,8 @@ void SSkeletalMeshViewerWindow::OnRender()
                         {
                             // Clear body selection when a bone itself is clicked
                             ActiveState->SelectedBodySetup = nullptr;
+                            // Clear constraint selection when body is selected
+                            ActiveState->SelectedConstraintIndex = -1;
 
                             if (ActiveState->SelectedBoneIndex != Index)
                             {
@@ -485,6 +487,7 @@ void SSkeletalMeshViewerWindow::OnRender()
                             UBodySetup* MatchedBody = ActiveState->CurrentPhysicsAsset->FindBodySetup(FName(Label));
                             if (MatchedBody)
                             {
+								// =========== 바디 UI ============
                                 ImGui::Indent(14.0f);
 
                                 // Make body entry selectable (unique ID per bone index)
@@ -494,7 +497,7 @@ void SSkeletalMeshViewerWindow::OnRender()
                                 // Highlight when the bone is selected so selection is consistent
                                 bool bBodySelected = (ActiveState->SelectedBoneIndex == Index);
 
-                                // ==== 바디 UI ====
+                                // ==== 바디 UI 좌클릭 이벤트 ====
                                 ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.85f, 0.7f, 0.25f, 1.0f));
                                 if (ImGui::Selectable(BodyLabel, bBodySelected))
                                 {
@@ -595,7 +598,7 @@ void SSkeletalMeshViewerWindow::OnRender()
                                     ImGui::EndPopup();
                                 }
 
-								// ======= Constraint UI 및 우클릭 이벤트========
+								// =========== Constraint UI ============
                                 ImGui::Indent(14.0f);
                                 // Display constraints connected to this body
                                 UPhysicsAsset* Phys = ActiveState->CurrentPhysicsAsset;
@@ -613,16 +616,18 @@ void SSkeletalMeshViewerWindow::OnRender()
                                         FName OtherBodyName = (Constraint.BodyNameA == CurrentBodyName) ? Constraint.BodyNameB : Constraint.BodyNameA;
 
                                         char ConstraintLabel[256];
-                                        snprintf(ConstraintLabel, sizeof(ConstraintLabel), "  Constraint -> %s", OtherBodyName.ToString().c_str());
+                                        snprintf(ConstraintLabel, sizeof(ConstraintLabel), "  %s <-> %s", CurrentBodyName.ToString().c_str(), OtherBodyName.ToString().c_str());
 
                                         bool bConstraintSelected = (ActiveState->SelectedConstraintIndex == ConstraintIdx);
 
-                                        // ======= Constraint UI =======
+                                        // ======= Constraint UI 좌클릭 이벤트 =======
                                         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.5f, 0.85f, 0.85f, 1.0f));
                                         if (ImGui::Selectable(ConstraintLabel, bConstraintSelected))
                                         {
                                             // Select this constraint
                                             ActiveState->SelectedConstraintIndex = ConstraintIdx;
+
+											ActiveState->SelectedBoneIndex = -1; // Clear bone selection when constraint is selected
 
                                             // Clear body selection when constraint is selected
                                             ActiveState->SelectedBodySetup = nullptr;
@@ -1050,7 +1055,7 @@ void SSkeletalMeshViewerWindow::OnRender()
 
                         ImGui::Spacing();
                         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.90f, 0.95f, 1.00f, 1.0f));
-                        ImGui::TextWrapped("%s <-> %s", 
+                        ImGui::TextWrapped("%s (parent) -> %s (child)", 
                             Constraint.BodyNameA.ToString().c_str(), 
                             Constraint.BodyNameB.ToString().c_str());
                         ImGui::PopStyleColor();
