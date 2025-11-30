@@ -656,6 +656,10 @@ void SSkeletalMeshViewerWindow::OnRender()
                                                         FTransform ParentWorldTransform = ActiveState->PreviewActor->GetSkeletalMeshComponent()->GetBoneWorldTransform(ParentBoneIndex);
                                                         FTransform ChildWorldTransform = ActiveState->PreviewActor->GetSkeletalMeshComponent()->GetBoneWorldTransform(ChildBoneIndex);
 
+														// physicX에서는 로컬 좌표계의 scale을 아마? 무시하므로 1,1,1로 설정
+														ParentWorldTransform.Scale3D = FVector(1.0f, 1.0f, 1.0f);
+														ChildWorldTransform.Scale3D = FVector(1.0f, 1.0f, 1.0f);
+
                                                         NewConstraint.LocalFrameA = ParentWorldTransform.GetRelativeTransform(ChildWorldTransform);
                                                     }
                                                     else
