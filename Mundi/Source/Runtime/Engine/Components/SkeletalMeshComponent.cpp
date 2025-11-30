@@ -159,13 +159,28 @@ void USkeletalMeshComponent::TickComponent(float DeltaTime)
         // 3. 포즈 평가 및 SetAnimationPose() 호출
         // 4. 노티파이 트리거
         // 5. 커브 업데이트
-        AnimInstance->NativeUpdateAnimation(DeltaTime);
 
+        // Sync physics bodies to match animation
+        UWorld* World = GetWorld();
+        switch (PhysicsState)
+        {
+            case EPhysicsAnimationState::AnimationDriven:
+                AnimInstance->NativeUpdateAnimation(DeltaTime);
+                SyncBodiesFromAnimation(*World->GetPhysScene());
+                break;
+
+            case EPhysicsAnimationState::PhysicsDriven:
+                SyncAnimationFromBodies();
+                break;
+
+            case EPhysicsAnimationState::Blending:
+                // TODO
+                break;
+        }
 
        /* GatherNotifiesFromRange(PrevAnimationTime, CurrentAnimationTime);
          
         DispatchAnimNotifies();*/
-
     }
     else
     {
@@ -175,13 +190,6 @@ void USkeletalMeshComponent::TickComponent(float DeltaTime)
     }
 
     PrevAnimationTime = CurrentAnimationTime; 
-
-    // Sync physics bodies to match animation
-    UWorld* World = GetWorld();
-    if (World && World->GetPhysScene() && PhysicsAsset)
-    {
-        SyncBodiesFromAnimation(*World->GetPhysScene());
-    }
 }
 
 void USkeletalMeshComponent::SetSkeletalMesh(const FString& PathFileName)

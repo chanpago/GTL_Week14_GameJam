@@ -13,6 +13,13 @@ class FPhysScene;
 class UPhysicsAsset;
 struct FPendingAnimNotify;
 
+enum class EPhysicsAnimationState : uint8
+{
+    AnimationDriven, // Collider(BodyInstance)가 완전히 Bone을 따라가는 상황, Kinematic
+    PhysicsDriven, // Bone이 완전히 Collider(BodyInstance)를 따라가는 상황, Dynamic
+    Blending // 위 두 상태가 전환되거나, 부분 래그돌 등에 사용, Linear하게 Kinematic + Dynamic
+};
+
 UCLASS(DisplayName="스켈레탈 메시 컴포넌트", Description="스켈레탈 메시를 렌더링하는 컴포넌트입니다")
 class USkeletalMeshComponent : public USkinnedMeshComponent
 {
@@ -30,7 +37,6 @@ public:
     void Serialize(const bool bInIsLoading, JSON& InOutHandle) override;
 
 public:
-
     void SetSkeletalMesh(const FString& PathFileName) override;
 
     FAABB GetWorldAABB() const override;
@@ -258,13 +264,6 @@ protected:
     */
     TArray<FPendingAnimNotify> PendingNotifies;
 
-// FOR TEST!!!
-private:
-    float TestTime = 0;
-    bool bIsInitialized = false;
-    FTransform TestBoneBasePose;
-
-
     /////////////////////////////////////////////////////////////
     // Physics Section
     /////////////////////////////////////////////////////////////
@@ -283,4 +282,15 @@ private:
     
     TArray<FBodyInstance*>       Bodies;       // 각 본(혹은 일부 본)에 대응하는 물리 바디 인스턴스
     TArray<FConstraintInstance*> Constraints;  // 바디들 사이를 묶는 조인트 인스턴스
+
+    /////////////////////////////////////////////////////////////
+    // Ragdoll Section
+    /////////////////////////////////////////////////////////////
+private:
+    EPhysicsAnimationState PhysicsState = EPhysicsAnimationState::PhysicsDriven;
+    float BlendWeight;
+    float BlendTime;
+
+public:
+    void SetPhysicsAnimationState(EPhysicsAnimationState NewState, float InBlendTime = 0.2f) { PhysicsState = NewState; BlendTime = InBlendTime; };
 };
