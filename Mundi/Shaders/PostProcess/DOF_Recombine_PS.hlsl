@@ -121,27 +121,25 @@ PS_OUTPUT mainPS(PS_INPUT input)
         MaxFarBlurSize
     );
 
-    // 4. CoC가 0이면 원본 그대로 (선명 영역)
-    if (abs(CoC) < 0.001)
-    {
-        output.Color = sceneColor;
-        return output;
-    }
-
-    // 5. 블러 텍스처 샘플링 (Bilateral, 부드러운 깊이 가중치)
+    // 4. 블러 텍스처 샘플링 (Bilateral, 부드러운 깊이 가중치)
+    // Near Field는 항상 샘플링 (Bleeding을 위해 초점 영역도 Near 확인 필요)
     float2 lowResTexelSize = ScreenSize.zw * 1.f;
     float4 farField = BilateralUpsample(g_FarFieldTex, input.texCoord, viewDepth, lowResTexelSize);
     float4 nearField = BilateralUpsample(g_NearFieldTex, input.texCoord, viewDepth, lowResTexelSize);
 
-    // 6. UE 스타일 레이어 합성 (Far → Sharp → Near)
+    // 5. UE 스타일 레이어 합성 (Far → Sharp → Near)
     float4 finalColor = sceneColor;
 
-    // Layer 1: Far Blur (배경)
-    float farMask = saturate(CoC);  // CoC > 0 일때만
-    farMask = farMask * farMask * (3.0 - 2.0 * farMask);  // Smoothstep
-    finalColor = lerp(finalColor, float4(farField.rgb, 1.0), farMask);
+    // Layer 1: Far Blur (배경) - CoC > 0 일때만
+    if (CoC > 0.001)
+    {
+        float farMask = saturate(CoC);
+        farMask = farMask * farMask * (3.0 - 2.0 * farMask);  // Smoothstep
+        finalColor = lerp(finalColor, float4(farField.rgb, 1.0), farMask);
+    }
 
     // Layer 2: Near Blur (전경) - nearField.a (블러된 CoC)로 Sharp 위에 덮기
+    // 초점 영역(CoC=0)이라도 주변 Near가 번지면 적용해야 함 (Bleeding)
     float nearMask = nearField.a;  // 텍스처에서 온 CoC (블러되어 번짐)
     nearMask = nearMask * nearMask * (3.0 - 2.0 * nearMask);  // Smoothstep
     finalColor = lerp(finalColor, float4(nearField.rgb, 1.0), nearMask);
