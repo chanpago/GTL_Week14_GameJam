@@ -1,4 +1,4 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include "SSkeletalMeshViewerWindow.h"
 #include "FViewport.h"
 #include "FViewportClient.h"
@@ -1676,8 +1676,8 @@ bool SSkeletalMeshViewerWindow::SavePhysicsAsset(ViewerState* State)
 
     if (TargetPath.empty())
     {
-        FWideString Initial = UTF8ToWide(GDataDir) + L"/NewPhysicsAsset.physics";
-        std::filesystem::path Selected = FPlatformProcess::OpenSaveFileDialog(Initial, L"physics", L"Physics Asset (*.physics)");
+        FWideString Initial = UTF8ToWide(GDataDir) + L"/NewPhysicsAsset.phys";
+        std::filesystem::path Selected = FPlatformProcess::OpenSaveFileDialog(Initial, L"physics", L"Physics Asset (*.phys)");
         if (Selected.empty())
         {
             return false;

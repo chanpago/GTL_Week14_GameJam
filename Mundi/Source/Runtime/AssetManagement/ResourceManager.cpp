@@ -734,7 +734,7 @@ void UResourceManager::PreloadParticles()
 
 void UResourceManager::PreloadPhysicsAssets()
 {
-    const fs::path PhysicsDir(GDataDir + "/PhysicsAsset");
+    const fs::path PhysicsDir(GDataDir + "/Physics");
     if (!fs::exists(PhysicsDir) || !fs::is_directory(PhysicsDir))
     {
         UE_LOG("UResourceManager::PreloadPhysicsAssets: Data directory not found: %s", PhysicsDir.string().c_str());

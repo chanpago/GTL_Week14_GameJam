@@ -4,6 +4,28 @@
 #include "../Animation/AnimationAsset.h"
 IMPLEMENT_CLASS(UPhysicsAsset)
 
+namespace
+{
+    FTransform GetComponentSpaceBindPose(const FSkeleton* Skeleton, int32 BoneIndex)
+    {
+        if (!Skeleton || BoneIndex < 0 || BoneIndex >= Skeleton->GetNumBones())
+        {
+            return FTransform();
+        }
+
+        FMatrix ChildMatrix = Skeleton->Bones[BoneIndex].BindPose;
+        int32 ParentIndex = Skeleton->Bones[BoneIndex].ParentIndex;
+
+        while (ParentIndex != INDEX_NONE)
+        {
+            ChildMatrix = (Skeleton->Bones[ParentIndex].BindPose * ChildMatrix);
+            ParentIndex = Skeleton->Bones[ParentIndex].ParentIndex;
+        }
+
+        return FTransform(ChildMatrix);
+    }
+}
+
 void UPhysicsAsset::BuildRuntimeCache()
 {
     // 1) Body 이름 -> 인덱스 맵
@@ -174,11 +196,11 @@ FBonePoints UPhysicsAsset::GetBonePoints(const FSkeleton* Skeleton, int32 BoneIn
     }
 
     const int32 ParentIndex = Skeleton->GetParentIndex(BoneIndex);
-    const FTransform ChildT(Skeleton->Bones[BoneIndex].BindPose);
+    const FTransform ChildT = GetComponentSpaceBindPose(Skeleton, BoneIndex);
     FTransform ParentT = ChildT;
     if (ParentIndex != INDEX_NONE && ParentIndex < NumBones)
     {
-        ParentT = FTransform(Skeleton->Bones[ParentIndex].BindPose);
+        ParentT = GetComponentSpaceBindPose(Skeleton, ParentIndex);
     }
 
     Points.Start = ParentT.Translation;

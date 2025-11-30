@@ -439,7 +439,7 @@ void UContentBrowserWindow::HandleDoubleClick(FFileEntry& Entry)
             UE_LOG("Failed to load ParticleSystem from: %s", Entry.FileNameUTF8.c_str());
         }
     }
-    else if (ext == ".physics")
+    else if (ext == ".phys")
     {
         UPhysicsAsset* LoadedAsset = UResourceManager::GetInstance().Load<UPhysicsAsset>(pathUTF8);
         if (LoadedAsset)
@@ -472,7 +472,7 @@ const char* UContentBrowserWindow::GetIconForFile(const FFileEntry& Entry) const
     else if (ext == ".mat") return "[MAT]";
     else if (ext == ".level" || ext == ".json") return "[DATA]";
     else if (ext == ".particle") return "[PART]";
-    else if (ext == ".physics") return "[PHYS]";
+    else if (ext == ".phys") return "[PHYS]";
 
     return "[FILE]";
 }
@@ -522,11 +522,11 @@ void UContentBrowserWindow::CreateNewPhysicsAssetForSkeletalMesh()
     NewAsset->ObjectName = FName("NewPhysicsAsset");
 
     // 저장 경로 생성 (중복 이름 체크)
-    std::filesystem::path PhysicsPath = CurrentPath / "NewPhysicsAsset.physics";
+    std::filesystem::path PhysicsPath = CurrentPath / "NewPhysicsAsset.phys";
     int Counter = 1;
     while (std::filesystem::exists(PhysicsPath))
     {
-        std::string FileName = "NewPhysicsAsset_" + std::to_string(Counter) + ".physics";
+        std::string FileName = "NewPhysicsAsset_" + std::to_string(Counter) + ".phys";
         PhysicsPath = CurrentPath / FileName;
         Counter++;
     }
