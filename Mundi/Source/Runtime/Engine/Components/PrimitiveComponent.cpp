@@ -6,6 +6,7 @@
 // IMPLEMENT_CLASS is now auto-generated in .generated.cpp
 UPrimitiveComponent::UPrimitiveComponent() : bGenerateOverlapEvents(true)
 {
+	CollisionEnabled = (ECollisionState)CollisionEnabled_Internal;
 }
 
 void UPrimitiveComponent::OnRegister(UWorld* InWorld)
@@ -43,11 +44,22 @@ void UPrimitiveComponent::SetMaterialByName(uint32 InElementIndex, const FString
 void UPrimitiveComponent::DuplicateSubObjects()
 {
     Super::DuplicateSubObjects();
+	CollisionEnabled = (ECollisionState)CollisionEnabled_Internal;
 }
 
 void UPrimitiveComponent::Serialize(const bool bInIsLoading, JSON& InOutHandle)
 {
+	if (!bInIsLoading)
+	{
+		CollisionEnabled_Internal = (int32)CollisionEnabled;
+	}
+
     Super::Serialize(bInIsLoading, InOutHandle);
+
+	if (bInIsLoading)
+	{
+		CollisionEnabled = (ECollisionState)CollisionEnabled_Internal;
+	}
 }
 
 bool UPrimitiveComponent::IsOverlappingActor(const AActor* Other) const

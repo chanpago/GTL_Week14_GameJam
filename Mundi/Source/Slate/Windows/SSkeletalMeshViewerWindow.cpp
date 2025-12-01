@@ -3001,11 +3001,6 @@ void SSkeletalMeshViewerWindow::DrawAssetBrowserPanel(ViewerState* State)
                         RebuildPhysicsAssetWithShape(EAggCollisionShapeType::Capsule);
                         ImGui::CloseCurrentPopup();
                     }
-                    if (ImGui::Selectable("Convex"))
-                    {
-                        RebuildPhysicsAssetWithShape(EAggCollisionShapeType::Convex);
-                        ImGui::CloseCurrentPopup();
-                    }
 
                     ImGui::EndPopup();
                 }

@@ -16,7 +16,7 @@ public:
     float StaticFriction;   // 물체 정지 상태일 시, 움직임 시작하는 걸 방해하는 마찰 계수
     float DynamicFriction;  // 물체 운동 상태일 시, 움직임을 지속하는 걸 방해하는 마찰 계수
     float Restitution;      // 탄성, 0 : 완전 비탄성 1 : 완전 탄성
-    float Density;          // BodySetup::Mass = BodySetup::AggGeom * Density
+    float Density;          // TODO : 안 쓰임!! BodySetup::Mass = BodySetup::AggGeom * Density
 
     // Combine Mode 설정 (기본값: Multiply)
     ECombineMode FrictionCombineMode;
