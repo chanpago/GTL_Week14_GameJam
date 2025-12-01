@@ -59,6 +59,7 @@ void FBodyInstance::InitDynamic(FPhysScene& World, const FTransform& WorldTransf
             PxShape* Shape = Physics->createShape(Geom, *Material);
             if (Shape)
             {
+                Shape->setFlag(PxShapeFlag::eSIMULATION_SHAPE, true);
                 Shape->setLocalPose(LocalPose);
                 DynamicActor->attachShape(*Shape);
                 Shape->release();
@@ -82,6 +83,7 @@ void FBodyInstance::InitDynamic(FPhysScene& World, const FTransform& WorldTransf
             PxShape* Shape = Physics->createShape(Geom, *Material);
             if (Shape)
             {
+                Shape->setFlag(PxShapeFlag::eSIMULATION_SHAPE, true);
                 Shape->setLocalPose(LocalPose);
                 DynamicActor->attachShape(*Shape);
                 Shape->release();
@@ -110,6 +112,7 @@ void FBodyInstance::InitDynamic(FPhysScene& World, const FTransform& WorldTransf
             PxShape* Shape = Physics->createShape(Geom, *Material);
             if (Shape)
             {
+                Shape->setFlag(PxShapeFlag::eSIMULATION_SHAPE, true);
                 Shape->setLocalPose(LocalPose);
                 DynamicActor->attachShape(*Shape);
                 Shape->release();
@@ -123,6 +126,7 @@ void FBodyInstance::InitDynamic(FPhysScene& World, const FTransform& WorldTransf
         PxShape* Shape = Physics->createShape(BoxGeom, *Material);
         if (Shape)
         {
+            Shape->setFlag(PxShapeFlag::eSIMULATION_SHAPE, true);
             DynamicActor->attachShape(*Shape);
             Shape->release();
         }
@@ -189,6 +193,7 @@ void FBodyInstance::InitStatic(FPhysScene& World, const FTransform& WorldTransfo
             PxShape* Shape = Physics->createShape(Geom, *Material);
             if (Shape)
             {
+                Shape->setFlag(PxShapeFlag::eSIMULATION_SHAPE, true);
                 Shape->setLocalPose(LocalPose);
                 StaticActor->attachShape(*Shape);
                 Shape->release();
@@ -212,6 +217,7 @@ void FBodyInstance::InitStatic(FPhysScene& World, const FTransform& WorldTransfo
             PxShape* Shape = Physics->createShape(Geom, *Material);
             if (Shape)
             {
+                Shape->setFlag(PxShapeFlag::eSIMULATION_SHAPE, true);
                 Shape->setLocalPose(LocalPose);
                 StaticActor->attachShape(*Shape);
                 Shape->release();
@@ -239,6 +245,7 @@ void FBodyInstance::InitStatic(FPhysScene& World, const FTransform& WorldTransfo
             PxShape* Shape = Physics->createShape(Geom, *Material);
             if (Shape)
             {
+                Shape->setFlag(PxShapeFlag::eSIMULATION_SHAPE, true);
                 Shape->setLocalPose(LocalPose);
                 StaticActor->attachShape(*Shape);
                 Shape->release();
@@ -252,6 +259,7 @@ void FBodyInstance::InitStatic(FPhysScene& World, const FTransform& WorldTransfo
         PxShape* Shape = Physics->createShape(BoxGeom, *Material);
         if (Shape)
         {
+            Shape->setFlag(PxShapeFlag::eSIMULATION_SHAPE, true);
             StaticActor->attachShape(*Shape);
             Shape->release();
         }

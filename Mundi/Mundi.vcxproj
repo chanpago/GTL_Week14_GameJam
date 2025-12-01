@@ -463,6 +463,7 @@
     <ClCompile Include="Source\Runtime\Engine\Physics\PhysicalMaterial.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Physics\PhysicsAsset.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Physics\PhysScene.cpp" />
+    <ClCompile Include="Source\Runtime\Engine\Physics\SimulationEventCallback.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Scripting\GameObject.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Scripting\LuaBindHelpers.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Scripting\LuaBindingRegistry.cpp" />
@@ -974,6 +975,7 @@
     <ClInclude Include="Source\Runtime\Engine\Physics\PhysicsAsset.h" />
     <ClInclude Include="Source\Runtime\Engine\Physics\PhysicsTypes.h" />
     <ClInclude Include="Source\Runtime\Engine\Physics\PhysScene.h" />
+    <ClInclude Include="Source\Runtime\Engine\Physics\SimulationEventCallback.h" />
     <ClInclude Include="Source\Runtime\Engine\Scripting\GameObject.h" />
     <ClInclude Include="Source\Runtime\Engine\Scripting\LuaBindHelpers.h" />
     <ClInclude Include="Source\Runtime\Engine\Scripting\LuaBindingRegistry.h" />

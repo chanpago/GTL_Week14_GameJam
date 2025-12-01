@@ -46,7 +46,6 @@ USkeletalMeshComponent::USkeletalMeshComponent()
     SetSkeletalMesh("Data/James/James.fbx");
 }
 
-
 void USkeletalMeshComponent::BeginPlay()
 {
     Super::BeginPlay();
@@ -85,6 +84,7 @@ void USkeletalMeshComponent::BeginPlay()
     if (World && World->GetPhysScene() && PhysicsAsset)
     {
         InstantiatePhysicsAssetBodies(*World->GetPhysScene());
+        OnRegiDebug();
     }
 }
 
@@ -190,6 +190,11 @@ void USkeletalMeshComponent::TickComponent(float DeltaTime)
     }
 
     PrevAnimationTime = CurrentAnimationTime; 
+}
+
+void USkeletalMeshComponent::EndPlay()
+{
+    OnUnregiDebug();
 }
 
 void USkeletalMeshComponent::SetSkeletalMesh(const FString& PathFileName)
@@ -596,6 +601,24 @@ int32 USkeletalMeshComponent::GetBoneIndexByName(const FName& BoneName) const
     
     const FSkeleton& Skeleton = SkeletalMesh->GetSkeletalMeshData()->Skeleton;
     return Skeleton.FindBoneIndex(BoneName);
+}
+
+void USkeletalMeshComponent::OnRegiDebug()
+{
+    TestContactHit = GetWorld()->GetPhysScene()->OnContactDelegate.AddDynamic(this, &USkeletalMeshComponent::GameLogicTest);
+}
+
+void USkeletalMeshComponent::OnUnregiDebug()
+{
+    if (TestContactHit && GetWorld() && GetWorld()->GetPhysScene())
+    {
+        GetWorld()->GetPhysScene()->OnContactDelegate.Remove(TestContactHit);
+    }
+}
+
+void USkeletalMeshComponent::GameLogicTest(FContactHit ContactHit)
+{
+    PhysicsState = EPhysicsAnimationState::PhysicsDriven;
 }
 
 // ============================================================

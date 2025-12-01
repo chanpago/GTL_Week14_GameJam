@@ -1,9 +1,19 @@
 ﻿#pragma once
 #include <PxPhysicsAPI.h>
-
+#include "Delegates.h"
 
 using namespace physx;
 using namespace DirectX;
+
+class AActor;
+struct FContactHit
+{
+    AActor* ActorA = nullptr;
+    AActor* ActorB = nullptr;
+    FVector Position;
+    FVector Normal;
+    float   ImpulseMagnitude = 0.0f;
+};
 
 // PhysX Assert를 로그로 출력하는 커스텀 핸들러
 class FPhysXAssertHandler : public PxAssertHandler
@@ -19,6 +29,7 @@ public:
     }
 };
 
+class FSimulationEventCallback;
 class FPhysScene
 {
 public:
@@ -29,6 +40,8 @@ public:
 
         //void UpdateFromPhysics();
     };
+
+    DECLARE_DELEGATE(OnContactDelegate, FContactHit);
 
 public:
     FPhysScene();
@@ -56,6 +69,7 @@ public:
     PxMaterial*             GetDefaultMaterial() const;
     PxDefaultCpuDispatcher* GetDispatcher()      const;
 
+
 private:
     PxDefaultAllocator      Allocator;
     PxDefaultErrorCallback  ErrorCallback;
@@ -70,4 +84,5 @@ private:
 
     std::vector<GameObject> Objects; // 간단 테스트용
 
+    FSimulationEventCallback* SimulationEventCallback = nullptr;
 };
