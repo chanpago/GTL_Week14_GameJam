@@ -337,8 +337,18 @@ void UPhysicsAsset::GenerateConstraintsFromSkeleton(const FSkeleton* Skeleton, c
             ChildWorldTransform.Scale3D = FVector(1.0f, 1.0f, 1.0f);
         }
 
-        Setup.LocalFrameA = ParentWorldTransform.GetRelativeTransform(ChildWorldTransform);
-        Setup.LocalFrameB = FTransform();
+        // 조인트 프레임 설정
+        // PxD6Joint 축 정의: X축 = Twist, Y축 = Swing1, Z축 = Swing2
+        // 본의 로컬 Z축이 본 길이 방향이므로, 조인트 X축(Twist)을 본 Z축에 맞춤
+        // Z축 → X축 회전: Y축 기준 -90도 회전
+        FQuat ZToX = FQuat::FromAxisAngle(FVector(0, 1, 0), -XM_PIDIV2);
+
+        // LocalFrameA: Parent Body 기준, Child 위치에서 축 보정
+        FTransform RelativeTransform = ParentWorldTransform.GetRelativeTransform(ChildWorldTransform);
+        Setup.LocalFrameA = FTransform(RelativeTransform.Translation, RelativeTransform.Rotation * ZToX, FVector(1, 1, 1));
+
+        // LocalFrameB: Child Body 기준, 원점에서 축 보정
+        Setup.LocalFrameB = FTransform(FVector::Zero(), ZToX, FVector(1, 1, 1));
 
         Setup.TwistLimitMin = DegreesToRadians(-45.0f);
         Setup.TwistLimitMax = DegreesToRadians(45.0f);
