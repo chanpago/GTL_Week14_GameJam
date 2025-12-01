@@ -10,7 +10,20 @@ using namespace physx;
 // -------------------------
 // Dynamic Body 초기화
 // -------------------------
-void FBodyInstance::InitDynamic(FPhysScene& World, const FTransform& WorldTransform, float Mass, const FVector& Scale3D)
+// ECombineMode를 PxCombineMode로 변환하는 헬퍼 함수
+static PxCombineMode::Enum ToPxCombineMode(ECombineMode Mode)
+{
+    switch (Mode)
+    {
+    case ECombineMode::Average:  return PxCombineMode::eAVERAGE;
+    case ECombineMode::Min:      return PxCombineMode::eMIN;
+    case ECombineMode::Multiply: return PxCombineMode::eMULTIPLY;
+    case ECombineMode::Max:      return PxCombineMode::eMAX;
+    default:                     return PxCombineMode::eMULTIPLY;
+    }
+}
+
+void FBodyInstance::InitDynamic(FPhysScene& World, const FTransform& WorldTransform, float Mass, const FVector& Scale3D, uint32 OwnerID)
 {
     // 이미 RigidActor가 존재하면 정리
     if (RigidActor)
@@ -36,6 +49,10 @@ void FBodyInstance::InitDynamic(FPhysScene& World, const FTransform& WorldTransf
             PhysMat->DynamicFriction,
             PhysMat->Restitution
         );
+
+        // Combine Mode 설정 (언리얼 스타일 우선순위 기반, 기본값 Multiply)
+        Material->setFrictionCombineMode(ToPxCombineMode(PhysMat->FrictionCombineMode));
+        Material->setRestitutionCombineMode(ToPxCombineMode(PhysMat->RestitutionCombineMode));
     }
     else
     {
@@ -78,6 +95,14 @@ void FBodyInstance::InitDynamic(FPhysScene& World, const FTransform& WorldTransf
     // 중력 설정
     DynamicActor->setActorFlag(PxActorFlag::eDISABLE_GRAVITY, !bEnableGravity);
 
+    // Self-Collision 방지를 위한 FilterData 설정
+    // word0: OwnerID (같은 스켈레탈 메쉬 = 같은 ID → 서로 충돌 안 함)
+    PxFilterData FilterData;
+    FilterData.word0 = OwnerID;
+    FilterData.word1 = 0xFFFFFFFF;  // 모든 그룹과 충돌 (Self 제외)
+    FilterData.word2 = 0;
+    FilterData.word3 = 0;
+
      // ★★★★★ 여기부터가 핵심: BodySetup->AggGeom 기반으로 Shape 생성
     if (BodySetup)
     {
@@ -101,6 +126,7 @@ void FBodyInstance::InitDynamic(FPhysScene& World, const FTransform& WorldTransf
             if (Shape)
             {
                 Shape->setLocalPose(LocalPose);
+                Shape->setSimulationFilterData(FilterData);  // Self-Collision 방지
                 DynamicActor->attachShape(*Shape);
                 Shape->release();
             }
@@ -124,6 +150,7 @@ void FBodyInstance::InitDynamic(FPhysScene& World, const FTransform& WorldTransf
             if (Shape)
             {
                 Shape->setLocalPose(LocalPose);
+                Shape->setSimulationFilterData(FilterData);  // Self-Collision 방지
                 DynamicActor->attachShape(*Shape);
                 Shape->release();
             }
@@ -152,6 +179,7 @@ void FBodyInstance::InitDynamic(FPhysScene& World, const FTransform& WorldTransf
             if (Shape)
             {
                 Shape->setLocalPose(LocalPose);
+                Shape->setSimulationFilterData(FilterData);  // Self-Collision 방지
                 DynamicActor->attachShape(*Shape);
                 Shape->release();
             }
@@ -164,6 +192,7 @@ void FBodyInstance::InitDynamic(FPhysScene& World, const FTransform& WorldTransf
         PxShape* Shape = Physics->createShape(BoxGeom, *Material);
         if (Shape)
         {
+            Shape->setSimulationFilterData(FilterData);  // Self-Collision 방지
             DynamicActor->attachShape(*Shape);
             Shape->release();
         }
@@ -189,7 +218,7 @@ void FBodyInstance::InitDynamic(FPhysScene& World, const FTransform& WorldTransf
 // -------------------------
 // Static Body 초기화
 // -------------------------
-void FBodyInstance::InitStatic(FPhysScene& World, const FTransform& WorldTransform, const FVector& Scale3D)
+void FBodyInstance::InitStatic(FPhysScene& World, const FTransform& WorldTransform, const FVector& Scale3D, uint32 OwnerID)
 {
     // 이미 바디가 존재하면 정리
     if (RigidActor)
@@ -213,6 +242,10 @@ void FBodyInstance::InitStatic(FPhysScene& World, const FTransform& WorldTransfo
             PhysMat->DynamicFriction,
             PhysMat->Restitution
         );
+
+        // Combine Mode 설정 (언리얼 스타일 우선순위 기반, 기본값 Multiply)
+        Material->setFrictionCombineMode(ToPxCombineMode(PhysMat->FrictionCombineMode));
+        Material->setRestitutionCombineMode(ToPxCombineMode(PhysMat->RestitutionCombineMode));
     }
     else
     {

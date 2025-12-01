@@ -287,8 +287,8 @@ private:
     // Ragdoll Section
     /////////////////////////////////////////////////////////////
 private:
-    //EPhysicsAnimationState PhysicsState = EPhysicsAnimationState::AnimationDriven;
-    EPhysicsAnimationState PhysicsState = EPhysicsAnimationState::PhysicsDriven;
+    EPhysicsAnimationState PhysicsState = EPhysicsAnimationState::AnimationDriven;
+    //EPhysicsAnimationState PhysicsState = EPhysicsAnimationState::PhysicsDriven;
     float BlendWeight;
     float BlendTime;
 

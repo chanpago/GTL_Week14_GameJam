@@ -142,6 +142,21 @@ void USkeletalMeshComponent::TickComponent(float DeltaTime)
             LastLoggedSpeed = CurrentSpeed;
         }
 
+        // P 키: PhysicsState 전환 (AnimationDriven <-> PhysicsDriven)
+        if (InputManager.IsKeyPressed('P'))
+        {
+            if (PhysicsState == EPhysicsAnimationState::AnimationDriven)
+            {
+                PhysicsState = EPhysicsAnimationState::PhysicsDriven;
+                UE_LOG("[SkeletalMeshComponent] PhysicsState changed to: PhysicsDriven (Ragdoll)");
+            }
+            else
+            {
+                PhysicsState = EPhysicsAnimationState::AnimationDriven;
+                UE_LOG("[SkeletalMeshComponent] PhysicsState changed to: AnimationDriven");
+            }
+        }
+
         // 현재 속도 상태를 주기적으로 로그 (5초마다)
         static float LogTimer = 0.0f;
         LogTimer += DeltaTime;
@@ -443,6 +458,10 @@ void USkeletalMeshComponent::InstantiatePhysicsAssetBodies(FPhysScene& PhysScene
         return;
     }
 
+    // Self-Collision 방지를 위한 고유 ID 생성 (컴포넌트 포인터를 ID로 사용)
+    // 같은 스켈레탈 메쉬의 모든 바디는 같은 OwnerID를 가짐
+    uint32 OwnerID = static_cast<uint32>(reinterpret_cast<uintptr_t>(this) & 0xFFFFFFFF);
+
     // 1) BodySetups -> FBodyInstance 생성
     for (UBodySetup* Setup : PhysicsAsset->BodySetups)
     {
@@ -455,7 +474,7 @@ void USkeletalMeshComponent::InstantiatePhysicsAssetBodies(FPhysScene& PhysScene
         {
             continue; // 스켈레톤에 없는 본이면 스킵
         }
-        
+
         // 현재 애니메이션 포즈 기준 뼈의 월드 트랜스폼
         FTransform BoneWorldTM = GetBoneWorldTransform(BoneIndex);
 
@@ -464,8 +483,8 @@ void USkeletalMeshComponent::InstantiatePhysicsAssetBodies(FPhysScene& PhysScene
         BI->OwnerComponent = this;
         BI->BodySetup      = Setup;
 
-        // Dynamic 바디로 생성 (질량은 일단 10.0f 같은 기본값, 나중에 Setup에 Mass 넣어도 됨)
-        BI->InitDynamic(PhysScene, BoneWorldTM, /*Mass=*/10.0f);
+        // Dynamic 바디로 생성 (OwnerID 전달로 Self-Collision 방지)
+        BI->InitDynamic(PhysScene, BoneWorldTM, /*Mass=*/10.0f, FVector(1,1,1), OwnerID);
 
         Bodies.Add(BI);
     }

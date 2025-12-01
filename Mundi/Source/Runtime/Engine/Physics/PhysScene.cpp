@@ -2,6 +2,40 @@
 #include "PhysScene.h"
 #include <Windows.h>
 
+/**
+ * @brief 래그돌용 커스텀 충돌 필터 셰이더
+ *
+ * PxFilterData 사용법:
+ * - word0: 오브젝트 그룹 ID (같은 스켈레탈 메쉬 = 같은 ID)
+ * - word1: 충돌 마스크 (어떤 그룹과 충돌할지)
+ * - word2: 예약
+ * - word3: 예약
+ *
+ * 같은 word0을 가진 바디들끼리는 충돌하지 않음 (Self-Collision 비활성화)
+ */
+static PxFilterFlags RagdollFilterShader(
+    PxFilterObjectAttributes attributes0, PxFilterData filterData0,
+    PxFilterObjectAttributes attributes1, PxFilterData filterData1,
+    PxPairFlags& pairFlags, const void* constantBlock, PxU32 constantBlockSize)
+{
+    // 트리거 처리 (기존 로직 유지)
+    if (PxFilterObjectIsTrigger(attributes0) || PxFilterObjectIsTrigger(attributes1))
+    {
+        pairFlags = PxPairFlag::eTRIGGER_DEFAULT;
+        return PxFilterFlag::eDEFAULT;
+    }
+
+    // word0이 같으면 같은 스켈레탈 메쉬의 바디들 → Self-Collision 비활성화
+    // word0 == 0은 일반 오브젝트 (래그돌이 아님) → 서로 충돌함
+    if (filterData0.word0 != 0 && filterData0.word0 == filterData1.word0)
+    {
+        return PxFilterFlag::eSUPPRESS;  // 충돌 무시
+    }
+
+    // 기본 충돌 처리
+    pairFlags = PxPairFlag::eCONTACT_DEFAULT;
+    return PxFilterFlag::eDEFAULT;
+}
 
 FPhysScene::FPhysScene()
 {
@@ -81,7 +115,7 @@ bool FPhysScene::Initialize()
 
     // 3) Default Material
     // 기본 표면 성질
-    DefaultMaterial = Physics->createMaterial(0.5f, 0.5f, 0.6f);
+    DefaultMaterial = Physics->createMaterial(0.5f, 0.4f, 0.0f);
 
     if (!DefaultMaterial)
     {
@@ -118,7 +152,7 @@ bool FPhysScene::Initialize()
     // 충돌 필터링 로직을 담당하는 함수포인터
     // actor/shape의 PxFilterData를 보고 "이 둘을 충돌시킬지? 트리거로 볼지?"를 결정
     // 한줄요약 : Dispatcher : "이 씬의 물리 계산을 몇 개의 쓰레드에서 돌릴지"  filterShader : "어떤 객체들 끼리 충돌을 계산/무시 할지 결정"
-    sceneDesc.filterShader = PxDefaultSimulationFilterShader;
+    sceneDesc.filterShader = RagdollFilterShader;
 
     // 6) Scene 생성
     // PxScene = 실제 물리 시뮬레이션 월드하나

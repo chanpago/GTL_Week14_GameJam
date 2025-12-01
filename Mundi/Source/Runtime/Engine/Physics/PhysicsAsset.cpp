@@ -215,13 +215,10 @@ FKSphereElem UPhysicsAsset::FitSphereToBone(const FSkeleton* Skeleton, int32 Bon
     }
     else
     {
-        FVector WorldCenter = (Point.Start + Point.End) * 0.5f;
         Elem.Radius = BoneLen * 0.5f;
 
-        // 월드 스페이스 Center to Bone의 로컬 스페이스
-        FTransform BoneWorldTransform = CurrentSkeletal->GetBoneWorldTransform(BoneIndex);
-        BoneWorldTransform.Scale3D = FVector(1.f, 1.f, 1.f);
-        Elem.Center = InverseTransformPositionNoScale(BoneWorldTransform, WorldCenter);
+        // 본 로컬 Z축 방향으로 중심 오프셋 (애니메이션 포즈와 무관)
+        Elem.Center = FVector(0, 0, BoneLen * 0.5f);
     }
 
     return Elem;
@@ -244,22 +241,15 @@ FKBoxElem UPhysicsAsset::FitBoxToBone(const FSkeleton* Skeleton, int32 BoneIndex
     }
     else
     {
-        FVector DirNorm = BoneDir.GetSafeNormal();
-        const FVector WorldCenter = (Point.Start + Point.End) * 0.5f;
-
         const float HalfDepth = BoneLen * 0.5f; // Main axis along bone length
         const float HalfWidth = BoneLen * 0.15f; // Other axes smaller
 
-        const FVector BoxAxis(0, 0, 1);
-        const FQuat WorldRot = FQuat::FindBetweenNormals(BoxAxis, DirNorm);
-
         Elem.Extents = FVector(HalfWidth, HalfWidth, HalfDepth);
 
-        FTransform BoneWorldTransform = CurrentSkeletal->GetBoneWorldTransform(BoneIndex);
-        BoneWorldTransform.Scale3D = FVector(1.f, 1.f, 1.f);
-
-        Elem.Center = InverseTransformPositionNoScale(BoneWorldTransform, WorldCenter);
-        Elem.Rotation = InverseTransformRotationNoScale(BoneWorldTransform, WorldRot);
+        // 본 로컬 Z축 방향으로 중심 오프셋 (애니메이션 포즈와 무관)
+        Elem.Center = FVector(0, 0, BoneLen * 0.5f);
+        // 본 로컬 축에 정렬 (회전 없음)
+        Elem.Rotation = FQuat::Identity();
     }
 
     return Elem;
@@ -271,14 +261,14 @@ FKCapsuleElem UPhysicsAsset::FitCapsuleToBone(const FSkeleton* Skeleton, int32 B
 
     const FVector BoneDir = (Point.End - Point.Start);
     const float BoneLen = BoneDir.Size();
-    
+
     FKCapsuleElem Elem;
 
     if (BoneLen < KINDA_SMALL_NUMBER)
     {
-        Elem.Radius = 0.1f; 
+        Elem.Radius = 0.1f;
         Elem.HalfLength = 0.0f;
-        Elem.Center = FVector::Zero(); 
+        Elem.Center = FVector::Zero();
         Elem.Rotation = FQuat::Identity();
     }
     else
@@ -286,18 +276,10 @@ FKCapsuleElem UPhysicsAsset::FitCapsuleToBone(const FSkeleton* Skeleton, int32 B
         Elem.Radius = BoneLen / 4.0f;
         Elem.HalfLength = BoneLen / 4.0f;
 
-        const FVector DirNorm = BoneDir.GetSafeNormal();
-        
-        const FVector CapsuleAxis(0, 0, 1);
-        const FQuat WorldRot = FQuat::FindBetweenNormals(CapsuleAxis, DirNorm);
-
-        const FVector WorldCenter = (Point.Start + Point.End) * 0.5f;
-
-        FTransform BoneWorldTransform = CurrentSkeletal->GetBoneWorldTransform(BoneIndex);
-        BoneWorldTransform.Scale3D = FVector(1.f, 1.f, 1.f);
-
-        Elem.Center = InverseTransformPositionNoScale(BoneWorldTransform, WorldCenter);
-        Elem.Rotation = InverseTransformRotationNoScale(BoneWorldTransform, WorldRot);
+        // 본 로컬 Z축 방향으로 중심 오프셋 (애니메이션 포즈와 무관)
+        Elem.Center = FVector(0, 0, BoneLen * 0.5f);
+        // 본 로컬 축에 정렬 (회전 없음)
+        Elem.Rotation = FQuat::Identity();
     }
 
     return Elem;
