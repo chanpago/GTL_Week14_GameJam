@@ -52,7 +52,7 @@ void AGameModeBase::PostLogin(APlayerController* NewPlayer)
     {
         // Try spawning a default prefab as the player's pawn first
         {
-            FWideString PrefabPath = UTF8ToWide(GDataDir) + L"/Prefabs/FutureEmptyGraph.prefab";
+            FWideString PrefabPath = UTF8ToWide(GDataDir) + L"/Prefabs/Future.prefab";
             if (AActor* PrefabActor = GWorld->SpawnPrefabActor(PrefabPath))
             {
                 if (APawn* PrefabPawn = Cast<APawn>(PrefabActor))
