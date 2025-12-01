@@ -1124,7 +1124,12 @@ bool UPropertyRenderer::RenderSkeletalMeshProperty(const FProperty& Prop, void* 
 	ImGui::Separator(); 
 	ImGui::Spacing();
 
-	UPhysicsAsset* PhysicsAsset = (*MeshPtr)->PhysicsAsset;
+	UPhysicsAsset* PhysicsAsset = nullptr;
+	if(*MeshPtr)
+	{
+		PhysicsAsset = (*MeshPtr)->PhysicsAsset;
+	}
+	
 	if (PhysicsAsset)
 	{
 		// PhysicsAsset 이름 표시
