@@ -332,8 +332,26 @@ void USkeletalMeshComponent::SetBoneWorldTransform(int32 BoneIndex, const FTrans
 
     const int32 ParentIndex = SkeletalMesh->GetSkeleton()->Bones[BoneIndex].ParentIndex;
 
-    const FTransform& ParentWorldTransform = GetBoneWorldTransform(ParentIndex);
-    FTransform DesiredLocal = ParentWorldTransform.GetRelativeTransform(NewWorldTransform);
+    // 기존 로컬 스케일 보존 (PhysX는 스케일 정보가 없으므로)
+    // PhysX는 스케일 없이 (1,1,1)을 반환하는데, 이걸 기반으로 행렬을 구성하면, 기존의 스케일 적용한 행렬이 깨져버리므로
+    // 스케일은 원래 애니메이션포즈의 값을 가져와서 적용함
+    FVector OriginalScale = CurrentLocalSpacePose[BoneIndex].Scale3D;
+
+    FTransform DesiredLocal;
+    if (ParentIndex < 0)  // 루트 본인 경우
+    {
+        // 컴포넌트 트랜스폼 기준으로 로컬 변환 계산
+        FTransform ComponentWorldTM = GetWorldTransform();
+        DesiredLocal = ComponentWorldTM.GetRelativeTransform(NewWorldTransform);
+    }
+    else
+    {
+        const FTransform& ParentWorldTransform = GetBoneWorldTransform(ParentIndex);
+        DesiredLocal = ParentWorldTransform.GetRelativeTransform(NewWorldTransform);
+    }
+
+    // 스케일은 기존 값 유지 (위치/회전만 물리에서 가져옴)
+    DesiredLocal.Scale3D = OriginalScale;
 
     SetBoneLocalTransform(BoneIndex, DesiredLocal);
 }
