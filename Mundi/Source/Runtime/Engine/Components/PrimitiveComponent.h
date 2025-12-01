@@ -63,8 +63,7 @@ public:
     bool IsOverlappingActor(const AActor* Other) const;
     virtual const TArray<FOverlapInfo>& GetOverlapInfos() const { static TArray<FOverlapInfo> Empty; return Empty; }
 
-    // BodySetup 설정을 무시하고 싶을 때
-    UPROPERTY(EditAnywhere, Category = "Collision")
+    // BodySetup 설정을 무시하고 싶을 때    
     bool bOverrideCollisionSetting = false;
 
     ECollisionState CollisionEnabled = ECollisionState::QueryAndPhysics;

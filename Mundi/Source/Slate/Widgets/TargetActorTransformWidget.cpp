@@ -28,6 +28,7 @@
 #include "PointLightComponent.h"
 #include "SpotLightComponent.h"
 #include "SceneComponent.h"
+#include "PrimitiveComponent.h"
 #include "Color.h"
 #include "PlatformProcess.h"
 #include "JsonSerializer.h"
@@ -550,6 +551,25 @@ void UTargetActorTransformWidget::RenderSelectedComponentDetails(UActorComponent
 	if (SelectedComponent)
 	{
 		UPropertyRenderer::RenderAllPropertiesWithInheritance(SelectedComponent);
+	}
+
+	if (UPrimitiveComponent* PrimitiveComponent = Cast<UPrimitiveComponent>(SelectedComponent))
+	{
+		ImGui::Spacing();
+		ImGui::Separator();
+		ImGui::Text("Collision Settings");
+
+		ImGui::Checkbox("Use Collision Override", &PrimitiveComponent->bOverrideCollisionSetting);
+		int CurrentIndex = static_cast<int>(PrimitiveComponent->CollisionEnabled);
+		static const char* CollisionItems[] = {
+			"NoCollision",
+			"QueryOnly (Trigger)",
+			"Query + Physics",
+		};
+		if (ImGui::Combo("Collision Settings", &CurrentIndex, CollisionItems, IM_ARRAYSIZE(CollisionItems)))
+		{
+			PrimitiveComponent->CollisionEnabled = static_cast<ECollisionState>(CurrentIndex);
+		}
 	}
 }
 
