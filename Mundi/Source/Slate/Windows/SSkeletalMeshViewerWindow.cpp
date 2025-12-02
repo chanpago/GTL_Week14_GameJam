@@ -3196,7 +3196,8 @@ void SSkeletalMeshViewerWindow::DrawPhysicsConstraintGraph(ViewerState* State)
         PhysicsGraphBuilder->Begin(ed::NodeId(NodeID));
 
         // Header with body color
-        PhysicsGraphBuilder->Header(ImColor(255, 200, 100));
+        bool bIsSelected = (State->SelectedBodyIndex == State->SelectedBodyIndexForGraph);
+        PhysicsGraphBuilder->Header(bIsSelected ? ImColor(255, 200, 100) : ImColor(150, 180, 255));
         ImGui::TextUnformatted(SelectedBody->BoneName.ToString().c_str());
         ImGui::Dummy(ImVec2(0, 28));
         PhysicsGraphBuilder->EndHeader();
@@ -3213,7 +3214,7 @@ void SSkeletalMeshViewerWindow::DrawPhysicsConstraintGraph(ViewerState* State)
         // Middle section with constraint info
         PhysicsGraphBuilder->Middle();
         //ImGui::Text("%d shape(s)", SelectedBody->GetTotalShapeCount());
-        FString Str = SelectedBody->GetTotalShapeCount() + " shape(s)";
+        FString Str = std::to_string(SelectedBody->GetTotalShapeCount()) + " shape(s)";
         ImGui::TextUnformatted(Str.c_str());
 
         PhysicsGraphBuilder->End();
@@ -3247,8 +3248,10 @@ void SSkeletalMeshViewerWindow::DrawPhysicsConstraintGraph(ViewerState* State)
 
         PhysicsGraphBuilder->Begin(ed::NodeId(NodeID));
 
+		bool bIsSelected = (State->SelectedBodyIndex == BodyIndex);
+
         // Header with different color for connected bodies
-        PhysicsGraphBuilder->Header(ImColor(150, 180, 255));
+        PhysicsGraphBuilder->Header(bIsSelected ? ImColor(255, 200, 100) : ImColor(150, 180, 255));
         ImGui::TextUnformatted(Body->BoneName.ToString().c_str());
         ImGui::Dummy(ImVec2(0, 28));
         PhysicsGraphBuilder->EndHeader();
@@ -3256,7 +3259,7 @@ void SSkeletalMeshViewerWindow::DrawPhysicsConstraintGraph(ViewerState* State)
         // Middle section with constraint info
         PhysicsGraphBuilder->Middle();
         //ImGui::Text("%d shape(s)", Body->GetTotalShapeCount());
-        FString Str = Body->GetTotalShapeCount() + " shape(s)";
+        FString Str = std::to_string(Body->GetTotalShapeCount()) + " shape(s)";
         ImGui::TextUnformatted(Str.c_str());
 
         // Input pin for connections
