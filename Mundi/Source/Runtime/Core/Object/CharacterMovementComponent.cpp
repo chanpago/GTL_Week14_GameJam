@@ -144,12 +144,34 @@ void UCharacterMovementComponent::PhysFalling(float DeltaSecond)
 			if (!SlideVector.IsZero())
 			{
 				FHitResult SlideHit;
-				SafeMoveUpdatedComponent(SlideVector, SlideHit);
+				bool bSlided = SafeMoveUpdatedComponent(SlideVector, SlideHit);
+
+				// 2차 슬라이딩 (모서리 처리)
+				if (!bSlided && SlideHit.bBlockingHit)
+				{
+					FVector SlideVector2 = SlideAlongSurface(SlideVector, SlideHit);
+					if (!SlideVector2.IsZero())
+					{
+						FHitResult SlideHit2;
+						SafeMoveUpdatedComponent(SlideVector2, SlideHit2);
+					}
+				}
+			}
+
+			// 속도에서 충돌 방향 성분 제거 (벽에 부딪히면 그 방향 속도 0)
+			float VelDot = FVector::Dot(Velocity, Hit.ImpactNormal);
+			if (VelDot < 0.0f)
+			{
+				Velocity = Velocity - Hit.ImpactNormal * VelDot;
 			}
 		}
 	}
 	else
 	{
+		// 상승 중일 때는 바닥 검사 건너뛰기 (점프 직후 바로 착지 방지)
+		if (Velocity.Z > 0.0f)
+			return;
+
 		// 바닥 검사
 		FHitResult FloorHit;
 		if (CheckFloor(FloorHit))
@@ -298,7 +320,7 @@ bool UCharacterMovementComponent::CheckFloor(FHitResult& OutHit)
 
 	FVector Start = UpdatedComponent->GetWorldLocation();
 	// 바닥 검사는 캡슐 바닥에서 약간 아래로 Sweep
-	const float FloorCheckDistance = 0.5f;  // 검사 거리 증가
+	const float FloorCheckDistance = 0.1f;  // 검사 거리 증가
 	FVector End = Start - FVector(0, 0, FloorCheckDistance);
 
 	AActor* OwnerActor = CharacterOwner;
