@@ -30,6 +30,13 @@ cbuffer ViewportConstants : register(b10)
 #define TILE_SIZE 8
 #define PI 3.14159265359
 
+// Interleaved Gradient Noise - 픽셀당 고유한 노이즈 생성
+// Jorge Jimenez의 방식: 시간적 안정성이 좋고 계산 비용이 낮음
+float InterleavedGradientNoise(float2 pixelPos)
+{
+    return frac(52.9829189 * frac(0.06711056 * pixelPos.x + 0.00583715 * pixelPos.y));
+}
+
 // 알파 스케일 팩터: normalizedCoverage를 0~1 범위로 조정
 // - 샘플의 일부만 해당 레이어에 속함 (layer filtering)
 // - coverage 값이 평균적으로 1.0보다 작음 (distance falloff, depth weight)
@@ -70,8 +77,8 @@ PS_OUTPUT mainPS(PS_INPUT input)
     // CoC는 0~1 정규화, BlurRadius는 Full Res 픽셀
     float halfBlurRadius = BlurRadius * 0.5;  // Half Res로 변환
 
-    // Edge bleeding: tileMaxCoc가 있으면 약간 더 넓게 검색 (1.2x)
-    float searchRadius = max(centerCoc, tileMaxCoc * 1.2);  // 0~1 정규화
+    // Edge bleeding: tileMaxCoc가 있으면 약간 더 넓게 검색 (2.0x)
+    float searchRadius = max(centerCoc, tileMaxCoc * 2.0);  // 0~1 정규화
     float pixelRadius = searchRadius * halfBlurRadius;  // Half Res 픽셀
     pixelRadius = clamp(pixelRadius, 1.0, halfBlurRadius);
 
@@ -83,7 +90,12 @@ PS_OUTPUT mainPS(PS_INPUT input)
     float validSampleCount = 0.0;  // 실제 기여한 샘플 수
 
     // Ring 설정
-    const int MAX_RING = 7;  // Ring 0(중심) + Ring 1~5 = 121 샘플
+    const int MAX_RING = 7;  // Ring 0(중심) + Ring 1~7 = 253 샘플
+
+    // ========== Jittering: 픽셀당 랜덤 회전 ==========
+    // 규칙적인 패턴(Artifact)을 불규칙한 노이즈로 변환
+    // 큰 CoC에서 샘플 간격이 벌어져 생기는 띠 현상을 제거
+    float randomRotation = InterleavedGradientNoise(pixelPos) * 2.0 * PI;
 
     // Ring 0: 중심 (1 샘플)
     // Area-based weight: 1 / (π × r²)
@@ -121,7 +133,8 @@ PS_OUTPUT mainPS(PS_INPUT input)
 
         for (int s = 0; s < sampleCount; s++)
         {
-            float angle = float(s) * angleStep;
+            // Jittering: 랜덤 회전 각도 추가로 샘플링 패턴을 픽셀마다 다르게
+            float angle = float(s) * angleStep + randomRotation;
             float2 offset = float2(cos(angle), sin(angle)) * ringRadius * texelSize;
             float2 sampleUV = input.texCoord + offset;
 
