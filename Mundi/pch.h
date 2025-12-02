@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 // Feature Flags
 // Uncomment to enable DDS texture caching (faster loading, uses Data/TextureCache/)
@@ -121,12 +121,14 @@ extern UWorld* GWorld;
 #pragma comment(lib, "PhysXCommon_static_64.lib")
 #pragma comment(lib, "PhysXFoundation_static_64.lib")
 #pragma comment(lib, "PhysXPvdSDK_static_64.lib") 
+#pragma comment(lib, "PhysXCooking_static_64.lib") 
 #else
 #pragma comment(lib, "PhysXExtensions_static_64.lib")
 #pragma comment(lib, "PhysX_static_64.lib")
 #pragma comment(lib, "PhysXCommon_static_64.lib")
 #pragma comment(lib, "PhysXFoundation_static_64.lib")
 #pragma comment(lib, "PhysXPvdSDK_static_64.lib") 
+#pragma comment(lib, "PhysXCooking_static_64.lib") 
 #endif
 
 //#pragma comment(lib, "NvCloth_x64.lib")
