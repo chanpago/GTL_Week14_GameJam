@@ -92,9 +92,11 @@ PS_OUTPUT mainPS(PS_INPUT input)
     float4 nearBlurred = g_NearBlurredTex.Sample(g_LinearClampSample, input.texCoord);
     float4 farBlurred = g_FarBlurredTex.Sample(g_LinearClampSample, input.texCoord);
 
-    // 5. 레이어 합성 (Premultiplied Alpha - BlendFactor 제거)
-    // [Layer 1] Background (Far Blur)
-    float3 farColor = farBlurred.rgb + sceneColor.rgb * (1.0 - farBlurred.a);
+    // 5. 레이어 합성
+    // [Layer 1] Background (Far Blur) - Focus 영역 침범 방지
+    float farBlendFactor = saturate(CoC * 10.0);  // CoC > 0.1이면 Far 적용
+    float3 farBlended = farBlurred.rgb + sceneColor.rgb * (1.0 - farBlurred.a);
+    float3 farColor = lerp(sceneColor.rgb, farBlended, farBlendFactor);
 
     // [Layer 2] Foreground (Near Blur)
     float3 finalColor = nearBlurred.rgb + farColor * (1.0 - nearBlurred.a);
