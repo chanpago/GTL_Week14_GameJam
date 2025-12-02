@@ -2061,23 +2061,23 @@ bool UPropertyRenderer::RenderPhysMaterialPresetProperty(const FProperty& Prop, 
 		ImGui::EndCombo();
 	}
 
-	// 툴팁으로 선택된 프리셋의 물리 속성 표시
-	if (ImGui::IsItemHovered())
+	// 드롭다운 아래에 선택된 프리셋의 물리 속성 표시
+	float StaticFriction = 0.5f, DynamicFriction = 0.4f, Restitution = 0.0f;
+	switch (CurrentIndex)
 	{
-		float StaticFriction = 0.5f, DynamicFriction = 0.4f, Restitution = 0.0f;
-		switch (CurrentIndex)
-		{
-		case 1: StaticFriction = 1.5f; DynamicFriction = 1.2f; Restitution = 0.0f; break;  // Mud
-		case 2: StaticFriction = 0.4f; DynamicFriction = 0.3f; Restitution = 0.4f; break;  // Wood
-		case 3: StaticFriction = 1.0f; DynamicFriction = 0.8f; Restitution = 0.8f; break;  // Rubber
-		case 4: StaticFriction = 0.2f; DynamicFriction = 0.15f; Restitution = 0.95f; break; // Billiard
-		case 5: StaticFriction = 0.05f; DynamicFriction = 0.03f; Restitution = 0.1f; break; // Ice
-		case 6: StaticFriction = 0.6f; DynamicFriction = 0.4f; Restitution = 0.3f; break;  // Metal
-		default: break;
-		}
-		ImGui::SetTooltip("Static Friction: %.2f\nDynamic Friction: %.2f\nRestitution: %.2f",
-			StaticFriction, DynamicFriction, Restitution);
+	case 1: StaticFriction = 1.5f; DynamicFriction = 1.2f; Restitution = 0.0f; break;  // Mud
+	case 2: StaticFriction = 0.4f; DynamicFriction = 0.3f; Restitution = 0.4f; break;  // Wood
+	case 3: StaticFriction = 1.0f; DynamicFriction = 0.8f; Restitution = 0.8f; break;  // Rubber
+	case 4: StaticFriction = 0.2f; DynamicFriction = 0.15f; Restitution = 0.95f; break; // Billiard
+	case 5: StaticFriction = 0.05f; DynamicFriction = 0.03f; Restitution = 0.1f; break; // Ice
+	case 6: StaticFriction = 0.6f; DynamicFriction = 0.4f; Restitution = 0.3f; break;  // Metal
+	default: break;
 	}
+
+	ImGui::Indent(10.0f);
+	ImGui::TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f), "Static: %.2f  Dynamic: %.2f  Restitution: %.2f",
+		StaticFriction, DynamicFriction, Restitution);
+	ImGui::Unindent(10.0f);
 
 	return bChanged;
 }
