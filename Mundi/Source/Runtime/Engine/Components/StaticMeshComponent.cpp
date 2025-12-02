@@ -27,20 +27,20 @@ void UStaticMeshComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// 물리 시뮬레이션이 꺼져있으면 등록하지 않음
-	if (!bSimulatePhysics)
+	// 콜라이더가 비활성화되어 있으면 물리 등록 안 함
+	if (!bEnableCollision)
 	{
 		return;
 	}
 
-	// Dynamic인 경우 틱 활성화 (Transform 동기화 필요)
-	if (!bIsStaticPhysics)
+	// Dynamic(bSimulatePhysics)인 경우 틱 활성화 (Transform 동기화 필요)
+	if (bSimulatePhysics)
 	{
 		bCanEverTick = true;
 		bTickEnabled = true;
 	}
 
-	// 물리 씬에 등록
+	// 물리 씬에 등록 (기본: Static, bSimulatePhysics=true: Dynamic)
 	UWorld* World = GetWorld();
 	if (World && World->GetPhysScene())
 	{
@@ -53,7 +53,7 @@ void UStaticMeshComponent::TickComponent(float DeltaTime)
 	Super::TickComponent(DeltaTime);
 
 	// Dynamic 물리 오브젝트의 Transform을 PhysX 결과와 동기화
-	if (bSimulatePhysics && !bIsStaticPhysics && BodyInstance && BodyInstance->RigidActor)
+	if (bSimulatePhysics && BodyInstance && BodyInstance->RigidActor)
 	{
 		FTransform PhysTransform = BodyInstance->GetWorldTransform();
 		// PhysX는 스케일을 지원하지 않으므로 기존 스케일 유지
@@ -285,14 +285,15 @@ void UStaticMeshComponent::InitPhysics(FPhysScene& PhysScene)
 	FTransform WorldTM = GetWorldTransform();
 	FVector Scale3D = WorldTM.Scale3D;  // 월드 스케일 추출
 
-	if (bIsStaticPhysics)
+	if (bSimulatePhysics)
 	{
-		BodyInstance->InitStatic(PhysScene, WorldTM, Scale3D);
+		// Dynamic: 물리 시뮬레이션 적용 (중력, 힘 등)
+		BodyInstance->InitDynamic(PhysScene, WorldTM, MassOverride, Scale3D);
 	}
 	else
 	{
-		// Dynamic의 경우 Override된 Mass 사용
-		BodyInstance->InitDynamic(PhysScene, WorldTM, MassOverride, Scale3D);
+		// Static: 움직이지 않는 콜라이더 (충돌 감지용)
+		BodyInstance->InitStatic(PhysScene, WorldTM, Scale3D);
 	}
 }
 
@@ -312,8 +313,8 @@ void UStaticMeshComponent::Serialize(const bool bInIsLoading, JSON& InOutHandle)
 	if (bInIsLoading)
 	{
 		// 역직렬화 (로드)
+		FJsonSerializer::ReadBool(InOutHandle, "bEnableCollision", bEnableCollision, true, false);
 		FJsonSerializer::ReadBool(InOutHandle, "bSimulatePhysics", bSimulatePhysics, false, false);
-		FJsonSerializer::ReadBool(InOutHandle, "bIsStaticPhysics", bIsStaticPhysics, true, false);
 
 		// Physics 속성 역직렬화
 		FJsonSerializer::ReadFloat(InOutHandle, "MassOverride", MassOverride, 10.0f, false);
@@ -331,8 +332,8 @@ void UStaticMeshComponent::Serialize(const bool bInIsLoading, JSON& InOutHandle)
 	else
 	{
 		// 직렬화 (저장)
+		InOutHandle["bEnableCollision"] = bEnableCollision;
 		InOutHandle["bSimulatePhysics"] = bSimulatePhysics;
-		InOutHandle["bIsStaticPhysics"] = bIsStaticPhysics;
 
 		// Physics 속성 직렬화
 		InOutHandle["MassOverride"] = MassOverride;
