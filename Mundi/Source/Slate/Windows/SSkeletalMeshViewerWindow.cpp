@@ -2816,7 +2816,8 @@ void SSkeletalMeshViewerWindow::DrawAssetBrowserPanel(ViewerState* State)
 				int32 TotalBodies = 0; // 전체 바디 수
 				int32 MatchedBodies = 0; // 스켈레탈 메시의 본과 매칭되는 바디 수
 
-                for (UBodySetup* Body : PhysAsset->BodySetups)
+                const TArray<UBodySetup*> LocalBodySetups = PhysAsset->BodySetups;
+                for (UBodySetup* Body : LocalBodySetups)
                 {
                     if (!Body) continue;
                     TotalBodies++;
