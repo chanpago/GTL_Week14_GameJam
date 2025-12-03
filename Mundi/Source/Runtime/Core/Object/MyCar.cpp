@@ -745,9 +745,18 @@ void AMyCar::UpdateVehiclePhysics(float DeltaTime)
     
     // 4. Update vehicle physics
     const PxVec3 grav = PxScenePtr->getGravity();
-    const float FixedTimeStep = 1.0f / 60.0f;
+    //const float FixedTimeStep = 1.0f / 60.0f;
+    float FixedTimeStep = 0.0f;
+    if(GWorld->bPie)
+    {
+        FixedTimeStep = GWorld->GetDeltaTime(EDeltaTime::Game);
+    }
+    else
+    {
+        FixedTimeStep = DeltaTime;
+	}
     
-    PxVehicleUpdates(FixedTimeStep, grav, *FrictionPairs, 1, vehicles, vehicleQueryResults);
+    PxVehicleUpdates(FixedTimeStep * 2.0f, grav, *FrictionPairs, 1, vehicles, vehicleQueryResults);
 
     // ENHANCED: Detailed vehicle state debugging
     bool bIsSleeping = VehicleActor->isSleeping();

@@ -319,8 +319,8 @@ void UWorld::Tick(float DeltaSeconds)
 	// 이번 프레임 물리 계산 시작, 결과는 다음 프레임에서 사용
 	if (PhysScene && bPie)
 	{
-		//PhysScene->StepSimulation(GetDeltaTime(EDeltaTime::Game));
-		PhysScene->StepSimulation(1.0f/60.0f);
+		PhysScene->StepSimulation(GetDeltaTime(EDeltaTime::Game));
+		//PhysScene->StepSimulation(1.0f/60.0f);
 	}
 
 	// 지연 삭제 처리
