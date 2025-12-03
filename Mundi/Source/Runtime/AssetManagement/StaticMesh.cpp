@@ -348,7 +348,6 @@ void UStaticMesh::ReleaseResources()
         {
             if (Convex.ConvexMesh)
             {
-                Convex.ConvexMesh->release();
                 Convex.ConvexMesh = nullptr;
             }
         }
