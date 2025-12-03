@@ -103,6 +103,8 @@ bool FPhysXSharedResources::Initialize()
     bInitialized = true;
     UE_LOG("[PhysXSharedResources] Initialized successfully (Workers: %d)", numWorkerThreads);
     return true;
+
+    
 }
 
 void FPhysXSharedResources::Shutdown()

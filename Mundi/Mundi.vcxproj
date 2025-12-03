@@ -282,6 +282,13 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </FxCompile>
+    <ClCompile Include="SnippetVehicle4W.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_StandAlone|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_StandAlone|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="Source\Runtime\Core\Object\MyCar.cpp" />
     <ClCompile Include="Source\Runtime\Engine\GameFramework\Camera\CamMod_Gamma.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Particle\Modules\ParticleModuleEventReceiverSpawn.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Particle\Modules\ParticleModuleRibbon.cpp" />
@@ -686,6 +693,7 @@
     <ClCompile Include="Generated\UCharacterMovementComponent.generated.cpp" />
     <ClCompile Include="Generated\UPawnMovementComponent.generated.cpp" />
     <ClCompile Include="Generated\UParticleSystemComponent.generated.cpp" />
+    <ClCompile Include="Generated\AMyCar.generated.cpp" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shaders\Common\LightingBuffers.hlsl">
@@ -883,6 +891,7 @@
     <ClInclude Include="Source\Runtime\Core\Object\CharacterMovementComponent.h" />
     <ClInclude Include="Source\Runtime\Core\Object\Controller.h" />
     <ClInclude Include="Source\Runtime\Core\Object\FireballActor.h" />
+    <ClInclude Include="Source\Runtime\Core\Object\MyCar.h" />
     <ClInclude Include="Source\Runtime\Core\Object\Pawn.h" />
     <ClInclude Include="Source\Runtime\Core\Object\PlayerController.h" />
     <ClInclude Include="Source\Runtime\Core\Object\Property.h" />
@@ -1171,6 +1180,7 @@
     <ClInclude Include="Generated\UCharacterMovementComponent.generated.h" />
     <ClInclude Include="Generated\UPawnMovementComponent.generated.h" />
     <ClInclude Include="Generated\UParticleSystemComponent.generated.h" />
+    <ClInclude Include="Generated\AMyCar.generated.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ClassDiagram.cd" />

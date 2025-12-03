@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
   <ItemGroup>
     <FxCompile Include="Shaders\Effects\ParticleBeam.hlsl">
@@ -998,8 +998,9 @@
     <ClCompile Include="Source\Runtime\Renderer\PostProcessing\DOFBlurPass.cpp" />
     <ClCompile Include="Source\Runtime\Renderer\PostProcessing\DOFRecombinePass.cpp" />
     <ClCompile Include="Source\Runtime\Renderer\PostProcessing\DOFSetupPass.cpp" />
-    <ClCompile Include="Source\Runtime\Renderer\PostProcessing\DOFTilePass.cpp" />
-  </ItemGroup>
+    <ClCompile Include="SnippetVehicle4W.cpp" />
+    <ClCompile Include="Source\Runtime\Core\Object\MyCarComponent.cpp" />
+  <ClCompile Include="Generated\AMyCarComponent.generated.cpp"><Filter>Generated</Filter></ClCompile><ClCompile Include="Generated\AMyCar.generated.cpp"><Filter>Generated</Filter></ClCompile></ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
     <ClInclude Include="Source\Editor\BlueprintGraph\AnimationGraph.h">
@@ -2069,8 +2070,8 @@
     <ClInclude Include="Source\Runtime\Renderer\PostProcessing\DOFBlurPass.h" />
     <ClInclude Include="Source\Runtime\Renderer\PostProcessing\DOFRecombinePass.h" />
     <ClInclude Include="Source\Runtime\Renderer\PostProcessing\DOFSetupPass.h" />
-    <ClInclude Include="Source\Runtime\Renderer\PostProcessing\DOFTilePass.h" />
-  </ItemGroup>
+    <ClInclude Include="Source\Runtime\Core\Object\MyCarComponent.h" />
+  <ClInclude Include="Generated\AMyCarComponent.generated.h"><Filter>Generated</Filter></ClInclude><ClInclude Include="Generated\AMyCar.generated.h"><Filter>Generated</Filter></ClInclude></ItemGroup>
   <ItemGroup>
     <None Include="Tools\CodeGenerator\generate.py">
       <Filter>Tools\CodeGenerator</Filter>
