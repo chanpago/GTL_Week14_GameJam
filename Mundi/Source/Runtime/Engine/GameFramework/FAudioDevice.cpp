@@ -11,6 +11,8 @@ X3DAUDIO_HANDLE         FAudioDevice::X3DInstance = {};
 X3DAUDIO_LISTENER       FAudioDevice::Listener = {};
 DWORD                   FAudioDevice::dwChannelMask = 0;
 TArray<IXAudio2SourceVoice*> FAudioDevice::OneShotVoices;
+TArray<IXAudio2SourceVoice*> FAudioDevice::ActiveVoices;
+std::atomic<bool> FAudioDevice::bIsShuttingDown{false};
 
 UINT32 FAudioDevice::GetOutputChannelCount()
 {
@@ -21,6 +23,9 @@ UINT32 FAudioDevice::GetOutputChannelCount()
 }
 bool FAudioDevice::Initialize()
 {
+    // 초기화 시 shutdown 플래그 해제
+    bIsShuttingDown = false;
+
     if (pXAudio2)
     {
         UE_LOG("[Audio] Already initialized");
@@ -100,7 +105,28 @@ bool FAudioDevice::Initialize()
 }
 void FAudioDevice::Shutdown()
 {
-    // 먼저 재생 중인 모든 SourceVoice 정리
+    // Shutdown 플래그 설정 - 다른 스레드에서 audio 조작 방지
+    bIsShuttingDown = true;
+
+    // XAudio2 엔진 정지 (모든 audio processing 중지)
+    if (pXAudio2)
+    {
+        pXAudio2->StopEngine();
+    }
+
+    // 먼저 모든 활성 voice 정리 (AudioComponent가 생성한 것들)
+    for (IXAudio2SourceVoice* voice : ActiveVoices)
+    {
+        if (voice)
+        {
+            voice->Stop(0);
+            voice->FlushSourceBuffers();
+            voice->DestroyVoice();
+        }
+    }
+    ActiveVoices.Empty();
+
+    // OneShot voice 정리
     for (IXAudio2SourceVoice* voice : OneShotVoices)
     {
         if (voice)
@@ -129,7 +155,7 @@ void FAudioDevice::Shutdown()
 
 void FAudioDevice::Update()
 {
-    if (!pXAudio2) return;
+    if (bIsShuttingDown || !pXAudio2) return;
 
     // For future: process queued commands, streaming, etc.
 
@@ -152,7 +178,7 @@ void FAudioDevice::Update()
 
 IXAudio2SourceVoice* FAudioDevice::PlaySound3D(USound* SoundToPlay, const FVector& EmitterPosition, float Volume, bool bIsLooping)
 {
-    if (!pXAudio2 || !pMasteringVoice || !SoundToPlay)
+    if (bIsShuttingDown || !pXAudio2 || !pMasteringVoice || !SoundToPlay)
         return nullptr;
 
     const WAVEFORMATEX& fmt = SoundToPlay->GetWaveFormat();
@@ -220,6 +246,9 @@ IXAudio2SourceVoice* FAudioDevice::PlaySound3D(USound* SoundToPlay, const FVecto
         return nullptr;
     }
 
+    // ActiveVoices에 등록 (Shutdown 시 정리용)
+    RegisterVoice(voice);
+
     return voice;
 }
 
@@ -230,6 +259,12 @@ void FAudioDevice::SetListenerPosition(const FVector& Position, const FVector& F
     Listener.OrientTop = X3DAUDIO_VECTOR{ UpVec.X, UpVec.Y, UpVec.Z };
 }void FAudioDevice::UpdateSoundPosition(IXAudio2SourceVoice* pSourceVoice, const FVector& EmitterPosition)
 {
+    // Shutdown 중이면 audio 조작 금지
+    if (bIsShuttingDown)
+    {
+        return;
+    }
+
     if (!pSourceVoice || !pXAudio2 || !pMasteringVoice)
     {
         return;
@@ -381,7 +416,7 @@ void FAudioDevice::SetListenerPosition(const FVector& Position, const FVector& F
 }
 void FAudioDevice::PlaySoundAtLocationOneShot(USound* Sound, const FVector& Pos, float Volume, float Pitch)
 {
-    if (!pXAudio2 || !pMasteringVoice || !Sound) return;
+    if (bIsShuttingDown || !pXAudio2 || !pMasteringVoice || !Sound) return;
 
     const WAVEFORMATEX& fmt = Sound->GetWaveFormat();
     const uint8* pcm = Sound->GetPCMData();
@@ -413,10 +448,40 @@ void FAudioDevice::PlaySoundAtLocationOneShot(USound* Sound, const FVector& Pos,
 }
 void FAudioDevice::StopSound(IXAudio2SourceVoice* pSourceVoice)
 {
-    if (!pSourceVoice || !pXAudio2) return;
+    // XAudio2가 이미 종료되었으면 voice 조작 불가 (crash 방지)
+    if (!pSourceVoice) return;
+
+    // ActiveVoices에서 제거
+    UnregisterVoice(pSourceVoice);
+
+    if (!pXAudio2)
+    {
+        // XAudio2가 이미 해제됨 - voice는 이미 무효화되었으므로 아무것도 하지 않음
+        return;
+    }
     pSourceVoice->Stop(0);
     pSourceVoice->FlushSourceBuffers();
     pSourceVoice->DestroyVoice();
+}
+
+void FAudioDevice::RegisterVoice(IXAudio2SourceVoice* Voice)
+{
+    if (Voice && !ActiveVoices.Contains(Voice))
+    {
+        ActiveVoices.Add(Voice);
+    }
+}
+
+void FAudioDevice::UnregisterVoice(IXAudio2SourceVoice* Voice)
+{
+    if (Voice)
+    {
+        int32 Index = ActiveVoices.Find(Voice);
+        if (Index != -1)
+        {
+            ActiveVoices.RemoveAt(Index);
+        }
+    }
 }
 
 void FAudioDevice::Preload()

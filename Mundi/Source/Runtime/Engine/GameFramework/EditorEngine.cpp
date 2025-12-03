@@ -361,6 +361,10 @@ void UEditorEngine::Shutdown()
     USlateManager::GetInstance().Shutdown();
     FBlueprintActionDatabase::GetInstance().Shutdown();
 
+    // AudioDevice 종료 (반드시 ObjectFactory::DeleteAll 이전에 호출)
+    // 컴포넌트들이 아직 Tick 중일 수 있으므로 먼저 오디오 시스템을 정지시켜야 함
+    FAudioDevice::Shutdown();
+
     // Delete all UObjects (Components, Actors, Resources)
     // Resource destructors will properly release D3D resources
     ObjectFactory::DeleteAll(true);
@@ -370,9 +374,6 @@ void UEditorEngine::Shutdown()
     // because ObjStaticMeshMap is a static member variable that may be destroyed
     // before the global GEngine variable's destructor runs
     FObjManager::Clear();
-
-    // AudioDevice 종료
-    FAudioDevice::Shutdown();
 
      
     // IMPORTANT: Explicitly release Renderer before RHIDevice destructor runs
