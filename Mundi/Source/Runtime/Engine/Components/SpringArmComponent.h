@@ -24,7 +24,7 @@ public:
     // ──────────────────────────────
 
     /** 암의 기본 길이 (충돌이 없을 때의 거리) */
-    void SetTargetArmLength(float InLength) { TargetArmLength = InLength; }
+    void SetTargetArmLength(float InLength) { TargetArmLength = InLength; CurrentArmLength = InLength; }
     float GetTargetArmLength() const { return TargetArmLength; }
 
     /** 타겟 오프셋 (타겟 위치에서의 오프셋) */
@@ -63,8 +63,8 @@ public:
     void Serialize(const bool bInIsLoading, JSON& InOutHandle) override;
 
 protected:
-    /** 암 위치 및 충돌 계산 */
-    void UpdateDesiredArmLocation();
+    /** 암 위치 및 충돌 계산 (보간 포함) */
+    void UpdateDesiredArmLocation(float DeltaTime);
 
     /** 충돌 체크 후 암 길이 조정 */
     float CalculateArmLengthWithCollision(const FVector& Origin, const FVector& DesiredEnd);

@@ -9,7 +9,7 @@ USpringArmComponent::USpringArmComponent()
     , TargetOffset(FVector::Zero())
     , SocketOffset(FVector::Zero())
     , bDoCollisionTest(true)
-    , ProbeSize(12.0f)
+    , ProbeSize(1.0f)
     , bUsePawnControlRotation(true)
     , CurrentArmLength(300.0f)
 {
@@ -33,23 +33,25 @@ void USpringArmComponent::TickComponent(float DeltaTime)
 {
     Super::TickComponent(DeltaTime);
 
-    // 매 프레임 암 위치 업데이트
-    UpdateDesiredArmLocation();
+    // 매 프레임 암 위치 업데이트 (보간 포함)
+    UpdateDesiredArmLocation(DeltaTime);
 
-    // 자식 컴포넌트들(카메라 등)의 위치를 암 끝으로 업데이트
-    FVector SocketLocation = GetSocketLocalLocation();
+    // 자식 컴포넌트(카메라)의 로컬 위치를 암 끝으로 설정
+    // SpringArm의 로컬 좌표계에서 -X 방향(뒤쪽)으로 CurrentArmLength만큼
+    FVector SocketLocalLocation = FVector(-CurrentArmLength, 0, 0) + SocketOffset;
+
     for (USceneComponent* Child : GetAttachChildren())
     {
         if (Child)
         {
-            Child->SetRelativeLocation(SocketLocation);
+            Child->SetRelativeLocation(SocketLocalLocation);
         }
     }
 }
 
-void USpringArmComponent::UpdateDesiredArmLocation()
+void USpringArmComponent::UpdateDesiredArmLocation(float DeltaTime)
 {
-    // 암의 시작점 (타겟 위치 + 오프셋)
+    // SpringArm의 월드 위치 (피벗 포인트)에서 카메라 방향으로 레이 발사
     FVector Origin = GetWorldLocation() + TargetOffset;
 
     // 암의 방향 계산 (뒤쪽으로 뻗음, -X 방향이 뒤)
@@ -60,14 +62,29 @@ void USpringArmComponent::UpdateDesiredArmLocation()
     // 목표 암 끝 위치
     FVector DesiredEnd = Origin + BackwardDir * TargetArmLength;
 
-    // 충돌 체크로 실제 암 길이 계산
+    // 충돌 체크로 목표 암 길이 계산
+    float DesiredArmLength = TargetArmLength;
     if (bDoCollisionTest)
     {
-        CurrentArmLength = CalculateArmLengthWithCollision(Origin, DesiredEnd);
+        DesiredArmLength = CalculateArmLengthWithCollision(Origin, DesiredEnd);
+    }
+
+    // 부드러운 보간으로 CurrentArmLength 업데이트
+    // 충돌 시(줄어들 때)는 빠르게, 복귀 시(늘어날 때)는 느리게
+    const float ShrinkSpeed = 15.0f;  // 충돌 시 줄어드는 속도
+    const float GrowSpeed = 5.0f;     // 복귀 시 늘어나는 속도
+
+    if (DesiredArmLength < CurrentArmLength)
+    {
+        // 충돌로 인해 줄어들어야 함 - 빠르게
+        float Alpha = FMath::Clamp(DeltaTime * ShrinkSpeed, 0.0f, 1.0f);
+        CurrentArmLength = FMath::Lerp(CurrentArmLength, DesiredArmLength, Alpha);
     }
     else
     {
-        CurrentArmLength = TargetArmLength;
+        // 충돌 없어서 원래 길이로 복귀 - 느리게
+        float Alpha = FMath::Clamp(DeltaTime * GrowSpeed, 0.0f, 1.0f);
+        CurrentArmLength = FMath::Lerp(CurrentArmLength, DesiredArmLength, Alpha);
     }
 }
 
@@ -98,6 +115,9 @@ float USpringArmComponent::CalculateArmLengthWithCollision(const FVector& Origin
         OwnerActor
     );
 
+    UE_LOG("[SpringArm] Sweep: Origin(%.2f, %.2f, %.2f) -> End(%.2f, %.2f, %.2f), bHit=%d",
+        Origin.X, Origin.Y, Origin.Z, DesiredEnd.X, DesiredEnd.Y, DesiredEnd.Z, bHit);
+
     if (bHit && HitResult.bBlockingHit)
     {
         // 충돌 시 암 길이를 충돌 지점까지로 줄임
@@ -106,6 +126,10 @@ float USpringArmComponent::CalculateArmLengthWithCollision(const FVector& Origin
 
         // 최소 거리 보장 (너무 가까워지지 않도록)
         const float MinArmLength = ProbeSize * 2.0f;
+
+        UE_LOG("[SpringArm] Hit! Time=%.3f, HitArmLength=%.2f, Result=%.2f",
+            HitResult.Time, HitArmLength, FMath::Max(HitArmLength, MinArmLength));
+
         return FMath::Max(HitArmLength, MinArmLength);
     }
 
