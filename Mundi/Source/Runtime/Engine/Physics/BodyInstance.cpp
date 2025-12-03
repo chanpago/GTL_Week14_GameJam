@@ -364,13 +364,16 @@ void FBodyInstance::InitStatic(FPhysScene& World, const FTransform& WorldTransfo
             // 균등 스케일이 아닌 경우 가장 큰 축 사용
             float MaxScale = std::max({ AbsScale.X, AbsScale.Y, AbsScale.Z });
             PxSphereGeometry Geom(Sphere.Radius * MaxScale);
-            PxShape* Shape = Physics->createShape(Geom, *Material);
+
+            // ★★★ createExclusiveShape는 이미 attach까지 해주므로 추가 작업 불필요 ★★★
+            PxShape* Shape = PxRigidActorExt::createExclusiveShape(*StaticActor, Geom, *Material);
+
             if (Shape)
             {
                 SetShapeCollisionFlags(Shape, OwnerComponent, BodySetup);
                 Shape->setLocalPose(LocalPose);
-                StaticActor->attachShape(*Shape);
-                Shape->release();
+                // ❌ 제거: StaticActor->attachShape(*Shape);  // 이미 attach됨!
+                // ❌ 제거: Shape->release();                   // Exclusive shape는 release 안함!
             }
         }
 
@@ -388,13 +391,16 @@ void FBodyInstance::InitStatic(FPhysScene& World, const FTransform& WorldTransfo
                 Box.Extents.Y * AbsScale.Y,
                 Box.Extents.Z * AbsScale.Z
             );
-            PxShape* Shape = Physics->createShape(Geom, *Material);
+
+            // ★★★ createExclusiveShape는 이미 attach까지 해주므로 추가 작업 불필요 ★★★
+            PxShape* Shape = PxRigidActorExt::createExclusiveShape(*StaticActor, Geom, *Material);
+
             if (Shape)
             {
                 SetShapeCollisionFlags(Shape, OwnerComponent, BodySetup);
                 Shape->setLocalPose(LocalPose);
-                StaticActor->attachShape(*Shape);
-                Shape->release();
+                // ❌ 제거: StaticActor->attachShape(*Shape);  // 이미 attach됨!
+                // ❌ 제거: Shape->release();                   // Exclusive shape는 release 안함!
             }
         }
 
@@ -416,13 +422,16 @@ void FBodyInstance::InitStatic(FPhysScene& World, const FTransform& WorldTransfo
             float HeightScale = AbsScale.Z;
 
             PxCapsuleGeometry Geom(Capsule.Radius * RadiusScale, Capsule.HalfLength * HeightScale);
-            PxShape* Shape = Physics->createShape(Geom, *Material);
+
+            // ★★★ createExclusiveShape는 이미 attach까지 해주므로 추가 작업 불필요 ★★★
+            PxShape* Shape = PxRigidActorExt::createExclusiveShape(*StaticActor, Geom, *Material);
+
             if (Shape)
             {
                 SetShapeCollisionFlags(Shape, OwnerComponent, BodySetup);
                 Shape->setLocalPose(LocalPose);
-                StaticActor->attachShape(*Shape);
-                Shape->release();
+                // ❌ 제거: StaticActor->attachShape(*Shape);  // 이미 attach됨!
+                // ❌ 제거: Shape->release();                   // Exclusive shape는 release 안함!
             }
         }
     }
@@ -430,12 +439,15 @@ void FBodyInstance::InitStatic(FPhysScene& World, const FTransform& WorldTransfo
     {
         // BodySetup이 없으면 임시 박스 하나 생성
         PxBoxGeometry BoxGeom(0.5f, 0.5f, 0.5f);
-        PxShape* Shape = Physics->createShape(BoxGeom, *Material);
+
+        // ★★★ createExclusiveShape는 이미 attach까지 해주므로 추가 작업 불필요 ★★★
+        PxShape* Shape = PxRigidActorExt::createExclusiveShape(*StaticActor, BoxGeom, *Material);
+
         if (Shape)
         {
             SetShapeCollisionFlags(Shape, OwnerComponent, BodySetup);
-            StaticActor->attachShape(*Shape);
-            Shape->release();
+            // ❌ 제거: StaticActor->attachShape(*Shape);  // 이미 attach됨!
+            // ❌ 제거: Shape->release();                   // Exclusive shape는 release 안함!
         }
     }
 
