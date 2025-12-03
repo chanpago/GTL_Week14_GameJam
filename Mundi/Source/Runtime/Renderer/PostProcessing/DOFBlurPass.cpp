@@ -1,7 +1,6 @@
 #include "pch.h"
 #include "DOFBlurPass.h"
 #include "../SceneView.h"
-#include "../../RHI/SwapGuard.h"
 #include "../../RHI/ConstantBufferType.h"
 #include "../../RHI/D3D11RHI.h"
 

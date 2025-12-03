@@ -379,10 +379,10 @@ void UEditorEngine::Shutdown()
     // Renderer may hold references to D3D resources
     Renderer.reset();
 
+    GPU_PROFILER.Shutdown();
+
     // Explicitly release D3D11RHI resources before global destruction
     RHIDevice.Release();
-
-    GPU_PROFILER.Shutdown();
     
 
     SaveIniFile();

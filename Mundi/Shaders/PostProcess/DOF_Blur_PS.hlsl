@@ -87,7 +87,7 @@ PS_OUTPUT mainPS(PS_INPUT input)
     }
 
     // Ring 1~MAX_RING
-    [unroll]
+    [loop]
     for (int ring = 1; ring <= MAX_RING; ring++)
     {
         float ringRadius = pixelRadius * (float(ring) / float(MAX_RING));
