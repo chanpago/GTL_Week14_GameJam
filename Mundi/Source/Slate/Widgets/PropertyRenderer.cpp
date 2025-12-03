@@ -177,6 +177,10 @@ bool UPropertyRenderer::RenderProperty(const FProperty& Property, void* ObjectIn
 		bChanged = RenderCombineModeProperty(Property, ObjectInstance);
 		break;
 
+	case EPropertyType::AggCollisionShapeType:
+		bChanged = RenderCollisionShapeTypeProperty(Property, ObjectInstance);
+		break;
+
 	default:
 		ImGui::Text("%s: [Unknown Type]", Property.Name);
 		break;
@@ -324,7 +328,6 @@ void UPropertyRenderer::RenderAllPropertiesWithInheritance(UObject* Object)
 		RenderSkeletalMeshComponentDetails(Skel);
 	}
 }
-
 // ===== 리소스 캐싱 =====
 
 void UPropertyRenderer::CacheResources()
@@ -1082,6 +1085,44 @@ bool UPropertyRenderer::RenderSkeletalMeshComponentDetails(USkeletalMeshComponen
 	bool bChanged = false;
 	ImGui::Spacing();
 	ImGui::Separator();
+
+	if (Component)
+	{
+		// #1. 현재 할당된 애니메이션 그래프 이름 표시
+		FString GraphName = Component->GetAnimGraph() ? Component->GetAnimGraph()->GetName() : "None";
+		ImGui::Text("애니메이션 그래프: %s", GraphName.c_str());
+
+		// #2. 그래프가 없으면 [Create], 있으면 [Edit] 버튼 표시
+		if (Component->GetAnimGraph() == nullptr)
+		{
+			if (ImGui::Button("새로운 애니메이션 그래프 생성"))
+			{
+				UAnimationGraph* NewGraph = NewObject<UAnimationGraph>();
+				// NewGraph->SetName("NewAnimGraph_" + std::to_string(NewGraph->GetID())); // 임시 이름
+
+				Component->SetAnimGraph(NewGraph);
+
+				USlateManager::GetInstance().OpenAnimationGraphEditor(NewGraph);
+			}
+		}
+		else
+		{
+			if (ImGui::Button("그래프 에디터 열기"))
+			{
+				if (USlateManager::GetInstance().IsAnimationGraphEditorOpen())
+				{
+					USlateManager::GetInstance().OpenAnimationGraphEditor(Component->GetAnimGraph());
+				}
+				else
+				{
+					USlateManager::GetInstance().OpenAnimationGraphEditor(Component->GetAnimGraph());
+				}
+			}
+		}
+	}
+
+	ImGui::Spacing();
+	ImGui::Separator();
 	ImGui::Text("Physics Asset Override");
 
 	USkeletalMesh* Mesh = Component->GetSkeletalMesh();
@@ -1173,37 +1214,6 @@ bool UPropertyRenderer::RenderSkeletalMeshComponentDetails(USkeletalMeshComponen
 			}
 		}
 		ImGui::EndCombo();
-	}
-
-	// Animation Graph part
-	ImGui::Spacing();
-	ImGui::Separator();
-
-	FString GraphName = Component->GetAnimGraph() ? Component->GetAnimGraph()->GetName() : "None";
-	ImGui::Text("애니메이션 그래프: %s", GraphName.c_str());
-
-	if (Component->GetAnimGraph() == nullptr)
-	{
-		if (ImGui::Button("새로운 애니메이션 그래프 생성"))
-		{
-			UAnimationGraph* NewGraph = NewObject<UAnimationGraph>();
-			Component->SetAnimGraph(NewGraph);
-			USlateManager::GetInstance().OpenAnimationGraphEditor(NewGraph);
-		}
-	}
-	else
-	{
-		if (ImGui::Button("그래프 에디터 열기"))
-		{
-			if (USlateManager::GetInstance().IsAnimationGraphEditorOpen())
-			{
-				USlateManager::GetInstance().OpenAnimationGraphEditor(Component->GetAnimGraph());
-			}
-			else
-			{
-				USlateManager::GetInstance().OpenAnimationGraphEditor(Component->GetAnimGraph());
-			}
-		}
 	}
 
 	return bChanged;
@@ -1324,44 +1334,6 @@ bool UPropertyRenderer::RenderSkeletalMeshProperty(const FProperty& Prop, void* 
 		ImGui::Spacing();
 		ImGui::Separator();
 		ImGui::Spacing();
-	}
-
-	UObject* Object = static_cast<UObject*>(Instance);
-	USkeletalMeshComponent* SkelComp = Cast<USkeletalMeshComponent>(Object);
-
-	if (SkelComp)
-	{
-		// #1. 현재 할당된 애니메이션 그래프 이름 표시
-		FString GraphName = SkelComp->GetAnimGraph() ? SkelComp->GetAnimGraph()->GetName() : "None";
-		ImGui::Text("애니메이션 그래프: %s", GraphName.c_str());
-
-		// #2. 그래프가 없으면 [Create], 있으면 [Edit] 버튼 표시
-		if (SkelComp->GetAnimGraph() == nullptr)
-		{
-			if (ImGui::Button("새로운 애니메이션 그래프 생성"))
-			{
-				UAnimationGraph* NewGraph = NewObject<UAnimationGraph>();
-				// NewGraph->SetName("NewAnimGraph_" + std::to_string(NewGraph->GetID())); // 임시 이름
-                
-				SkelComp->SetAnimGraph(NewGraph);
-                
-				USlateManager::GetInstance().OpenAnimationGraphEditor(NewGraph);
-			}
-		}
-		else
-		{
-			if (ImGui::Button("그래프 에디터 열기"))
-			{
-				if (USlateManager::GetInstance().IsAnimationGraphEditorOpen())
-				{
-					USlateManager::GetInstance().OpenAnimationGraphEditor(SkelComp->GetAnimGraph());
-				}
-				else
-				{
-					USlateManager::GetInstance().OpenAnimationGraphEditor(SkelComp->GetAnimGraph());
-				}
-			}
-		}
 	}
 
 	return false;
@@ -2300,6 +2272,63 @@ bool UPropertyRenderer::RenderCombineModeProperty(const FProperty& Prop, void* I
 		case 1: Description = "Min: min(A, B)"; break;
 		case 2: Description = "Multiply: A * B (Default)"; break;
 		case 3: Description = "Max: max(A, B)"; break;
+		}
+		ImGui::SetTooltip("%s", Description);
+	}
+
+	return bChanged;
+}
+
+bool UPropertyRenderer::RenderCollisionShapeTypeProperty(const FProperty& Prop, void* Instance)
+{
+	uint8* ValuePtr = Prop.GetValuePtr<uint8>(Instance);
+	if (!ValuePtr)
+		return false;
+
+	bool bChanged = false;
+
+	static const char* ModeNames[] = {
+		"Sphere",   // 0
+		"Box",       // 1
+		"Capsule",  // 2
+		"Convex"    // 3
+	};
+	static const int NumModes = sizeof(ModeNames) / sizeof(ModeNames[0]);
+
+	int CurrentIndex = static_cast<int>(*ValuePtr);
+	if (CurrentIndex < 0 || CurrentIndex >= NumModes)
+		CurrentIndex = 2; // Default to Multiply
+
+	const char* PreviewText = ModeNames[CurrentIndex];
+
+	FString Label = FString(Prop.Name) + "##CollisionShapeType";
+	ImGui::SetNextItemWidth(150.0f);
+	if (ImGui::BeginCombo(Label.c_str(), PreviewText))
+	{
+		for (int i = 0; i < NumModes; ++i)
+		{
+			bool bIsSelected = (CurrentIndex == i);
+			if (ImGui::Selectable(ModeNames[i], bIsSelected))
+			{
+				*ValuePtr = static_cast<uint8>(i);
+				bChanged = true;
+			}
+			if (bIsSelected)
+				ImGui::SetItemDefaultFocus();
+		}
+		ImGui::EndCombo();
+	}
+
+	// 툴팁으로 합성 모드 설명
+	if (ImGui::IsItemHovered())
+	{
+		const char* Description = "";
+		switch (CurrentIndex)
+		{
+		case 0: Description = "박스"; break;
+		case 1: Description = "스피어"; break;
+		case 2: Description = "캡슐"; break;
+		case 3: Description = "다각형"; break;
 		}
 		ImGui::SetTooltip("%s", Description);
 	}

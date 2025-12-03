@@ -39,8 +39,6 @@ void UBodySetup::AddCapsule(const FKCapsuleElem& Elem)
 
 void UBodySetup::BuildCachedData()
 {
-    // AggGeom을 돌면서 LocalBounds, Volume, Inertia 등 계산
-    // 예: CachedBounds, CachedMass 같은 멤버 만들어서 세팅
 }
 
 void UBodySetup::Serialize(const bool bInIsLoading, JSON& InOutHandle)

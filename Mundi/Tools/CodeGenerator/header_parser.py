@@ -50,6 +50,9 @@ class Property:
         if 'ecombinemode' in type_lower:
             return 'ADD_PROPERTY_COMBINE_MODE'
 
+        if 'eaggcollisionshapetype' in type_lower:
+            return 'ADD_PROPERTY_COLLISION_SHAPE_TYPE'
+
         # PhysMaterialPreset 체크 (변수명 기반)
         if 'physmaterialpreset' in self.name.lower():
             return 'ADD_PROPERTY_PHYS_MATERIAL_PRESET'

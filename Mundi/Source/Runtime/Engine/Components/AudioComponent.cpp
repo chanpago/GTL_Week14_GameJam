@@ -40,7 +40,18 @@ void UAudioComponent::TickComponent(float DeltaTime)
 {
     Super::TickComponent(DeltaTime);
 
-    if (bIsPlaying && SourceVoice && FAudioDevice::IsInitialized())
+    // FAudioDevice가 종료되었으면 재생 중지
+    if (!FAudioDevice::IsInitialized())
+    {
+        if (bIsPlaying)
+        {
+            SourceVoice = nullptr;  // 이미 무효화됨
+            bIsPlaying = false;
+        }
+        return;
+    }
+
+    if (bIsPlaying && SourceVoice)
     {
         FVector CurrentLocation = GetWorldLocation();
         FAudioDevice::UpdateSoundPosition(SourceVoice, CurrentLocation);
@@ -79,7 +90,11 @@ void UAudioComponent::Stop()
 
     if (SourceVoice)
     {
-        FAudioDevice::StopSound(SourceVoice);
+        // FAudioDevice가 아직 초기화된 상태에서만 정리
+        if (FAudioDevice::IsInitialized())
+        {
+            FAudioDevice::StopSound(SourceVoice);
+        }
         SourceVoice = nullptr;
     }
     bIsPlaying = false;

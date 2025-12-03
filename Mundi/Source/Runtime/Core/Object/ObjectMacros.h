@@ -360,6 +360,21 @@ struct TPropertyTypeTraits
 		Class->AddProperty(Prop); \
 	}
 
+
+// Collision shape type property (EAggCollisionShapeType)
+#define ADD_PROPERTY_COLLISION_SHAPE_TYPE(VarType, VarName, CategoryName, bEditAnywhere, ...) \
+	{ \
+		static_assert(std::is_array_v<std::remove_reference_t<decltype(CategoryName)>>, \
+		              "CategoryName must be a string literal!"); \
+		FProperty Prop; \
+		Prop.Name = #VarName; \
+		Prop.Type = EPropertyType::AggCollisionShapeType; \
+		Prop.Offset = offsetof(ThisClass_t, VarName); \
+		Prop.Category = CategoryName; \
+		Prop.bIsEditAnywhere = bEditAnywhere; \
+		Prop.Tooltip = "" __VA_ARGS__; \
+		Class->AddProperty(Prop); \
+	}
 #define CREATE_EDITOR_COMPONENT(InVariableName, Type)\
 	InVariableName = NewObject<Type>();\
 	InVariableName->SetOwner(this->GetOwner());\

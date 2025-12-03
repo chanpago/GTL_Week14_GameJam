@@ -327,6 +327,10 @@ void UGameEngine::MainLoop()
 
 void UGameEngine::Shutdown()
 {
+    // AudioDevice 종료 (반드시 ObjectFactory::DeleteAll 이전에 호출)
+    // 컴포넌트들이 아직 Tick 중일 수 있으므로 먼저 오디오 시스템을 정지시켜야 함
+    FAudioDevice::Shutdown();
+
     // 월드부터 삭제해야 DeleteAll 때 문제가 없음
     for (FWorldContext WorldContext : WorldContexts)
     {
@@ -347,9 +351,6 @@ void UGameEngine::Shutdown()
     // IMPORTANT: Explicitly release Renderer before RHIDevice destructor runs
     // Renderer may hold references to D3D resources
     Renderer.reset();
-
-    // Shutdown audio device
-    FAudioDevice::Shutdown();
 
     // Explicitly release D3D11RHI resources before global destruction
     RHIDevice.Release();

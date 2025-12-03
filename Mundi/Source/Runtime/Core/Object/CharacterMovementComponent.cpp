@@ -124,7 +124,7 @@ void UCharacterMovementComponent::PhysWalking(float DeltaSecond)
 			// 바닥 찾음 - 스냅 (경사면 내려가기)
 			if (StepDownHit.ImpactNormal.Z > 0.7f)
 			{
-				const float SkinWidth = 0.04f;
+				const float SkinWidth = 0.00125f;
 				float SnapDistance = StepDownHit.Distance - SkinWidth;
 				if (SnapDistance > KINDA_SMALL_NUMBER)
 				{
@@ -211,7 +211,7 @@ void UCharacterMovementComponent::PhysFalling(float DeltaSecond)
 			bIsFalling = false;
 
 			// 바닥으로 스냅 (SkinWidth 여유를 두고 이동)
-			const float SkinWidth = 0.04f;
+			const float SkinWidth = 0.00125f;
 			float SnapDistance = FloorHit.Distance - SkinWidth;
 			if (SnapDistance > KINDA_SMALL_NUMBER)
 			{
@@ -301,7 +301,7 @@ bool UCharacterMovementComponent::SafeMoveUpdatedComponent(const FVector& Delta,
 	if (bHit && OutHit.bBlockingHit)
 	{
 		// 충돌 지점 직전까지만 이동 (약간의 여유 거리)
-		const float SkinWidth = 0.01f;
+		const float SkinWidth = 0.00125f;
 		float SafeDistance = FMath::Max(0.0f, OutHit.Distance - SkinWidth);
 		FVector SafeLocation = Start + Delta.GetNormalized() * SafeDistance;
 		UpdatedComponent->SetWorldLocation(SafeLocation);

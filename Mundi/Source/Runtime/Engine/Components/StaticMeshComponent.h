@@ -30,6 +30,9 @@ public:
 	void BeginPlay() override;
 	void EndPlay() override;
 	void TickComponent(float DeltaTime) override;
+	
+	void OnCollisionShapeChanged();
+	void InitCollisionShape();
 
 	void OnStaticMeshReleased(UStaticMesh* ReleasedMesh);
 
@@ -47,7 +50,9 @@ public:
 
 	void InitPhysics(FPhysScene& PhysScene);
 
-	class UBodySetup* GetBodySetup() const;
+	class UBodySetup* GetBodySetup();
+
+	void RecreateBodySetup();
 
 protected:
 	void OnTransformUpdated() override;
@@ -55,6 +60,27 @@ protected:
 protected:
 	UPROPERTY(EditAnywhere, Category="Static Mesh", Tooltip="Static mesh asset to render")
 	UStaticMesh* StaticMesh = nullptr;
+
+	UPROPERTY()
+	FVector BoxExtent = FVector(50.f);
+
+	UPROPERTY()
+	float SphereRadius = 50.f;
+
+	UPROPERTY()
+	float CapsuleRadius = 22.f;
+
+	UPROPERTY()
+	float CapsuleHalfHeight = 44.f;
+
+	UPROPERTY()
+	FVector CollisionOffset = FVector::Zero();
+
+	UPROPERTY()
+	FQuat CollisionRotation = FQuat::Identity();
+
+	UPROPERTY(Transient)
+	class UBodySetup* BodySetupOverride = nullptr;
 
 	// Physics 설정
 	UPROPERTY(EditAnywhere, Category="Physics", Tooltip="Enable collision for this mesh (creates static collider)")
@@ -81,6 +107,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category="Physics", Tooltip="Restitution combine mode")
 	ECombineMode RestitutionCombineModeOverride = ECombineMode::Multiply;
+
+	UPROPERTY(EditAnywhere, Category = "Physics", Tooltip = "Collision type")
+	EAggCollisionShapeType CollisionType = EAggCollisionShapeType::Box;
 
 public:
 	// Collision/Physics simulation toggles

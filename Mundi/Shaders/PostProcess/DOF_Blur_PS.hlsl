@@ -113,8 +113,11 @@ PS_OUTPUT mainPS(PS_INPUT input)
             }
 
             // 깊이 체크: Raw CoC로 비교 (앞뒤 구분) - Soft Transition
-            // 샘플이 나보다 더 앞(CoC 더 큼)이거나 비슷해야 번질 수 있음
-            float depthDiff = centerCocRaw - sampleCocRaw;
+            // Near: 샘플이 나보다 더 앞(CoC 더 큼)이어야 번질 수 있음
+            // Far:  샘플이 나보다 더 앞(CoC 더 작음)이어야 번질 수 있음 (뒤에 있는 게 앞을 덮으면 안 됨)
+            float depthDiff = IsFarField
+                ? (sampleCocRaw - centerCocRaw)   // Far: 샘플이 더 멀면(CoC 큼) 차단
+                : (centerCocRaw - sampleCocRaw);  // Near: 샘플이 더 가까우면(CoC 큼) 통과
             float depthWeight = 1.0 - smoothstep(0.0, 0.15, depthDiff);  // 0~0.15 구간에서 부드럽게 fade
             if (depthWeight < 0.01)
             {

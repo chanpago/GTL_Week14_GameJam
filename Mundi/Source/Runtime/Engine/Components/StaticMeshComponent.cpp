@@ -21,11 +21,21 @@ UStaticMeshComponent::UStaticMeshComponent()
 	SetStaticMesh(GDataDir + "/cube-tex.obj");     // 임시 기본 static mesh 설정
 }
 
-UStaticMeshComponent::~UStaticMeshComponent() = default;
+UStaticMeshComponent::~UStaticMeshComponent()
+{
+	if (BodySetupOverride)
+	{
+		ObjectFactory::DeleteObject(BodySetupOverride);
+		BodySetupOverride = nullptr;
+	}
+}
 
 void UStaticMeshComponent::BeginPlay()
 {
 	Super::BeginPlay();
+
+	InitCollisionShape();
+	RecreateBodySetup();
 
 	// 콜라이더가 비활성화되어 있으면 물리 등록 안 함
 	if (!bEnableCollision)
@@ -63,6 +73,58 @@ void UStaticMeshComponent::EndPlay()
 	}
 
 	Super::EndPlay();
+}
+
+void UStaticMeshComponent::OnCollisionShapeChanged()
+{
+	RecreateBodySetup();
+
+	// 물리 상태가 이미 초기화되었다면 업데이트합니다.
+	if (BodyInstance && BodyInstance->RigidActor)
+	{
+		if (UWorld* World = GetWorld())
+		{
+			if (FPhysScene* PhysScene = World->GetPhysScene())
+			{
+				BodyInstance->Terminate(*PhysScene);
+				InitPhysics(*PhysScene);
+			}
+		}
+	}
+}
+
+void UStaticMeshComponent::InitCollisionShape()
+{
+	EAggCollisionShapeType CurrentShapeType = static_cast<EAggCollisionShapeType>(CollisionType);
+	if (CurrentShapeType != EAggCollisionShapeType::Convex)
+	{
+		FAABB LocalBound = StaticMesh->GetLocalBound();
+		FVector BoundExtent = LocalBound.GetHalfExtent();
+
+		bool bBoxExtentIsDefault = (BoxExtent == FVector(50.f));
+		bool bSphereRadiusIsDefault = (SphereRadius == 50.f);
+		bool bCapsuleRadiusIsDefault = (CapsuleRadius == 22.f);
+		bool bCapsuleHalfHeightIsDefault = (CapsuleHalfHeight == 44.f);
+
+		if (bBoxExtentIsDefault)
+		{
+			BoxExtent = BoundExtent; // Set to mesh's half-extent
+		}
+		if (bSphereRadiusIsDefault)
+		{
+			SphereRadius = BoundExtent.GetMaxValue(); // Max of half-extents
+		}
+		if (bCapsuleRadiusIsDefault)
+		{
+			CapsuleRadius = BoundExtent.GetMaxValue() / 2.f; // Heuristic for capsule radius
+		}
+		if (bCapsuleHalfHeightIsDefault)
+		{
+			CapsuleHalfHeight = BoundExtent.Z; // Heuristic for capsule half-height
+		}
+	}
+
+	OnCollisionShapeChanged();
 }
 
 void UStaticMeshComponent::TickComponent(float DeltaTime)
@@ -282,7 +344,7 @@ void UStaticMeshComponent::InitPhysics(FPhysScene& PhysScene)
 		BodyInstance = new FBodyInstance();
 
 	BodyInstance->OwnerComponent = this;
-	BodyInstance->BodySetup = GetBodySetup(); // StaticMesh에서 가져오기
+	BodyInstance->BodySetup = GetBodySetup(); // 이제 override를 고려함
 
 	// Override 값 설정
 	BodyInstance->bUseOverrideValues = true;
@@ -314,13 +376,84 @@ void UStaticMeshComponent::InitPhysics(FPhysScene& PhysScene)
 	}
 }
 
-UBodySetup* UStaticMeshComponent::GetBodySetup() const
+UBodySetup* UStaticMeshComponent::GetBodySetup()
 {
+	if (BodySetupOverride)
+	{
+		return BodySetupOverride;
+	}
+
 	if (StaticMesh)
 	{
 		return StaticMesh->BodySetup;
 	}
 	return nullptr;
+}
+
+void UStaticMeshComponent::RecreateBodySetup()
+{
+	if (BodySetupOverride)
+	{
+		ObjectFactory::DeleteObject(BodySetupOverride);
+		BodySetupOverride = nullptr;
+	}
+	
+	EAggCollisionShapeType CurrentShapeType = static_cast<EAggCollisionShapeType>(CollisionType);
+
+	// 컨벡스 타입은 StaticMesh의 기본 BodySetup을 사용하므로 override가 필요 없음
+	if (CurrentShapeType == EAggCollisionShapeType::Convex)
+	{
+		return;
+	}
+
+	if (!StaticMesh)
+	{
+		return;
+	}
+
+	BodySetupOverride = ObjectFactory::NewObject<UBodySetup>();
+	BodySetupOverride->BoneName = FName("None");
+	
+	FAABB LocalBound = StaticMesh->GetLocalBound();
+	FVector Center = LocalBound.GetCenter();
+	FVector Extent = LocalBound.GetHalfExtent();
+
+
+	switch (CurrentShapeType)
+	{
+		case EAggCollisionShapeType::Box:
+		{
+			FKBoxElem BoxElem;
+			BoxElem.Center = CollisionOffset;
+			BoxElem.Rotation = CollisionRotation;
+			BoxElem.Extents = BoxExtent; // Extent는 반쪽 크기
+			BodySetupOverride->AggGeom.BoxElements.Add(BoxElem);
+			break;
+		}
+		case EAggCollisionShapeType::Sphere:
+		{
+			FKSphereElem SphereElem;
+			SphereElem.Center = CollisionOffset;
+			SphereElem.Radius = SphereRadius;
+			BodySetupOverride->AggGeom.SphereElements.Add(SphereElem);
+			break;
+		}
+		case EAggCollisionShapeType::Capsule:
+		{
+			FKCapsuleElem CapsuleElem;
+			CapsuleElem.Center = CollisionOffset;
+			CapsuleElem.Rotation = CollisionRotation;
+			CapsuleElem.Radius = CapsuleRadius;
+			CapsuleElem.HalfLength = CapsuleHalfHeight;
+			BodySetupOverride->AggGeom.CapsuleElements.Add(CapsuleElem);
+			break;
+		}
+		case EAggCollisionShapeType::Convex:
+			// Already handled
+			break;
+	}
+
+	BodySetupOverride->BuildCachedData();
 }
 
 void UStaticMeshComponent::Serialize(const bool bInIsLoading, JSON& InOutHandle)
@@ -332,6 +465,16 @@ void UStaticMeshComponent::Serialize(const bool bInIsLoading, JSON& InOutHandle)
 		// 역직렬화 (로드)
 		FJsonSerializer::ReadBool(InOutHandle, "bEnableCollision", bEnableCollision, true, false);
 		FJsonSerializer::ReadBool(InOutHandle, "bSimulatePhysics", bSimulatePhysics, false, false);
+		
+		int32 ShapeType = static_cast<int32>(EAggCollisionShapeType::Box);
+		FJsonSerializer::ReadInt32(InOutHandle, "CollisionType", ShapeType, static_cast<int32>(EAggCollisionShapeType::Box), false);
+		CollisionType = static_cast<EAggCollisionShapeType>(ShapeType);
+
+		FJsonSerializer::ReadVector(InOutHandle, "BoxExtent", BoxExtent, FVector(50.f), false);
+		FJsonSerializer::ReadFloat(InOutHandle, "SphereRadius", SphereRadius, 50.f, false);
+		FJsonSerializer::ReadFloat(InOutHandle, "CapsuleRadius", CapsuleRadius, 22.f, false);
+		FJsonSerializer::ReadFloat(InOutHandle, "CapsuleHalfHeight", CapsuleHalfHeight, 44.f, false);
+		FJsonSerializer::ReadVector(InOutHandle, "CollisionOffset", CollisionOffset, FVector::Zero(), false);
 
 		// Physics 속성 역직렬화
 		FJsonSerializer::ReadFloat(InOutHandle, "MassOverride", MassOverride, 10.0f, false);
@@ -345,12 +488,22 @@ void UStaticMeshComponent::Serialize(const bool bInIsLoading, JSON& InOutHandle)
 		FJsonSerializer::ReadInt32(InOutHandle, "RestitutionCombineModeOverride", RestitutionMode, 2, false);
 		FrictionCombineModeOverride = static_cast<ECombineMode>(FrictionMode);
 		RestitutionCombineModeOverride = static_cast<ECombineMode>(RestitutionMode);
+
+		RecreateBodySetup();
 	}
 	else
 	{
 		// 직렬화 (저장)
 		InOutHandle["bEnableCollision"] = bEnableCollision;
 		InOutHandle["bSimulatePhysics"] = bSimulatePhysics;
+
+		InOutHandle["CollisionType"] = static_cast<int32>(CollisionType);
+		InOutHandle["BoxExtent"] = FJsonSerializer::VectorToJson(FVector(BoxExtent.X, BoxExtent.Y, BoxExtent.Z));
+		InOutHandle["SphereRadius"] = SphereRadius;
+		InOutHandle["CapsuleRadius"] = CapsuleRadius;
+		InOutHandle["CapsuleHalfHeight"] = CapsuleHalfHeight;
+		InOutHandle["CollisionOffset"] = FJsonSerializer::VectorToJson(FVector(CollisionOffset.X, CollisionOffset.Y, CollisionOffset.Z));
+		InOutHandle["CollisionRotation"] = FJsonSerializer::VectorToJson(FVector(CollisionRotation.X, CollisionRotation.Y, CollisionRotation.Z));
 
 		// Physics 속성 직렬화
 		InOutHandle["MassOverride"] = MassOverride;

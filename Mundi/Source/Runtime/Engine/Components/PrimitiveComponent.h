@@ -5,7 +5,6 @@
 #include "UPrimitiveComponent.generated.h"
 
 struct FBodyInstance;
-// 전방 선언
 struct FSceneCompData;
 
 class URenderer;

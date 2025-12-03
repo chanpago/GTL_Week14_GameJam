@@ -27,6 +27,9 @@
 #include "Source/Runtime/Engine/Physics/PhysicsTypes.h"
 #include "Source/Runtime/Engine/Physics/PhysicsAsset.h"
 #include "World.h"
+#include "Pawn.h"
+#include "Controller.h"
+#include "PlayerController.h"
 
 
 static FBodyInstance* FindBodyInstanceByName(const TArray<FBodyInstance*>& Bodies, const FName& BoneName)
@@ -102,6 +105,13 @@ void USkeletalMeshComponent::BeginPlay()
 	{
 		InstantiatePhysicsAssetBodies(*World->GetPhysScene());
 	}
+
+	// AnimGraph가 없고 PhysicsAsset이 있으면 자동으로 래그돌 모드로 전환
+	if (!AnimGraph && PhysicsAsset)
+	{
+		SetPhysicsAnimationState(EPhysicsAnimationState::PhysicsDriven);
+		UE_LOG("[SkeletalMeshComponent] No AnimGraph found - Auto switching to Ragdoll mode");
+	}
 }
 
 void USkeletalMeshComponent::TickComponent(float DeltaTime)
@@ -158,19 +168,35 @@ void USkeletalMeshComponent::TickComponent(float DeltaTime)
             LastLoggedSpeed = CurrentSpeed;
         }
 
-        // P 키: PhysicsState 전환 (AnimationDriven <-> PhysicsDriven)
+        // P 키: PhysicsState 전환 (AnimationDriven <-> PhysicsDriven) - 플레이어만
         if (InputManager.IsKeyPressed('P'))
         {
-            if (PhysicsState == EPhysicsAnimationState::AnimationDriven)
+            // 플레이어 컨트롤러가 제어하는 Pawn인지 확인
+            bool bIsPlayerControlled = false;
+            if (AActor* Owner = GetOwner())
             {
-                SetPhysicsAnimationState(EPhysicsAnimationState::PhysicsDriven);
-                UE_LOG("[SkeletalMeshComponent] PhysicsState changed to: PhysicsDriven (Ragdoll)");
+                if (APawn* OwnerPawn = Cast<APawn>(Owner))
+                {
+                    if (AController* Controller = OwnerPawn->GetController())
+                    {
+                        bIsPlayerControlled = Cast<APlayerController>(Controller) != nullptr;
+                    }
+                }
             }
-            else
+
+            if (bIsPlayerControlled)
             {
-                SetPhysicsAnimationState(EPhysicsAnimationState::AnimationDriven);
-                ResetToBindPose();
-                UE_LOG("[SkeletalMeshComponent] PhysicsState changed to: AnimationDriven");
+                if (PhysicsState == EPhysicsAnimationState::AnimationDriven)
+                {
+                    SetPhysicsAnimationState(EPhysicsAnimationState::PhysicsDriven);
+                    UE_LOG("[SkeletalMeshComponent] PhysicsState changed to: PhysicsDriven (Ragdoll)");
+                }
+                else
+                {
+                    SetPhysicsAnimationState(EPhysicsAnimationState::AnimationDriven);
+                    ResetToBindPose();
+                    UE_LOG("[SkeletalMeshComponent] PhysicsState changed to: AnimationDriven");
+                }
             }
         }
 

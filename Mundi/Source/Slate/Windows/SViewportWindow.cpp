@@ -447,6 +447,9 @@ void SViewportWindow::LoadToolbarIcons(ID3D11Device* Device)
 	IconSkinning = NewObject<UTexture>();
 	IconSkinning->Load(GDataDir + "/Icon/Viewport_Skinning.png", Device);
 
+	IconDOF = NewObject<UTexture>();
+	IconDOF->Load(GDataDir + "/Icon/Viewport_DOF.png", Device);
+
 	// 뷰포트 레이아웃 전환 아이콘 로드
 	IconSingleToMultiViewport = NewObject<UTexture>();
 	IconSingleToMultiViewport->Load(GDataDir + "/Icon/Viewport_SingleToMultiViewport.png", Device);
@@ -1732,6 +1735,24 @@ void SViewportWindow::RenderShowFlagDropdownMenu()
 		// --- 섹션: 그래픽스 기능 ---
 		ImGui::TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f), "그래픽스 기능");
 		ImGui::Separator();
+
+		// DOF (Depth of Field)
+		bool bDOF = RenderSettings.IsShowFlagEnabled(EEngineShowFlags::SF_DOF);
+		if (ImGui::Checkbox("##DOF", &bDOF))
+		{
+			RenderSettings.ToggleShowFlag(EEngineShowFlags::SF_DOF);
+		}
+		ImGui::SameLine();
+		if (IconDOF && IconDOF->GetShaderResourceView())
+		{
+			ImGui::Image((void*)IconDOF->GetShaderResourceView(), IconSize);
+			ImGui::SameLine(0, 4);
+		}
+		ImGui::Text(" 피사계 심도");
+		if (ImGui::IsItemHovered())
+		{
+			ImGui::SetTooltip("Depth of Field 효과를 적용합니다.");
+		}
 
 		// FXAA (Anti-Aliasing)
 		bool bFXAA = RenderSettings.IsShowFlagEnabled(EEngineShowFlags::SF_FXAA);

@@ -105,6 +105,7 @@ private:
     UTexture* IconShadowAA = nullptr;
     UTexture* IconSkinning = nullptr;
     UTexture* IconParticle = nullptr;
+    UTexture* IconDOF = nullptr;
 
     // 뷰포트 레이아웃 전환 아이콘
     UTexture* IconSingleToMultiViewport = nullptr;  // 단일 뷰포트 아이콘
