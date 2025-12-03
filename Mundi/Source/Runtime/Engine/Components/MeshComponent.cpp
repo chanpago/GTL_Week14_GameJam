@@ -46,8 +46,8 @@ void UMeshComponent::Serialize(const bool bInIsLoading, JSON& InOutHandle)
              // 3. 클래스 이름에 따라 분기
              if (ClassName == UMaterialInstanceDynamic::StaticClass()->Name)
              {
-                // UMID는 인스턴스이므로, 'new'로 생성합니다.
-                UMaterialInstanceDynamic* NewMID = new UMaterialInstanceDynamic();
+                // UMID는 UObject이므로 NewObject로 생성 (GUObjectArray에 등록)
+                UMaterialInstanceDynamic* NewMID = NewObject<UMaterialInstanceDynamic>();
 
                 // 4. 생성된 빈 객체에 Serialize(true)를 호출하여 데이터를 채웁니다.
                 NewMID->Serialize(true, SlotJson); // (const_cast가 필요할 수 있음)
@@ -221,17 +221,16 @@ void UMeshComponent::SetMaterial(uint32 InElementIndex, UMaterialInterface* InNe
 			if (RemovedCount > 0)
 			{
 				// 5. 소유권 리스트에서 제거된 것이 확인되면, 메모리에서 삭제합니다.
-				delete OldMID;
+				DeleteObject(OldMID);
 			}
 			else
 			{
 				// 경고: MaterialSlots에는 MID가 있었으나, 소유권 리스트에 없는 경우입니다.
 				// 이는 DuplicateSubObjects 등이 잘못 구현되었을 때 발생할 수 있습니다.
 				UE_LOG("Warning: SetMaterial is replacing a MID that was not tracked by DynamicMaterialInstances.");
-				// 이 경우 delete를 호출하면 다른 객체가 소유한 메모리를 해제할 수 있으므로
-				// delete를 호출하지 않는 것이 더 안전할 수 있습니다. (혹은 delete 호출 후 크래시로 버그를 잡습니다.)
-				// 여기서는 삭제를 시도합니다.
-				delete OldMID;
+				// 이 경우 DeleteObject를 호출하면 다른 객체가 소유한 메모리를 해제할 수 있으므로
+				// 호출하지 않는 것이 더 안전할 수 있습니다.
+				DeleteObject(OldMID);
 			}
 		}
 	}
@@ -306,7 +305,7 @@ void UMeshComponent::ClearDynamicMaterials()
 	// 1. 생성된 동적 머티리얼 인스턴스 해제
 	for (UMaterialInstanceDynamic* MID : DynamicMaterialInstances)
 	{
-		delete MID;
+		DeleteObject(MID);
 	}	
 	DynamicMaterialInstances.Empty();
 

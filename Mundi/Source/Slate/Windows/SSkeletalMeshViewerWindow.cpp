@@ -1401,11 +1401,11 @@ void SSkeletalMeshViewerWindow::OnRender()
                         float SwingZDeg = RadiansToDegrees(Constraint.SwingLimitZ);
 
                         ImGui::Text("Twist Limits (X-axis):");
-                        if (ImGui::DragFloat("Min Twist##Twist", &TwistMinDeg, 0.5f, -180.0f, TwistMaxDeg, "%.2f°"))
+                        if (ImGui::DragFloat("Min Twist##Twist", &TwistMinDeg, 0.5f, 0.0f, TwistMaxDeg, "%.2f°"))
                         {
                             Constraint.TwistLimitMin = DegreesToRadians(TwistMinDeg);
                         }
-                        if (ImGui::DragFloat("Max Twist##Twist", &TwistMaxDeg, 0.5f, TwistMinDeg, 180.0f, "%.2f°"))
+                        if (ImGui::DragFloat("Max Twist##Twist", &TwistMaxDeg, 0.5f, TwistMinDeg, 360.0f, "%.2f°"))
                         {
                             Constraint.TwistLimitMax = DegreesToRadians(TwistMaxDeg);
                         }

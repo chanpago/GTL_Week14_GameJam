@@ -59,7 +59,7 @@ struct UClass
     {
         for (UClass* Class : GetAllClasses())
         {
-            if (Class && Class->Name == InClassName)
+            if (Class && InClassName == Class->Name)
             {
                 return Class;
             }

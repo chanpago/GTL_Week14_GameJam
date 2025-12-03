@@ -22,7 +22,8 @@ float LinearizeDepth(float rawDepth, float nearPlane, float farPlane, int isOrth
 
 // Circle of Confusion (CoC) 계산
 // 반환값: 양수 = Far Blur (원경), 음수 = Near Blur (근경), 0 = 선명
-// **0~1 정규화된 값 반환** (픽셀 단위 아님)
+// **정규화 없음! Raw 값 반환** (정렬용 깊이 정보 보존)
+// 블러 크기 계산 시 saturate(abs(coc))로 사용할 것
 float CalculateCoC(
     float viewDepth,             // View-space depth (m 단위)
     float focalDistance,         // 초점 거리 (m)
@@ -43,25 +44,23 @@ float CalculateCoC(
         return 0.0;
     }
 
-    // 3. CoC 계산 (0~1 정규화)
+    // 3. CoC 계산 (Raw 값, saturate 없음!)
+    // 정렬(앞뒤 구분)용으로 깊이 정보 보존
     float coc = 0.0;
 
     if (viewDepth < focalStart)
     {
         // 근경 (Near Field) - 음수 CoC
+        // 거리가 멀수록 더 큰 음수 (-1.0 넘어갈 수 있음)
         float distance = focalStart - viewDepth;
-        // smoothstep 시작점을 당겨서 경계에서 기울기 확보
-        float edgeOffset = nearTransition * 0.1;
-        float normalizedCoC = smoothstep(-edgeOffset, nearTransition, distance);
-        coc = -normalizedCoC;  // 0~1 정규화
+        coc = -(distance / nearTransition);
     }
     else  // viewDepth > focalEnd
     {
         // 원경 (Far Field) - 양수 CoC
+        // 거리가 멀수록 더 큰 양수 (1.0 넘어갈 수 있음)
         float distance = viewDepth - focalEnd;
-        float edgeOffset = farTransition * 0.1;
-        float normalizedCoC = smoothstep(-edgeOffset, farTransition, distance);
-        coc = normalizedCoC;  // 0~1 정규화
+        coc = distance / farTransition;
     }
 
     return coc;

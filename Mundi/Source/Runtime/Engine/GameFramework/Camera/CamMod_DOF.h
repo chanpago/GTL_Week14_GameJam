@@ -11,12 +11,12 @@ public:
     virtual ~UCamMod_DOF() = default;
 
     // DOF 파라미터 (엔진 단위: m)
-    float FocalDistance = 10.0f;             // m (초점 거리)
-    float FocalRegion = 12.0f;               // m (완전 선명 영역)
+    float FocalDistance = 6.0f;             // m (초점 거리)
+    float FocalRegion = 5.0f;               // m (완전 선명 영역)
     float NearTransitionRegion = 4.0f;      // m (근경 블러 전환)
-    float FarTransitionRegion = 15.0f;      // m (원경 블러 전환)
-    float MaxNearBlurSize = 8.0f;           // pixels (근경 최대 블러)
-    float MaxFarBlurSize = 8.0f;            // pixels (원경 최대 블러)
+    float FarTransitionRegion = 20.0f;      // m (원경 블러 전환)
+    float MaxNearBlurSize = 6.0f;           // pixels (근경 최대 블러)
+    float MaxFarBlurSize = 10.0f;            // pixels (원경 최대 블러)
 
     virtual void ApplyToView(float DeltaTime, FMinimalViewInfo* ViewInfo) override {};
 
