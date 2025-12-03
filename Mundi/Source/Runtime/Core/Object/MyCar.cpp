@@ -966,10 +966,12 @@ void AMyCar::UpdateWheelBoneRotations(const PxVehicleWheelQueryResult& Result)
 
             // Apply both steering and spin rotations
             FVector RotationAxis = CurrentBoneTransform.Rotation.ToEulerZYXDeg();
-			FVector NewEuler = FVector(RotationAxis.X, RotationAxis.Y + RotationDelta, -SteerAngleDegree + 90.0f);
-			NewEuler.Z = NewEuler.Y > 0.0f ? NewEuler.Z /*- 180.0f*/ : NewEuler.Z;
+			float XAngle = WheelIdx == 0 ? 0.0f : 180.0f;
+			FVector NewEuler = FVector(XAngle, RotationAxis.Y, -SteerAngleDegree + 90.0f);
+			//NewEuler.Z = NewEuler.Y > 0.0f ? NewEuler.Z /*- 180.0f*/ : NewEuler.Z;
 			CurrentBoneTransform.Rotation = FQuat::MakeFromEulerZYX(NewEuler);
             //CurrentBoneTransform.Rotation = SteerRotation;
+            CurrentBoneTransform.Rotation = CurrentBoneTransform.Rotation * SpinRotation;
         }
         else
         {
