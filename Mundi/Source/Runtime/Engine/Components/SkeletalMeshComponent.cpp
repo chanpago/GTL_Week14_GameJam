@@ -683,9 +683,12 @@ void USkeletalMeshComponent::InstantiatePhysicsAssetBodies(FPhysScene& PhysScene
         // AnimationDriven 모드에서는 Kinematic으로 시작
         if (PhysicsState == EPhysicsAnimationState::AnimationDriven)
         {
-            if (PxRigidDynamic* Dyn = BI->RigidActor->is<PxRigidDynamic>())
+            if (BI && BI->RigidActor)
             {
-                Dyn->setRigidBodyFlag(PxRigidBodyFlag::eKINEMATIC, true);
+                if (PxRigidDynamic* Dyn = BI->RigidActor->is<PxRigidDynamic>())
+                {
+                    Dyn->setRigidBodyFlag(PxRigidBodyFlag::eKINEMATIC, true);
+                }
             }
         }
 
