@@ -112,9 +112,11 @@ PS_OUTPUT mainPS(PS_INPUT input)
                 continue;
             }
 
-            // 깊이 체크: Raw CoC로 비교 (앞뒤 구분)
+            // 깊이 체크: Raw CoC로 비교 (앞뒤 구분) - Soft Transition
             // 샘플이 나보다 더 앞(CoC 더 큼)이거나 비슷해야 번질 수 있음
-            if (sampleCocRaw < centerCocRaw - 0.05)
+            float depthDiff = centerCocRaw - sampleCocRaw;
+            float depthWeight = 1.0 - smoothstep(0.0, 0.15, depthDiff);  // 0~0.15 구간에서 부드럽게 fade
+            if (depthWeight < 0.01)
             {
                 continue;
             }
@@ -124,13 +126,15 @@ PS_OUTPUT mainPS(PS_INPUT input)
             float sampleRadiusPx = sampleCoc * halfBlurRadius;
             float coverage = saturate((sampleRadiusPx - ringRadius + 1.0) / max(sampleRadiusPx, 1.0));
 
-            if (coverage < 0.01)
+            // 최종 가중치 = coverage × depthWeight
+            float weight = coverage * depthWeight;
+            if (weight < 0.01)
             {
                 continue;
             }
 
-            accColor += sampleColor * coverage;
-            accWeight += coverage;
+            accColor += sampleColor * weight;
+            accWeight += weight;
             validSampleCount += 1.0;
         }
     }
@@ -143,7 +147,9 @@ PS_OUTPUT mainPS(PS_INPUT input)
     }
 
     float3 avgColor = accColor / accWeight;
-    float finalAlpha = saturate(validSampleCount / 32.0);
+
+    // finalAlpha를 centerCoc에 비례하게 → CoC 작으면 원본에 가깝게
+    float finalAlpha = centerCoc;
 
     output.Color = float4(avgColor * finalAlpha, finalAlpha);
     return output;
