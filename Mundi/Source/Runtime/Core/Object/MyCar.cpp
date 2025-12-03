@@ -2,6 +2,7 @@
 #include "MyCar.h"
 #include "SkeletalMeshComponent.h"
 #include "World.h"
+#include "SceneComponent.h"
 #include "Source/Runtime/Engine/Physics/PhysScene.h"
 #include "Source/Runtime/InputCore/InputManager.h"
 #include <PxPhysicsAPI.h>
@@ -107,8 +108,14 @@ static void SetupWheelsSimulationData(
 AMyCar::AMyCar()
 {
     // Create skeletal mesh component for the car
+    RootComponent = CreateDefaultSubobject<USceneComponent>("RootComponent");
+
     VehicleMesh = CreateDefaultSubobject<USkeletalMeshComponent>("VehicleMesh");
-    SetRootComponent(VehicleMesh);
+    VehicleMesh->SetupAttachment(RootComponent, EAttachmentRule::KeepRelative);
+    VehicleMesh->SetRelativeRotation(FQuat::MakeFromEulerZYX(FVector(0, 0, 90))); // Adjust orientation if needed
+	VehicleMesh->SetRelativeLocation(FVector(0, 0, -2.4f));
+    //SetRootComponent(VehicleMesh);
+    VehicleMesh->SetSkeletalMesh("Data/Model/SkeletalCar.fbx");
     
     // Initialize wheel query results
     WheelQueryResults.SetNum(PX_MAX_NB_WHEELS);
@@ -125,6 +132,15 @@ void AMyCar::BeginPlay()
     
     // Initialize PhysX vehicle
     InitializeVehiclePhysics();
+    
+    //VehicleMesh->SetSkeletalMesh("Data/Model/SkeletalCar.fbx");
+	
+    // Find wheel bones after mesh is available
+    if(GWorld->bPie)
+    {
+        FindWheelBones();
+    }
+    
     
     UE_LOG("[MyCarComponent] Vehicle initialized successfully");
 }
@@ -155,13 +171,22 @@ void AMyCar::DuplicateSubObjects()
 	// Duplicate any sub-objects if necessary
 
     // Find skeletal mesh component (always exists)
+    bool bFound = false;
     for (UActorComponent* Component : OwnedComponents)
     {
         if (auto* Comp = Cast<USkeletalMeshComponent>(Component))
         {
             VehicleMesh = Comp;
+            bFound = true;
             break;
         }
+    }
+
+    // If not found during duplication (e.g., loading from a level where it wasn't saved properly), recreate it.
+    if (!bFound)
+    {
+        VehicleMesh = CreateDefaultSubobject<USkeletalMeshComponent>("VehicleMesh");
+        VehicleMesh->SetupAttachment(RootComponent, EAttachmentRule::KeepRelative);
     }
 }
 
@@ -714,6 +739,9 @@ void AMyCar::UpdateVehiclePhysics(float DeltaTime)
         UE_LOG("[MyCarComponent] =====================");
     }
     LogCounter += DeltaTime;
+    
+    // Update wheel bone rotations based on PhysX wheel rotation
+    UpdateWheelBoneRotations();
 }
 
 void AMyCar::CleanupVehiclePhysics()
@@ -777,4 +805,98 @@ void AMyCar::ApplyBrake(float Value)
 void AMyCar::ApplyHandbrake(float Value)
 {
     VehicleInput.AnalogHandbrake = FMath::Clamp(Value, 0.0f, 1.0f);
+}
+
+void AMyCar::FindWheelBones()
+{
+    if (!VehicleMesh)
+    {
+        UE_LOG("[MyCarComponent] FindWheelBones: No VehicleMesh found");
+        return;
+    }
+
+    // Find wheel bones by name
+    // PhysX wheel order: FL(0), FR(1), RL(2), RR(3)
+    WheelBoneIndices[0] = VehicleMesh->GetBoneIndexByName(FName("FL")); // Front Left
+    WheelBoneIndices[1] = VehicleMesh->GetBoneIndexByName(FName("FR")); // Front Right
+    WheelBoneIndices[2] = VehicleMesh->GetBoneIndexByName(FName("RL")); // Rear Left (changed from RR to RL)
+    WheelBoneIndices[3] = VehicleMesh->GetBoneIndexByName(FName("RR")); // Rear Right
+
+    // Check if all wheel bones were found
+    bWheelBonesFound = true;
+    for (int32 i = 0; i < 4; i++)
+    {
+        if (WheelBoneIndices[i] == INDEX_NONE)
+        {
+            bWheelBonesFound = false;
+            UE_LOG("[MyCarComponent] Wheel bone %d not found", i);
+        }
+        else
+        {
+            UE_LOG("[MyCarComponent] Found wheel bone %d at index %d", i, WheelBoneIndices[i]);
+        }
+    }
+
+    if (bWheelBonesFound)
+    {
+        UE_LOG("[MyCarComponent] All wheel bones found successfully");
+    }
+    else
+    {
+        UE_LOG("[MyCarComponent] WARNING: Some wheel bones not found. Wheel rotation animation will be disabled.");
+    }
+}
+
+void AMyCar::UpdateWheelBoneRotations()
+{
+    if (!bWheelBonesFound || !VehicleDrive4W || !VehicleMesh)
+    {
+        return;
+    }
+
+    // Get wheel rotation speeds from PhysX vehicle
+    for (int32 WheelIdx = 0; WheelIdx < 4; WheelIdx++)
+    {
+        if (WheelBoneIndices[WheelIdx] == INDEX_NONE)
+            continue;
+
+        // Get wheel rotation speed (rad/s) from PhysX
+        const PxF32 WheelRotationSpeed = VehicleDrive4W->mWheelsDynData.getWheelRotationSpeed(WheelIdx);
+        
+        // Get current bone transform
+        FTransform CurrentBoneTransform = VehicleMesh->GetBoneLocalTransform(WheelBoneIndices[WheelIdx]);
+        
+        // Calculate rotation delta based on wheel speed
+        // WheelRotationSpeed is in radians per second, so multiply by DeltaTime to get rotation this frame
+        UWorld* World = GetWorld();
+        float DeltaTime = World ? World->GetDeltaTime(EDeltaTime::Game) : 0.016f;
+        
+        float RotationDelta = 0.0f;
+        if (WheelIdx % 2 == 0)
+        {
+            RotationDelta = -WheelRotationSpeed * DeltaTime;
+        }
+        else
+        {
+			RotationDelta = WheelRotationSpeed * DeltaTime;
+        }
+        
+        // Create rotation around Y-axis (wheel spinning axis in vehicle local space)
+        FQuat AdditionalRotation = FQuat::FromAxisAngle(FVector(0, 1, 0), RotationDelta);
+
+        // Apply the rotation to the current bone rotation
+        CurrentBoneTransform.Rotation = CurrentBoneTransform.Rotation * AdditionalRotation;
+        CurrentBoneTransform.Rotation.Normalize();
+        
+        // Set the updated bone transform
+        VehicleMesh->SetBoneLocalTransform(WheelBoneIndices[WheelIdx], CurrentBoneTransform);
+        
+        // Optional: Log wheel rotation for debugging (every 60 frames)
+        static int32 LogFrameCounter = 0;
+        if (LogFrameCounter++ % 60 == 0)
+        {
+            UE_LOG("[MyCarComponent] Wheel %d rotation speed: %.2f rad/s, delta: %.4f rad", 
+                   WheelIdx, WheelRotationSpeed, RotationDelta);
+        }
+    }
 }

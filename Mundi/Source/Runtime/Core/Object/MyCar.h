@@ -71,6 +71,9 @@ protected:
     void ApplyBrake(float Value);
     void ApplyHandbrake(float Value);
 
+    // Wheel bone animation
+    void FindWheelBones();
+    void UpdateWheelBoneRotations();
 protected:
     USkeletalMeshComponent* VehicleMesh = nullptr;
 
@@ -127,6 +130,10 @@ protected:
     float CurrentThrottleInput = 0.0f;
     float CurrentBrakeInput = 0.0f;
     float CurrentHandbrakeInput = 0.0f;
+
+    // Wheel bone indices for rotation (cached for performance)
+    int32 WheelBoneIndices[4] = {-1, -1, -1, -1}; // FL, FR, RL, RR
+    bool bWheelBonesFound = false;
 
     // Wheel query results buffer
     TArray<physx::PxWheelQueryResult> WheelQueryResults;
