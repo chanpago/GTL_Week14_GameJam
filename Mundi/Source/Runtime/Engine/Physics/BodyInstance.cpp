@@ -62,8 +62,8 @@ void FBodyInstance::InitDynamic(FPhysScene& World, const FTransform& WorldTransf
         Terminate(World);
     }
 
-    PxPhysics*      Physics     = World.GetPhysics();
-    PxScene*        Scene       = World.GetScene();
+    PxPhysics* Physics = World.GetPhysics();
+    PxScene* Scene = World.GetScene();
 
     if (!Physics || !Scene)
     {
@@ -162,7 +162,7 @@ void FBodyInstance::InitDynamic(FPhysScene& World, const FTransform& WorldTransf
     FilterData.word2 = 0;
     FilterData.word3 = 0;
 
-     // ★★★★★ 여기부터가 핵심: BodySetup->AggGeom 기반으로 Shape 생성
+    // ★★★★★ 여기부터가 핵심: BodySetup->AggGeom 기반으로 Shape 생성
     if (BodySetup)
     {
         const FKAggregateGeom& Agg = BodySetup->AggGeom;
@@ -175,21 +175,20 @@ void FBodyInstance::InitDynamic(FPhysScene& World, const FTransform& WorldTransf
         {
             // 스피어 중심도 스케일 적용
             FVector ScaledCenter = Sphere.Center * Scale3D;
-            FTransform LocalXform(ScaledCenter, FQuat::Identity(), FVector(1,1,1));
+            FTransform LocalXform(ScaledCenter, FQuat::Identity(), FVector(1, 1, 1));
             PxTransform LocalPose = ToPx(LocalXform);
 
             // 균등 스케일이 아닌 경우 가장 큰 축 사용
-            float MaxScale = std::max({AbsScale.X, AbsScale.Y, AbsScale.Z});
+            float MaxScale = std::max({ AbsScale.X, AbsScale.Y, AbsScale.Z });
             PxSphereGeometry Geom(Sphere.Radius * MaxScale);
-            //PxShape* Shape = Physics->createShape(Geom, *Material);
-            PxShape* Shape = PxRigidActorExt::createExclusiveShape(*DynamicActor, Geom, *Material);
+            PxShape* Shape = Physics->createShape(Geom, *Material);
             if (Shape)
             {
                 SetShapeCollisionFlags(Shape, OwnerComponent, BodySetup);
                 Shape->setLocalPose(LocalPose);
                 Shape->setSimulationFilterData(FilterData);  // Self-Collision 방지
-                /*DynamicActor->attachShape(*Shape);
-                Shape->release();*/
+                DynamicActor->attachShape(*Shape);
+                Shape->release();
             }
         }
 
@@ -198,7 +197,7 @@ void FBodyInstance::InitDynamic(FPhysScene& World, const FTransform& WorldTransf
         {
             // 박스 중심도 스케일 적용
             FVector ScaledCenter = Box.Center * Scale3D;
-            FTransform LocalXform(ScaledCenter, Box.Rotation, FVector(1,1,1));
+            FTransform LocalXform(ScaledCenter, Box.Rotation, FVector(1, 1, 1));
             PxTransform LocalPose = ToPx(LocalXform);
 
             // 박스 Extents에 스케일 적용
@@ -207,15 +206,14 @@ void FBodyInstance::InitDynamic(FPhysScene& World, const FTransform& WorldTransf
                 Box.Extents.Y * AbsScale.Y,
                 Box.Extents.Z * AbsScale.Z
             );
-            //PxShape* Shape = Physics->createShape(Geom, *Material);
-            PxShape* Shape = PxRigidActorExt::createExclusiveShape(*DynamicActor, Geom, *Material);
+            PxShape* Shape = Physics->createShape(Geom, *Material);
             if (Shape)
             {
                 SetShapeCollisionFlags(Shape, OwnerComponent, BodySetup);
                 Shape->setLocalPose(LocalPose);
                 Shape->setSimulationFilterData(FilterData);  // Self-Collision 방지
-                /*DynamicActor->attachShape(*Shape);
-                Shape->release();*/
+                DynamicActor->attachShape(*Shape);
+                Shape->release();
             }
         }
 
@@ -229,7 +227,7 @@ void FBodyInstance::InitDynamic(FPhysScene& World, const FTransform& WorldTransf
             FQuat ZToX = FQuat::FromAxisAngle(FVector(0, 1, 0), -XM_PIDIV2);
             FQuat PhysRot = Capsule.Rotation * ZToX;
 
-            FTransform LocalXform(ScaledCenter, PhysRot, FVector(1,1,1));
+            FTransform LocalXform(ScaledCenter, PhysRot, FVector(1, 1, 1));
             PxTransform LocalPose = ToPx(LocalXform);
 
             // 캡슐: 반지름은 XY 평균, 높이는 Z 스케일 적용
@@ -238,15 +236,14 @@ void FBodyInstance::InitDynamic(FPhysScene& World, const FTransform& WorldTransf
 
             PxCapsuleGeometry Geom(Capsule.Radius * RadiusScale, Capsule.HalfLength * HeightScale);
 
-            //PxShape* Shape = Physics->createShape(Geom, *Material);
-            PxShape* Shape = PxRigidActorExt::createExclusiveShape(*DynamicActor, Geom, *Material);
+            PxShape* Shape = Physics->createShape(Geom, *Material);
             if (Shape)
             {
                 SetShapeCollisionFlags(Shape, OwnerComponent, BodySetup);
                 Shape->setLocalPose(LocalPose);
                 Shape->setSimulationFilterData(FilterData);  // Self-Collision 방지
-                /*DynamicActor->attachShape(*Shape);
-                Shape->release();*/
+                DynamicActor->attachShape(*Shape);
+                Shape->release();
             }
         }
     }
@@ -254,14 +251,13 @@ void FBodyInstance::InitDynamic(FPhysScene& World, const FTransform& WorldTransf
     {
         // BodySetup이 없으면, 지금처럼 임시 박스 하나라도 붙여서 디버그용으로 사용
         PxBoxGeometry BoxGeom(0.5f, 0.5f, 0.5f);
-        //PxShape* Shape = Physics->createShape(BoxGeom, *Material);
-        PxShape* Shape = PxRigidActorExt::createExclusiveShape(*DynamicActor, BoxGeom, *Material);
+        PxShape* Shape = Physics->createShape(BoxGeom, *Material);
         if (Shape)
         {
             Shape->setSimulationFilterData(FilterData);  // Self-Collision 방지
             SetShapeCollisionFlags(Shape, OwnerComponent, BodySetup);
-            /*DynamicActor->attachShape(*Shape);
-            Shape->release();*/
+            DynamicActor->attachShape(*Shape);
+            Shape->release();
         }
     }
 
@@ -271,11 +267,8 @@ void FBodyInstance::InitDynamic(FPhysScene& World, const FTransform& WorldTransf
     // 씬에 등록
     Scene->addActor(*DynamicActor);
 
-    // ★★★ 핵심 추가: 모든 Static Body를 기본적으로 운전 가능한 표면으로 설정 ★★★
-    //World.SetupActorAsUndrivableSurface(DynamicActor);
-
     // FBodyInstance와 연결
-    RigidActor           = DynamicActor;
+    RigidActor = DynamicActor;
     RigidActor->userData = this; // 나중에 콜백에서 FBodyInstance로 되돌리기 용
 
     // 생성한 Material은 release (DefaultMaterial은 PhysScene이 관리)
@@ -371,16 +364,13 @@ void FBodyInstance::InitStatic(FPhysScene& World, const FTransform& WorldTransfo
             // 균등 스케일이 아닌 경우 가장 큰 축 사용
             float MaxScale = std::max({ AbsScale.X, AbsScale.Y, AbsScale.Z });
             PxSphereGeometry Geom(Sphere.Radius * MaxScale);
-
-            // ★★★ createExclusiveShape는 이미 attach까지 해주므로 추가 작업 불필요 ★★★
-            PxShape* Shape = PxRigidActorExt::createExclusiveShape(*StaticActor, Geom, *Material);
-
+            PxShape* Shape = Physics->createShape(Geom, *Material);
             if (Shape)
             {
                 SetShapeCollisionFlags(Shape, OwnerComponent, BodySetup);
                 Shape->setLocalPose(LocalPose);
-                // ❌ 제거: StaticActor->attachShape(*Shape);  // 이미 attach됨!
-                // ❌ 제거: Shape->release();                   // Exclusive shape는 release 안함!
+                StaticActor->attachShape(*Shape);
+                Shape->release();
             }
         }
 
@@ -398,16 +388,13 @@ void FBodyInstance::InitStatic(FPhysScene& World, const FTransform& WorldTransfo
                 Box.Extents.Y * AbsScale.Y,
                 Box.Extents.Z * AbsScale.Z
             );
-
-            // ★★★ createExclusiveShape는 이미 attach까지 해주므로 추가 작업 불필요 ★★★
-            PxShape* Shape = PxRigidActorExt::createExclusiveShape(*StaticActor, Geom, *Material);
-
+            PxShape* Shape = Physics->createShape(Geom, *Material);
             if (Shape)
             {
                 SetShapeCollisionFlags(Shape, OwnerComponent, BodySetup);
                 Shape->setLocalPose(LocalPose);
-                // ❌ 제거: StaticActor->attachShape(*Shape);  // 이미 attach됨!
-                // ❌ 제거: Shape->release();                   // Exclusive shape는 release 안함!
+                StaticActor->attachShape(*Shape);
+                Shape->release();
             }
         }
 
@@ -429,16 +416,13 @@ void FBodyInstance::InitStatic(FPhysScene& World, const FTransform& WorldTransfo
             float HeightScale = AbsScale.Z;
 
             PxCapsuleGeometry Geom(Capsule.Radius * RadiusScale, Capsule.HalfLength * HeightScale);
-
-            // ★★★ createExclusiveShape는 이미 attach까지 해주므로 추가 작업 불필요 ★★★
-            PxShape* Shape = PxRigidActorExt::createExclusiveShape(*StaticActor, Geom, *Material);
-
+            PxShape* Shape = Physics->createShape(Geom, *Material);
             if (Shape)
             {
                 SetShapeCollisionFlags(Shape, OwnerComponent, BodySetup);
                 Shape->setLocalPose(LocalPose);
-                // ❌ 제거: StaticActor->attachShape(*Shape);  // 이미 attach됨!
-                // ❌ 제거: Shape->release();                   // Exclusive shape는 release 안함!
+                StaticActor->attachShape(*Shape);
+                Shape->release();
             }
         }
     }
@@ -446,23 +430,16 @@ void FBodyInstance::InitStatic(FPhysScene& World, const FTransform& WorldTransfo
     {
         // BodySetup이 없으면 임시 박스 하나 생성
         PxBoxGeometry BoxGeom(0.5f, 0.5f, 0.5f);
-
-        // ★★★ createExclusiveShape는 이미 attach까지 해주므로 추가 작업 불필요 ★★★
-        PxShape* Shape = PxRigidActorExt::createExclusiveShape(*StaticActor, BoxGeom, *Material);
-
+        PxShape* Shape = Physics->createShape(BoxGeom, *Material);
         if (Shape)
         {
             SetShapeCollisionFlags(Shape, OwnerComponent, BodySetup);
-            // ❌ 제거: StaticActor->attachShape(*Shape);  // 이미 attach됨!
-            // ❌ 제거: Shape->release();                   // Exclusive shape는 release 안함!
+            StaticActor->attachShape(*Shape);
+            Shape->release();
         }
     }
 
-    // 씬에 액터 추가
     Scene->addActor(*StaticActor);
-
-    // ★★★ 핵심 추가: 모든 Static Body를 기본적으로 운전 가능한 표면으로 설정 ★★★
-    World.SetupActorAsDrivableSurface(StaticActor);
 
     RigidActor = StaticActor;
     RigidActor->userData = this;
@@ -472,8 +449,6 @@ void FBodyInstance::InitStatic(FPhysScene& World, const FTransform& WorldTransfo
     {
         Material->release();
     }
-
-    UE_LOG("[BodyInstance] Static actor created and set as drivable surface");
 }
 
 void FBodyInstance::Terminate(FPhysScene& World)
