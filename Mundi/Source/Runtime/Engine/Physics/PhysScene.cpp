@@ -48,9 +48,60 @@ PxQueryHitType::Enum VehicleWheelRaycastPreFilter(
     return PxQueryHitType::eNONE;
 }
 
+/**
+ * @brief PhysX 에러 콜백을 UE_LOG로 출력하는 커스텀 에러 핸들러 구현
+ */
+void FPhysXCustomErrorCallback::reportError(PxErrorCode::Enum code, const char* message, const char* file, int line)
+{
+    const char* errorType = GetErrorTypeString(code);
+    
+    // 에러 코드별로 다른 로그 레벨 적용
+    switch (code)
+    {
+    case PxErrorCode::eNO_ERROR:
+        UE_LOG("[PhysX][info] %s: %s (File: %s, Line: %d)", errorType, message, file, line);
+        break;
+        
+    case PxErrorCode::eDEBUG_INFO:
+    case PxErrorCode::eDEBUG_WARNING:
+        UE_LOG("[PhysX][warning] %s: %s (File: %s, Line: %d)", errorType, message, file, line);
+        break;
+        
+    case PxErrorCode::eINVALID_PARAMETER:
+    case PxErrorCode::eINVALID_OPERATION:
+    case PxErrorCode::eOUT_OF_MEMORY:
+    case PxErrorCode::eINTERNAL_ERROR:
+    case PxErrorCode::eABORT:
+    case PxErrorCode::ePERF_WARNING:
+        UE_LOG("[PhysX][error] %s: %s (File: %s, Line: %d)", errorType, message, file, line);
+        break;
+        
+    default:
+        UE_LOG("[PhysX][error] UNKNOWN_ERROR: %s (File: %s, Line: %d)", message, file, line);
+        break;
+    }
+}
+
+const char* FPhysXCustomErrorCallback::GetErrorTypeString(PxErrorCode::Enum code)
+{
+    switch (code)
+    {
+    case PxErrorCode::eNO_ERROR:       return "NO_ERROR";
+    case PxErrorCode::eDEBUG_INFO:     return "DEBUG_INFO";
+    case PxErrorCode::eDEBUG_WARNING:  return "DEBUG_WARNING";
+    case PxErrorCode::eINVALID_PARAMETER: return "INVALID_PARAMETER";
+    case PxErrorCode::eINVALID_OPERATION:  return "INVALID_OPERATION";
+    case PxErrorCode::eOUT_OF_MEMORY:      return "OUT_OF_MEMORY";
+    case PxErrorCode::eINTERNAL_ERROR:     return "INTERNAL_ERROR";
+    case PxErrorCode::eABORT:              return "ABORT";
+    case PxErrorCode::ePERF_WARNING:       return "PERF_WARNING";
+    default:                               return "UNKNOWN_ERROR";
+    }
+}
+
 // ===== FPhysXSharedResources Static Members =====
 PxDefaultAllocator FPhysXSharedResources::Allocator;
-PxDefaultErrorCallback FPhysXSharedResources::ErrorCallback;
+FPhysXCustomErrorCallback FPhysXSharedResources::ErrorCallback;  // 커스텀 에러 콜백 사용
 FPhysXAssertHandler FPhysXSharedResources::AssertHandler;
 PxFoundation* FPhysXSharedResources::Foundation = nullptr;
 PxPvd* FPhysXSharedResources::Pvd = nullptr;

@@ -59,6 +59,20 @@ public:
     }
 };
 
+/**
+ * @brief PhysX 에러 콜백을 UE_LOG로 출력하는 커스텀 에러 핸들러
+ * 
+ * PhysX에서 발생하는 모든 에러/경고 메시지를 콘솔로 출력합니다.
+ */
+class FPhysXCustomErrorCallback : public PxErrorCallback
+{
+public:
+    virtual void reportError(PxErrorCode::Enum code, const char* message, const char* file, int line) override;
+
+private:
+    const char* GetErrorTypeString(PxErrorCode::Enum code);
+};
+
 class FSimulationEventCallback;
 
 /**
@@ -84,7 +98,7 @@ public:
 
 private:
     static PxDefaultAllocator Allocator;
-    static PxDefaultErrorCallback ErrorCallback;
+    static FPhysXCustomErrorCallback ErrorCallback;  // 커스텀 에러 콜백 사용
     static FPhysXAssertHandler AssertHandler;
     static PxFoundation* Foundation;
     static PxPvd* Pvd;

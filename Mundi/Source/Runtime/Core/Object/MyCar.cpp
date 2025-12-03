@@ -25,15 +25,15 @@ static void SetupWheelsSimulationData(
 
     // Front wheels - 앞쪽이 +Y 방향 (Z-up 왼손좌표계)
     WheelCentreOffsets[PxVehicleDrive4WWheelOrder::eFRONT_LEFT] =
-        PxVec3(-1.0f, 1.4f, 0.35f);  // 좌측 앞바퀴
+        PxVec3(-1.0f, 1.4f, -0.35f);  // 좌측 앞바퀴
     WheelCentreOffsets[PxVehicleDrive4WWheelOrder::eFRONT_RIGHT] =
-        PxVec3(1.0f, 1.4f, 0.35f);   // 우측 앞바퀴
+        PxVec3(1.0f, 1.4f, -0.35f);   // 우측 앞바퀴
 
     // Rear wheels - 뒤쪽이 -Y 방향 (Z-up 왼손좌표계)
     WheelCentreOffsets[PxVehicleDrive4WWheelOrder::eREAR_LEFT] =
-        PxVec3(-1.0f, -1.4f, 0.35f); // 좌측 뒷바퀴
+        PxVec3(-1.0f, -1.4f, -0.35f); // 좌측 뒷바퀴
     WheelCentreOffsets[PxVehicleDrive4WWheelOrder::eREAR_RIGHT] =
-        PxVec3(1.0f, -1.4f, 0.35f);  // 우측 뒷바퀴
+        PxVec3(1.0f, -1.4f, -0.35f);  // 우측 뒷바퀴
 
     // CRITICAL: Get chassis mass and calculate sprung mass per wheel
     const float ChassisMass = InChassisMass;
@@ -592,7 +592,7 @@ void AMyCar::UpdateVehiclePhysics(float DeltaTime)
             VehicleInput.AnalogHandbrake > 0.01f)
         {
             VehicleActor->wakeUp();
-            UE_LOG("[MyCarComponent] Vehicle woken up due to input");
+            //UE_LOG("[MyCarComponent] Vehicle woken up due to input");
         }
     }
 
@@ -656,8 +656,8 @@ void AMyCar::UpdateVehiclePhysics(float DeltaTime)
         {
             wheelContactCount++;
             const PxRaycastHit& hit = raycastResults[i].getAnyHit(0);
-            UE_LOG("[MyCarComponent] Wheel %d: Hit distance = %.3f, Normal = (%.2f, %.2f, %.2f)",
-                i, hit.distance, hit.normal.x, hit.normal.y, hit.normal.z);
+            /*UE_LOG("[MyCarComponent] Wheel %d: Hit distance = %.3f, Normal = (%.2f, %.2f, %.2f)",
+                i, hit.distance, hit.normal.x, hit.normal.y, hit.normal.z);*/
         }
         else
         {
@@ -665,7 +665,7 @@ void AMyCar::UpdateVehiclePhysics(float DeltaTime)
         }
     }
     
-    UE_LOG("[MyCarComponent] Wheels in contact: %d/4", wheelContactCount);
+    //UE_LOG("[MyCarComponent] Wheels in contact: %d/4", wheelContactCount);
     
     PxVehicleWheelQueryResult vehicleQueryResults[1] = {
         {wheelQueryResults, numWheels}
@@ -692,13 +692,14 @@ void AMyCar::UpdateVehiclePhysics(float DeltaTime)
         const PxVehicleSuspensionData& suspData = VehicleDrive4W->mWheelsSimData.getSuspensionData(i);
         float sprungMass = suspData.mSprungMass;
         
-        UE_LOG("[MyCarComponent] Wheel %d: SprungMass=%.1f", i, sprungMass);
+        //UE_LOG("[MyCarComponent] Wheel %d: SprungMass=%.1f", i, sprungMass);
     }
 
     // 5. Enhanced logging
-    static int32 LogCounter = 0;
-    if (LogCounter % 60 == 0) // Log every second at 60 FPS
+    static float LogCounter = 0.0f;
+    if (LogCounter >= 1.0f) // Log every second at 60 FPS
     {
+        LogCounter = 0.0f;
         UE_LOG("[MyCarComponent] === Vehicle State ===");
         UE_LOG("[MyCarComponent] Sleeping: %s | InAir: %s | Gear: %d",
             bIsSleeping ? "YES" : "NO", 
@@ -712,7 +713,7 @@ void AMyCar::UpdateVehiclePhysics(float DeltaTime)
             PxTrans.p.x, PxTrans.p.y, PxTrans.p.z);
         UE_LOG("[MyCarComponent] =====================");
     }
-    LogCounter++;
+    LogCounter += DeltaTime;
 }
 
 void AMyCar::CleanupVehiclePhysics()
