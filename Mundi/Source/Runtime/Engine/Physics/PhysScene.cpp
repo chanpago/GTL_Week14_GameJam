@@ -129,6 +129,8 @@ void FPhysXSharedResources::Shutdown()
         PxCloseExtensions();
         Physics->release();
         Physics = nullptr;
+
+        PxCloseVehicleSDK();
     }
 
     if (Pvd)

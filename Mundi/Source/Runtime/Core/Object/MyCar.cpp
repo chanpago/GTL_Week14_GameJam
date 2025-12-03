@@ -62,10 +62,10 @@ static void SetupWheelsSimulationData(
         // NOTE: mSprungMass is set automatically by setChassisMass() - DO NOT set manually
         WheelsSimData->setSuspensionData(i, suspData);
         
-        WheelsSimData->setWheelShapeMapping(i, i);
+        WheelsSimData->setWheelShapeMapping(i, i + 1);
         
         // Set wheel center offset
-        WheelsSimData->setSuspTravelDirection(i, PxVec3(0, -1, 0));
+        WheelsSimData->setSuspTravelDirection(i, PxVec3(0, 0, -1));
         WheelsSimData->setWheelCentreOffset(i, WheelCentreOffsets[i]);
         
         // Set suspension force application point offset - must be different from (0,0,0)
@@ -587,7 +587,7 @@ void AMyCar::CleanupVehiclePhysics()
     }
     
     // Cleanup PhysX Vehicle SDK
-    PxCloseVehicleSDK();
+    //PxCloseVehicleSDK();
     
     UE_LOG("[MyCarComponent] Vehicle physics cleaned up");
 }
