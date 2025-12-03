@@ -54,37 +54,25 @@ PS_OUTPUT mainPS(PS_INPUT input)
         return output;
     }
 
-    // Inline dilate: 주변 최대 CoC 샘플링 (Tile Dilation 대체)
-    float dilateRadius = halfBlurRadius * 0.5;
-    float maxCoc = centerCoc;
-    maxCoc = max(maxCoc, g_InputTex.Sample(g_LinearClampSample, input.texCoord + float2(dilateRadius, 0) * texelSize).a);
-    maxCoc = max(maxCoc, g_InputTex.Sample(g_LinearClampSample, input.texCoord - float2(dilateRadius, 0) * texelSize).a);
-    maxCoc = max(maxCoc, g_InputTex.Sample(g_LinearClampSample, input.texCoord + float2(0, dilateRadius) * texelSize).a);
-    maxCoc = max(maxCoc, g_InputTex.Sample(g_LinearClampSample, input.texCoord - float2(0, dilateRadius) * texelSize).a);
-
-    // 주변에 블러 대상이 없으면 early out
-    if (maxCoc < COC_THRESHOLD)
-    {
-        output.Color = float4(0, 0, 0, 0);
-        return output;
-    }
-
-    float pixelRadius = maxCoc * halfBlurRadius;
-    pixelRadius = clamp(pixelRadius, 1.0, halfBlurRadius);
+    // Near: 항상 최대 반경 (주변 Near 블러 수집)
+    // Far: centerCoc 기반 반경
+    float pixelRadius = IsFarField
+        ? clamp(centerCoc * halfBlurRadius, 1.0, halfBlurRadius)
+        : halfBlurRadius;
 
     // 3. Ring-based Gather
     float3 accColor = float3(0, 0, 0);
     float accWeight = 0.0;
-    float validSampleCount = 0.0;
+    float accAlpha = 0.0;
 
     const int MAX_RING = 5;
 
-    // Ring 0: 중심
-    if (centerCoc > COC_THRESHOLD)
+    // Ring 0: 중심 (Far만, Near는 주변에서 번져오는 것만 수집)
+    if (centerCoc > COC_THRESHOLD && IsFarField)
     {
         accColor += centerColor;
         accWeight += 1.0;
-        validSampleCount += 1.0;
+        accAlpha += centerCoc;
     }
 
     // Ring 1~MAX_RING
@@ -138,7 +126,7 @@ PS_OUTPUT mainPS(PS_INPUT input)
 
             accColor += sampleColor * weight;
             accWeight += weight;
-            validSampleCount += 1.0;
+            accAlpha += sampleCoc * weight;
         }
     }
 
@@ -151,8 +139,8 @@ PS_OUTPUT mainPS(PS_INPUT input)
 
     float3 avgColor = accColor / accWeight;
 
-    // finalAlpha를 centerCoc에 비례하게 → CoC 작으면 원본에 가깝게
-    float finalAlpha = centerCoc;
+    // 수집된 CoC 가중 평균
+    float finalAlpha = accAlpha / accWeight;
 
     output.Color = float4(avgColor * finalAlpha, finalAlpha);
     return output;

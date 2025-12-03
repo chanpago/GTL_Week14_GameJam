@@ -80,10 +80,10 @@ float CalculateCoCWithSkyCheck(
 )
 {
     // 하늘/배경 체크: Far Clip의 95% 이상이면 무한대로 간주 → 블러 안함
-    if (viewDepth > farClip * 0.99)
-    {
-        return 0.0;
-    }
+    //if (viewDepth > farClip * 0.99)
+    //{
+      //  return 0.0;
+    //}
 
     return CalculateCoC(
         viewDepth,
