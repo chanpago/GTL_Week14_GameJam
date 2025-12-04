@@ -36,6 +36,7 @@ void FAnimBlueprintCompiler::Compile(UAnimationGraph* InGraph, UAnimInstance* In
             NewState.Name = StateName;
             NewState.bLoop = bLoop;
             NewState.PlayRate = PlayRate;
+            NewState.bEnableRootMotion = StateNode->bEnableRootMotion;
 
             if (AnimPin && AnimPin->LinkedTo.Num() > 0)
             {

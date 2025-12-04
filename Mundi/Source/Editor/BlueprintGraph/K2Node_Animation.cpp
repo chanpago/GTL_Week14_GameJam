@@ -174,10 +174,12 @@ void UK2Node_AnimState::Serialize(const bool bInIsLoading, JSON& InOutHandle)
     if (bInIsLoading)
     {
         FJsonSerializer::ReadString(InOutHandle, "StateName", StateName);
+        FJsonSerializer::ReadBool(InOutHandle, "EnableRootMotion", bEnableRootMotion);
     }
     else
     {
         InOutHandle["StateName"] = StateName;
+        InOutHandle["EnableRootMotion"] = bEnableRootMotion;
     }
 }
 
@@ -198,6 +200,8 @@ void UK2Node_AnimState::RenderBody()
     ImGui::PushItemWidth(150.0f);
     ImGui::InputText("상태 이름", &StateName);
     ImGui::PopItemWidth();
+
+    ImGui::Checkbox("Root Motion", &bEnableRootMotion);
 }
 
 void UK2Node_AnimState::GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const

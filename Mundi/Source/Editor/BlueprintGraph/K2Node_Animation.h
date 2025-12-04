@@ -96,7 +96,10 @@ public:
 
     /** 상태의 고유 이름. FAnimationState::Name에 해당한다. */
     FString StateName = "NewState";
-    
+
+    /** 이 상태에서 루트 모션을 사용할지 여부 */
+    bool bEnableRootMotion = false;
+
     virtual void Serialize(const bool bInIsLoading, JSON& InOutHandle) override;
 
     // --- UEdGraphNode 인터페이스 ---

@@ -100,7 +100,7 @@ void FBXAnimationLoader::ProcessAnimations(FbxScene* Scene, const FSkeletalMeshD
 		float FrameRate = static_cast<float>(FbxTime::GetFrameRate(TimeMode));
 		double PlayLength = Duration.GetSecondDouble();
 
-		// 전체 프레임 수 계산 (KraftonGTL 방식)
+		// 전체 프레임 수 계산
 		FbxLongLong FrameCount = Duration.GetFrameCount(TimeMode);
 		int32 NumFrames = static_cast<int32>(FrameCount) + 1;  // 0부터 FrameCount까지 포함
 
@@ -240,7 +240,7 @@ void FBXAnimationLoader::ExtractBoneAnimation(FbxNode* BoneNode, FbxAnimLayer* A
 	// 부모 노드 가져오기
 	FbxNode* ParentNode = BoneNode->GetParent();
 
-	// 처음부터 끝까지 모든 프레임을 샘플링 (KraftonGTL 방식)
+	// 처음부터 끝까지 모든 프레임을 샘플링
 	for (FbxLongLong Frame = 0; Frame <= FrameCount; Frame++)
 	{
 		FbxTime CurrentTime;

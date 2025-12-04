@@ -42,6 +42,9 @@ void UAnimationStateMachine::SetInitialState(const FName& StateName)
     // 초기 상태의 애니메이션 재생
     if (Owner)
     {
+        // 루트 모션 설정
+        Owner->SetRootMotionEnabled(State->bEnableRootMotion);
+
         if (State->Sequence)
         {
             // 기존 방식: AnimSequence 재생
@@ -52,7 +55,8 @@ void UAnimationStateMachine::SetInitialState(const FName& StateName)
             // 새 방식: PoseProvider 재생 (BlendSpace 등)
             Owner->PlayPoseProvider(State->PoseProvider, State->bLoop, State->PlayRate);
         }
-        UE_LOG("AnimationStateMachine: Initial state set to '%s'", StateName.ToString().c_str());
+        UE_LOG("AnimationStateMachine: Initial state set to '%s' (RootMotion: %d)",
+            StateName.ToString().c_str(), State->bEnableRootMotion ? 1 : 0);
     }
 }
 
@@ -134,16 +138,26 @@ void UAnimationStateMachine::ChangeState(const FName& NewStateName, float BlendT
         return;
     }
 
-    UE_LOG("AnimationStateMachine: State transition - %s -> %s (BlendTime: %.2f)",
+    UE_LOG("AnimationStateMachine: State transition - %s -> %s (BlendTime: %.2f, RootMotion: %d)",
         CurrentStateName.ToString().c_str(),
         NewStateName.ToString().c_str(),
-        BlendTime);
+        BlendTime,
+        NewState->bEnableRootMotion ? 1 : 0);
 
     CurrentStateName = NewStateName;
 
     // 새 상태의 애니메이션 재생
     if (Owner)
     {
+        // 루트 모션 설정 (상태 전환 시 즉시 적용)
+        Owner->SetRootMotionEnabled(NewState->bEnableRootMotion);
+
+        // 루트 모션이 꺼지면 이전 프레임 정보 리셋
+        if (!NewState->bEnableRootMotion)
+        {
+            Owner->bHasPreviousRootTransform = false;
+        }
+
         if (NewState->Sequence)
         {
             // 기존 방식: AnimSequence

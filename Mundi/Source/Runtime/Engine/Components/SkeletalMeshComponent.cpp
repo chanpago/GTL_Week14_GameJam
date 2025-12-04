@@ -283,6 +283,39 @@ void USkeletalMeshComponent::TickComponent(float DeltaTime)
         {
             case EPhysicsAnimationState::AnimationDriven:
                 AnimInstance->NativeUpdateAnimation(DeltaTime);
+
+                // 루트 모션 델타를 Owner에 적용
+                if (AnimInstance->IsRootMotionEnabled())
+                {
+                    FVector RootMotionDelta = AnimInstance->ConsumeRootMotionTranslation();
+                    FQuat RootMotionRotDelta = AnimInstance->ConsumeRootMotionRotation();
+
+                    // 델타가 유의미한 값인지 확인
+                    bool bHasTranslation = RootMotionDelta.Size() > KINDA_SMALL_NUMBER;
+                    bool bHasRotation = !RootMotionRotDelta.IsIdentity();
+
+                    if (bHasTranslation || bHasRotation)
+                    {
+                        if (AActor* Owner = GetOwner())
+                        {
+                            // 컴포넌트의 월드 회전을 고려하여 델타 변환
+                            FQuat ComponentWorldRotation = GetWorldTransform().Rotation;
+                            FVector WorldDelta = ComponentWorldRotation.RotateVector(RootMotionDelta);
+
+                            // Owner 위치 업데이트
+                            FVector NewLocation = Owner->GetActorLocation() + WorldDelta;
+                            Owner->SetActorLocation(NewLocation);
+
+                            // Owner 회전 업데이트 (필요시)
+                            if (!RootMotionRotDelta.IsIdentity())
+                            {
+                                FQuat NewRotation = Owner->GetActorRotation() * RootMotionRotDelta;
+                                Owner->SetActorRotation(NewRotation);
+                            }
+                        }
+                    }
+                }
+
                 if (PhysScene)
                 {
                     SyncBodiesFromAnimation(*PhysScene);
@@ -1305,14 +1338,60 @@ void USkeletalMeshComponent::SetAnimationPose(const TArray<FTransform>& InPose)
         return;
     }
 
+    // 루트 모션 처리
+    if (AnimInstance && AnimInstance->IsRootMotionEnabled() && NumBones > 0)
+    {
+        const FTransform& CurrentRootTransform = InPose[0];
+
+        // 애니메이션 끝부분(마지막 4프레임)인지 확인 - 원점 복귀 프레임 무시
+        bool bShouldApplyRootMotion = true;
+        if (AnimInstance->CurrentPlayState.PoseProvider)
+        {
+            float PlayLength = AnimInstance->CurrentPlayState.PoseProvider->GetPlayLength();
+            float CurrentTime = AnimInstance->CurrentPlayState.CurrentTime;
+
+            // 프레임레이트 가정 (30fps 기준, 4프레임 = 약 0.133초)
+            float IgnoreEndTime = 4.0f / 30.0f;  // 마지막 4프레임
+
+            if (PlayLength > 0.0f && CurrentTime > (PlayLength - IgnoreEndTime))
+            {
+                bShouldApplyRootMotion = false;
+            }
+        }
+
+        // 이전 프레임 루트 트랜스폼이 있으면 델타 계산
+        if (AnimInstance->bHasPreviousRootTransform && bShouldApplyRootMotion)
+        {
+            const FTransform& PrevRootTransform = AnimInstance->PreviousRootBoneTransform;
+
+            // 델타 계산 (현재 - 이전)
+            FVector TranslationDelta = CurrentRootTransform.Translation - PrevRootTransform.Translation;
+            FQuat RotationDelta = PrevRootTransform.Rotation.Inverse() * CurrentRootTransform.Rotation;
+
+            // AnimInstance에 델타 저장 (누적)
+            AnimInstance->RootMotionTranslation = AnimInstance->RootMotionTranslation + TranslationDelta;
+            AnimInstance->RootMotionRotation = AnimInstance->RootMotionRotation * RotationDelta;
+        }
+
+        // 현재 루트 트랜스폼을 다음 프레임을 위해 저장
+        AnimInstance->PreviousRootBoneTransform = CurrentRootTransform;
+        AnimInstance->bHasPreviousRootTransform = true;
+    }
+
     // AnimInstance가 계산한 포즈를 CurrentLocalSpacePose에 복사
-    // 주의: AnimInstance의 포즈는 본 트랙 순서이므로 스켈레톤 본 순서와 매칭해야 함
     for (int32 BoneIndex = 0; BoneIndex < NumBones; ++BoneIndex)
     {
         if (BoneIndex < InPose.Num())
         {
             CurrentLocalSpacePose[BoneIndex] = InPose[BoneIndex];
         }
+    }
+
+    // 루트 모션이 활성화되어 있으면 루트 본을 원점에 고정
+    if (AnimInstance && AnimInstance->IsRootMotionEnabled() && NumBones > 0)
+    {
+        // 루트 본의 위치를 원점으로 고정 (회전은 유지)
+        CurrentLocalSpacePose[0].Translation = FVector::Zero();
     }
 
     // 포즈 변경 사항을 스키닝에 반영

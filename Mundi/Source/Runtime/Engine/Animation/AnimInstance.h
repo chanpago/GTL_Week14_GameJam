@@ -105,6 +105,10 @@ class UAnimInstance : public UObject
 {
     DECLARE_CLASS(UAnimInstance, UObject)
 
+    // 루트 모션 관련 멤버에 접근할 수 있도록 허용
+    friend class USkeletalMeshComponent;
+    friend class UAnimationStateMachine;
+
 public:
     UAnimInstance() = default;
     virtual ~UAnimInstance() = default;
@@ -249,6 +253,42 @@ public:
      */
     bool GetIsMoving() const { return bIsMoving; }
 
+    // ============================================================
+    // Root Motion
+    // ============================================================
+
+    /**
+     * @brief 루트 모션 활성화/비활성화
+     * @param bEnabled true면 루트 모션 활성화
+     */
+    void SetRootMotionEnabled(bool bEnabled) { bEnableRootMotion = bEnabled; }
+
+    /**
+     * @brief 루트 모션이 활성화되어 있는지 확인
+     */
+    bool IsRootMotionEnabled() const { return bEnableRootMotion; }
+
+    /**
+     * @brief 루트 모션 이동 델타를 가져오고 리셋
+     * @return 이번 프레임의 루트 본 이동량 (월드 스페이스)
+     */
+    FVector ConsumeRootMotionTranslation();
+
+    /**
+     * @brief 루트 모션 회전 델타를 가져오고 리셋
+     * @return 이번 프레임의 루트 본 회전량
+     */
+    FQuat ConsumeRootMotionRotation();
+
+    /**
+     * @brief 현재 루트 모션 이동 델타 (리셋 없이)
+     */
+    FVector GetRootMotionTranslation() const { return RootMotionTranslation; }
+
+    /**
+     * @brief 현재 루트 모션 회전 델타 (리셋 없이)
+     */
+    FQuat GetRootMotionRotation() const { return RootMotionRotation; }
 
     // ============================================================
     // Getters
@@ -286,6 +326,13 @@ protected:
     // 애니메이션 파라미터 (상태머신 전이 조건용)
     float MovementSpeed = 0.0f;
     bool bIsMoving = false;
+
+    // 루트 모션 관련
+    bool bEnableRootMotion = false;
+    FVector RootMotionTranslation;
+    FQuat RootMotionRotation = FQuat::Identity();
+    FTransform PreviousRootBoneTransform;
+    bool bHasPreviousRootTransform = false;
 
     // 레이어별 상태 관리
     // Layer[0] = Base, Layer[1] = Upper

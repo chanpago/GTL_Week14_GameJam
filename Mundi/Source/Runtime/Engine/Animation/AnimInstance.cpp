@@ -506,6 +506,24 @@ void UAnimInstance::AdvancePlayState(FAnimationPlayState& PlayState, float Delta
     }
 }
 
+// ============================================================
+// Root Motion
+// ============================================================
+
+FVector UAnimInstance::ConsumeRootMotionTranslation()
+{
+    FVector Result = RootMotionTranslation;
+    RootMotionTranslation = FVector(0,0,0);
+    return Result;
+}
+
+FQuat UAnimInstance::ConsumeRootMotionRotation()
+{
+    FQuat Result = RootMotionRotation;
+    RootMotionRotation = FQuat::Identity();
+    return Result;
+}
+
 void UAnimInstance::BlendPoseArrays(const TArray<FTransform>& FromPose, const TArray<FTransform>& ToPose, float Alpha, TArray<FTransform>& OutPose) const
 {
     const int32 NumBones = FMath::Min(FromPose.Num(), ToPose.Num());
