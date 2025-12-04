@@ -64,7 +64,7 @@ public:
 	void OnRegister(UWorld* InWorld) override;
 
 private:
-	//UPROPERTY(EditAnywhere, Category="Decal", Tooltip="데칼 텍스처입니다")
+	UPROPERTY(EditAnywhere, Category="Decal", Tooltip="데칼 텍스처입니다")
 	UTexture* DecalTexture = nullptr;
 
 	UGizmoArrowComponent* DirectionGizmo = nullptr;
