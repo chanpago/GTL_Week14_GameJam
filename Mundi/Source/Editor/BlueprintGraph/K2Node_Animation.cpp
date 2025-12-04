@@ -6,6 +6,7 @@
 #include "BlueprintEvaluator.h"
 #include "Source/Editor/FBX/BlendSpace/BlendSpace1D.h"
 #include "Source/Editor/FBX/BlendSpace/BlendSpace2D.h"
+#include "Source/Runtime/Engine/Animation/AnimInstance.h"
 
 namespace ed = ax::NodeEditor;
 
@@ -1186,4 +1187,60 @@ void UK2Node_BlendSpace2D::RebuildBlendSpace()
             BlendSpace->AddTriangle(BSIdxA, BSIdxB, BSIdxC);
         }
     }
+}
+
+// ----------------------------------------------------------------
+//	[IsAnimationFinished] 애니메이션 종료 여부 확인 노드
+// ----------------------------------------------------------------
+
+IMPLEMENT_CLASS(UK2Node_IsAnimationFinished)
+
+UK2Node_IsAnimationFinished::UK2Node_IsAnimationFinished()
+{
+    TitleColor = ImColor(100, 120, 255);
+}
+
+void UK2Node_IsAnimationFinished::AllocateDefaultPins()
+{
+    // 출력: bool (애니메이션이 끝났으면 true)
+    CreatePin(EEdGraphPinDirection::EGPD_Output, FEdGraphPinCategory::Bool, "Finished");
+}
+
+void UK2Node_IsAnimationFinished::RenderBody()
+{
+    // 노드 바디에 표시할 추가 UI 없음
+}
+
+FBlueprintValue UK2Node_IsAnimationFinished::EvaluatePin(const UEdGraphPin* OutputPin, FBlueprintContext* Context)
+{
+    if (OutputPin->PinName == "Finished")
+    {
+        if (!Context || !Context->SourceObject)
+        {
+            return false;
+        }
+
+        // Context에서 AnimInstance 가져오기
+        UAnimInstance* AnimInstance = Cast<UAnimInstance>(Context->SourceObject);
+        if (!AnimInstance)
+        {
+            return false;
+        }
+
+        // IsPlaying()이 false면 애니메이션이 끝난 것
+        // (루핑이 아닌 애니메이션이 끝까지 재생되면 bIsPlaying = false가 됨)
+        bool bIsFinished = !AnimInstance->IsPlaying();
+        return bIsFinished;
+    }
+    return false;
+}
+
+void UK2Node_IsAnimationFinished::GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const
+{
+    UBlueprintNodeSpawner* Spawner = UBlueprintNodeSpawner::Create(GetClass());
+
+    Spawner->MenuName = GetNodeTitle();
+    Spawner->Category = GetMenuCategory();
+
+    ActionRegistrar.AddAction(Spawner);
 }

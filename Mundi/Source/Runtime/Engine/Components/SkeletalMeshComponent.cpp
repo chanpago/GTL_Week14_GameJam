@@ -46,7 +46,7 @@ static FBodyInstance* FindBodyInstanceByName(const TArray<FBodyInstance*>& Bodie
 
 USkeletalMeshComponent::USkeletalMeshComponent()
 {
-    SetSkeletalMesh("Data/James/James.fbx");
+    // 기본값 없음 - 프리팹/씬에서 설정
 }
 
 void USkeletalMeshComponent::DuplicateSubObjects()

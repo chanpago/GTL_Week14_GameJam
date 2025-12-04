@@ -239,3 +239,29 @@ public:
 private:
     void DrawTriangles(ImDrawList* DrawList, ImVec2 CanvasMin, float CanvasSize);
 };
+
+// ----------------------------------------------------------------
+//	[IsAnimationFinished] 애니메이션 종료 여부 확인 노드
+// ----------------------------------------------------------------
+
+UCLASS(DisplayName = "UK2Node_IsAnimationFinished", Description = "현재 애니메이션이 끝났는지 확인합니다. 루핑이 아닌 애니메이션이 끝까지 재생되면 true를 반환합니다.")
+class UK2Node_IsAnimationFinished : public UK2Node
+{
+    DECLARE_CLASS(UK2Node_IsAnimationFinished, UK2Node);
+
+public:
+    UK2Node_IsAnimationFinished();
+
+    // --- UEdGraphNode 인터페이스 ---
+public:
+    virtual FString GetNodeTitle() const override { return "Is Animation Finished"; }
+    virtual bool IsNodePure() const override { return true; }
+    virtual void AllocateDefaultPins() override;
+    virtual void RenderBody() override;
+    virtual FBlueprintValue EvaluatePin(const UEdGraphPin* OutputPin, FBlueprintContext* Context) override;
+
+    // --- UK2Node 인터페이스 ---
+public:
+    virtual FString GetMenuCategory() const override { return "애니메이션"; };
+    virtual void GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const override;
+};
