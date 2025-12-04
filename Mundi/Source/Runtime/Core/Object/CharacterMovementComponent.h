@@ -70,6 +70,13 @@ protected:
 	/** PhysScene 가져오기 */
 	FPhysScene* GetPhysScene() const;
 
+	/**
+	 * @brief 현재 위치에서 관통(Penetration) 해결
+	 * 반복적으로 MTD를 계산하여 겹친 상태에서 탈출
+	 * @return 탈출에 성공하면 true, 최대 반복 후에도 실패하면 false
+	 */
+	bool ResolveOverlaps();
+
 protected:
 	ACharacter* CharacterOwner = nullptr;
 	bool bIsFalling = false;

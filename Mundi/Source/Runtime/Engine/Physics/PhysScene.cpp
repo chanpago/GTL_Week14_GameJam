@@ -971,6 +971,124 @@ bool FPhysScene::SweepSphere(
     return false;
 }
 
+// ===== Overlap Query with MTD (Minimum Translation Distance) =====
+
+bool FPhysScene::OverlapCapsuleWithMTD(
+    const FVector& Position,
+    float Radius,
+    float HalfHeight,
+    FVector& OutPenetrationNormal,
+    float& OutPenetrationDepth,
+    AActor* IgnoreActor) const
+{
+    OutPenetrationNormal = FVector::Zero();
+    OutPenetrationDepth = 0.0f;
+
+    if (!Scene)
+    {
+        UE_LOG("[PhysScene] OverlapCapsuleWithMTD: Scene is null");
+        return false;
+    }
+
+    // PhysX 캡슐 설정 (Z축 방향 -> X축 방향 변환)
+    float CylinderHalfHeight = FMath::Max(0.0f, HalfHeight - Radius);
+    PxCapsuleGeometry CapsuleGeom(Radius, CylinderHalfHeight);
+
+    // Y축 기준 90도 회전 (Z-up에서 X-up으로)
+    PxQuat CapsuleRotation(PxHalfPi, PxVec3(0, 1, 0));
+    PxTransform CapsulePose(PxVec3(Position.X, Position.Y, Position.Z), CapsuleRotation);
+
+    // Overlap 쿼리 설정 - 여러 개의 겹침을 감지
+    const PxU32 MaxOverlaps = 8;
+    PxOverlapHit OverlapHits[MaxOverlaps];
+    PxOverlapBuffer OverlapBuffer(OverlapHits, MaxOverlaps);
+
+    FSweepQueryFilterCallback FilterCallback(IgnoreActor);
+    PxQueryFilterData FilterData;
+    FilterData.flags = PxQueryFlag::eSTATIC | PxQueryFlag::eDYNAMIC | PxQueryFlag::ePREFILTER;
+
+    bool bHasOverlap = false;
+    FVector TotalMTD = FVector::Zero();
+    float MaxDepth = 0.0f;
+    int32 OverlapCount = 0;
+
+    {
+        SCOPED_PHYSX_READ_LOCK(*Scene);
+
+        // 1단계: Overlap 검사로 겹치는 shape들 찾기
+        bool bOverlap = Scene->overlap(
+            CapsuleGeom,
+            CapsulePose,
+            OverlapBuffer,
+            FilterData,
+            &FilterCallback
+        );
+
+        if (!bOverlap || OverlapBuffer.getNbAnyHits() == 0)
+            return false;
+
+        // 2단계: 각 겹치는 shape에 대해 MTD 계산
+        PxU32 NumHits = OverlapBuffer.getNbAnyHits();
+        UE_LOG("[PhysScene] OverlapCapsuleWithMTD: Found %u overlapping shapes at (%.2f, %.2f, %.2f)",
+            NumHits, Position.X, Position.Y, Position.Z);
+
+        for (PxU32 i = 0; i < NumHits; ++i)
+        {
+            const PxOverlapHit& Hit = OverlapBuffer.getAnyHit(i);
+
+            if (!Hit.shape || !Hit.actor)
+                continue;
+
+            // shape의 geometry와 transform 가져오기
+            PxGeometryHolder GeomHolder = Hit.shape->getGeometry();
+            PxTransform ShapePose = PxShapeExt::getGlobalPose(*Hit.shape, *Hit.actor);
+
+            // MTD 계산 (Minimum Translation Distance)
+            PxVec3 MtdDirection;
+            PxF32 MtdDepth;
+
+            bool bComputed = PxGeometryQuery::computePenetration(
+                MtdDirection,
+                MtdDepth,
+                CapsuleGeom,
+                CapsulePose,
+                GeomHolder.any(),
+                ShapePose
+            );
+
+            if (bComputed && MtdDepth > 0.0f)
+            {
+                bHasOverlap = true;
+                OverlapCount++;
+
+                // MTD 방향과 깊이를 누적 (여러 관통 처리)
+                FVector PenDir(MtdDirection.x, MtdDirection.y, MtdDirection.z);
+                TotalMTD += PenDir * MtdDepth;
+
+                UE_LOG("[PhysScene] OverlapCapsuleWithMTD: Shape[%u] MTD - Depth=%.4f, Dir=(%.2f, %.2f, %.2f)",
+                    i, MtdDepth, PenDir.X, PenDir.Y, PenDir.Z);
+
+                if (MtdDepth > MaxDepth)
+                {
+                    MaxDepth = MtdDepth;
+                }
+            }
+        }
+    }
+
+    if (bHasOverlap && !TotalMTD.IsZero())
+    {
+        OutPenetrationDepth = TotalMTD.Size();
+        OutPenetrationNormal = TotalMTD.GetNormalized();
+
+        UE_LOG("[PhysScene] OverlapCapsuleWithMTD: Total %d penetrations, Combined Depth=%.4f, Normal=(%.2f, %.2f, %.2f)",
+            OverlapCount, OutPenetrationDepth, OutPenetrationNormal.X, OutPenetrationNormal.Y, OutPenetrationNormal.Z);
+        return true;
+    }
+
+    return false;
+}
+
 // ===== Vehicle Surface Setup Functions =====
 
 void FPhysScene::SetupActorAsDrivableSurface(PxRigidActor* actor)

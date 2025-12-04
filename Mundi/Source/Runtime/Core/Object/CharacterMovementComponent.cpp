@@ -35,6 +35,9 @@ void UCharacterMovementComponent::TickComponent(float DeltaSeconds)
 
 	if (!UpdatedComponent || !CharacterOwner) return;
 
+	// 매 프레임 시작 시 관통 상태 해결 (벽에 끼인 경우 탈출)
+	ResolveOverlaps();
+
 	if (bIsFalling)
 	{
 		PhysFalling(DeltaSeconds);
@@ -95,6 +98,16 @@ void UCharacterMovementComponent::PhysWalking(float DeltaSecond)
 		// 충돌 시 슬라이딩 처리
 		if (!bMoved && Hit.bBlockingHit)
 		{
+			// 벽에 붙어있으면 (Distance≈0) Velocity에서 벽 방향 성분 제거
+			if (Hit.Distance < KINDA_SMALL_NUMBER)
+			{
+				float VelDot = FVector::Dot(Velocity, Hit.ImpactNormal);
+				if (VelDot < 0.0f)
+				{
+					Velocity = Velocity - Hit.ImpactNormal * VelDot;
+				}
+			}
+
 			FVector SlideVector = SlideAlongSurface(DeltaLoc, Hit);
 			if (!SlideVector.IsZero())
 			{
@@ -124,7 +137,7 @@ void UCharacterMovementComponent::PhysWalking(float DeltaSecond)
 			// 바닥 찾음 - 스냅 (경사면 내려가기)
 			if (StepDownHit.ImpactNormal.Z > 0.7f)
 			{
-				const float SkinWidth = 0.00125f;
+				const float SkinWidth = 0.025f;  // 통일된 SkinWidth
 				float SnapDistance = StepDownHit.Distance - SkinWidth;
 				if (SnapDistance > KINDA_SMALL_NUMBER)
 				{
@@ -211,7 +224,7 @@ void UCharacterMovementComponent::PhysFalling(float DeltaSecond)
 			bIsFalling = false;
 
 			// 바닥으로 스냅 (SkinWidth 여유를 두고 이동)
-			const float SkinWidth = 0.00125f;
+			const float SkinWidth = 0.025f;  // 통일된 SkinWidth
 			float SnapDistance = FloorHit.Distance - SkinWidth;
 			if (SnapDistance > KINDA_SMALL_NUMBER)
 			{
@@ -300,8 +313,20 @@ bool UCharacterMovementComponent::SafeMoveUpdatedComponent(const FVector& Delta,
 
 	if (bHit && OutHit.bBlockingHit)
 	{
-		// 충돌 지점 직전까지만 이동 (약간의 여유 거리)
-		const float SkinWidth = 0.00125f;
+		// 충돌 지점 직전까지만 이동 (SkinWidth로 관통 방지)
+		const float SkinWidth = 0.025f;  // 기존 0.00125f에서 증가 - 관통 방지 여유 공간
+
+		// Distance가 거의 0이면 이미 벽에 붙어있는 상태 - 밀어내기 필요
+		if (OutHit.Distance < KINDA_SMALL_NUMBER)
+		{
+			// 벽에 딱 붙어있음 - Normal 방향으로 SkinWidth만큼 밀어내기
+			FVector PushBack = OutHit.ImpactNormal * SkinWidth;
+			UpdatedComponent->AddRelativeLocation(PushBack);
+
+			UE_LOG("[CharacterMovement] SafeMove: Touching wall (Dist=0), pushing back by Normal*(%.4f)", SkinWidth);
+			return false;
+		}
+
 		float SafeDistance = FMath::Max(0.0f, OutHit.Distance - SkinWidth);
 		FVector SafeLocation = Start + Delta.GetNormalized() * SafeDistance;
 		UpdatedComponent->SetWorldLocation(SafeLocation);
@@ -402,4 +427,84 @@ FPhysScene* UCharacterMovementComponent::GetPhysScene() const
 		}
 	}
 	return nullptr;
+}
+
+bool UCharacterMovementComponent::ResolveOverlaps()
+{
+	if (!UpdatedComponent || !CharacterOwner)
+		return true;
+
+	FPhysScene* PhysScene = GetPhysScene();
+	if (!PhysScene)
+		return true;
+
+	float Radius, HalfHeight;
+	GetCapsuleSize(Radius, HalfHeight);
+
+	const int32 MaxDepenetrationIterations = 4;
+	const float MaxDepenetrationDistance = 2.0f;  // 최대 탈출 거리 제한
+	const float SkinWidth = 0.025f;  // 탈출 시 여유 거리
+
+	float TotalAdjustment = 0.0f;
+	FVector InitialLocation = UpdatedComponent->GetWorldLocation();
+
+	for (int32 Iter = 0; Iter < MaxDepenetrationIterations; ++Iter)
+	{
+		FVector CurrentLocation = UpdatedComponent->GetWorldLocation();
+
+		FVector PenetrationNormal;
+		float PenetrationDepth;
+
+		bool bOverlapping = PhysScene->OverlapCapsuleWithMTD(
+			CurrentLocation,
+			Radius,
+			HalfHeight,
+			PenetrationNormal,
+			PenetrationDepth,
+			CharacterOwner
+		);
+
+		if (!bOverlapping)
+		{
+			// 더 이상 관통 없음 - 성공
+			if (Iter > 0)
+			{
+				FVector FinalLocation = UpdatedComponent->GetWorldLocation();
+				UE_LOG("[CharacterMovement] ResolveOverlaps: SUCCESS after %d iterations", Iter);
+				UE_LOG("[CharacterMovement] ResolveOverlaps: Moved from (%.2f, %.2f, %.2f) to (%.2f, %.2f, %.2f), Total=%.3f",
+					InitialLocation.X, InitialLocation.Y, InitialLocation.Z,
+					FinalLocation.X, FinalLocation.Y, FinalLocation.Z, TotalAdjustment);
+			}
+			return true;
+		}
+
+		// 탈출 이동 계산
+		float AdjustmentDistance = PenetrationDepth + SkinWidth;
+		FVector Adjustment = PenetrationNormal * AdjustmentDistance;
+
+		UE_LOG("[CharacterMovement] ResolveOverlaps Iter[%d]: Pos=(%.2f, %.2f, %.2f), Depth=%.4f, Normal=(%.2f, %.2f, %.2f), AdjDist=%.4f",
+			Iter, CurrentLocation.X, CurrentLocation.Y, CurrentLocation.Z,
+			PenetrationDepth, PenetrationNormal.X, PenetrationNormal.Y, PenetrationNormal.Z, AdjustmentDistance);
+
+		// 안전 장치: 총 이동 거리 제한
+		TotalAdjustment += AdjustmentDistance;
+		if (TotalAdjustment > MaxDepenetrationDistance)
+		{
+			UE_LOG("[CharacterMovement] ResolveOverlaps: ABORT - Max distance exceeded (%.2f > %.2f)",
+				TotalAdjustment, MaxDepenetrationDistance);
+			// 그래도 현재까지의 조정은 적용
+			UpdatedComponent->AddRelativeLocation(Adjustment);
+			return false;
+		}
+
+		// 위치 조정 적용
+		UpdatedComponent->AddRelativeLocation(Adjustment);
+	}
+
+	// 최대 반복 후에도 여전히 관통 중
+	FVector FinalLocation = UpdatedComponent->GetWorldLocation();
+	UE_LOG("[CharacterMovement] ResolveOverlaps: FAILED after %d iterations", MaxDepenetrationIterations);
+	UE_LOG("[CharacterMovement] ResolveOverlaps: Stuck at (%.2f, %.2f, %.2f), moved %.3f from start",
+		FinalLocation.X, FinalLocation.Y, FinalLocation.Z, TotalAdjustment);
+	return false;
 }

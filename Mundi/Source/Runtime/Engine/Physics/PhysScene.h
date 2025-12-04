@@ -215,6 +215,26 @@ public:
         AActor* IgnoreActor = nullptr
     ) const;
 
+    // ===== Overlap Query (Penetration Detection) =====
+    /**
+     * @brief 캡슐이 현재 위치에서 다른 콜라이더와 겹쳐있는지 검사하고 MTD(Minimum Translation Distance) 계산
+     * @param Position 캡슐 중심 위치
+     * @param Radius 캡슐 반지름
+     * @param HalfHeight 캡슐 반높이
+     * @param OutPenetrationNormal 관통 탈출 방향 (정규화됨)
+     * @param OutPenetrationDepth 관통 깊이
+     * @param IgnoreActor 무시할 액터
+     * @return 관통이 있으면 true
+     */
+    bool OverlapCapsuleWithMTD(
+        const FVector& Position,
+        float Radius,
+        float HalfHeight,
+        FVector& OutPenetrationNormal,
+        float& OutPenetrationDepth,
+        AActor* IgnoreActor = nullptr
+    ) const;
+
 private:
     // Per-Scene 리소스 (인스턴스별로 고유)
     PxScene*                Scene           = nullptr;
