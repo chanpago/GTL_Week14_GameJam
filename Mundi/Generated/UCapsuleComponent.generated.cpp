@@ -37,6 +37,7 @@ BEGIN_PROPERTIES(UCapsuleComponent)
     MARK_AS_COMPONENT("캡슐 컴포넌트", "캡슐 모양 충돌 컴포넌트입니다")
     ADD_PROPERTY(float, CapsuleHalfHeight, "CapsuleHalfHeight", true)
     ADD_PROPERTY(float, CapsuleRadius, "CapsuleHalfHeight", true)
+    ADD_PROPERTY(bool, bRegisterToPhysX, "Physics", true)
 END_PROPERTIES()
 
 // ===== Lua Binding =====

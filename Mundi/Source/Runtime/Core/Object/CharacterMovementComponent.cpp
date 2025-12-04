@@ -35,10 +35,7 @@ void UCharacterMovementComponent::TickComponent(float DeltaSeconds)
 
 	if (!UpdatedComponent || !CharacterOwner) return;
 
-	// Fixed Timestep: 누적 시간 기반 물리 업데이트
-	AccumulatedTime += DeltaSeconds;
-
-	// 입력을 루프 밖에서 한 번만 소비 (FPS 독립적)
+	// 입력 소비 및 정규화
 	FVector FrameInputVector = CharacterOwner->ConsumeMovementInputVector();
 	FrameInputVector.Z = 0.0f;
 	if (!FrameInputVector.IsZero())
@@ -46,33 +43,17 @@ void UCharacterMovementComponent::TickComponent(float DeltaSeconds)
 		FrameInputVector.Normalize();
 	}
 
-	// 최대 서브스텝 제한 (프레임 드랍 시 물리가 너무 많이 돌지 않도록)
-	int32 NumSubSteps = 0;
+	// 매 프레임 관통 상태 해결
+	ResolveOverlaps();
 
-	while (AccumulatedTime >= FixedDeltaTime && NumSubSteps < MaxPhysicsSubSteps)
+	// 가변 DeltaTime으로 물리 업데이트 (매 프레임 실행 → 부드러운 이동)
+	if (bIsFalling)
 	{
-		// 매 서브스텝마다 관통 상태 해결
-		ResolveOverlaps();
-
-		if (bIsFalling)
-		{
-			PhysFalling(FixedDeltaTime);
-		}
-		else
-		{
-			PhysWalking(FixedDeltaTime, FrameInputVector);
-		}
-
-		AccumulatedTime -= FixedDeltaTime;
-		NumSubSteps++;
+		PhysFalling(DeltaSeconds);
 	}
-
-	// 최대 서브스텝 초과 시 남은 시간 버림 (물리 폭주 방지)
-	if (NumSubSteps >= MaxPhysicsSubSteps && AccumulatedTime > FixedDeltaTime)
+	else
 	{
-		UE_LOG("[CharacterMovement] Warning: Physics substep limit reached (%d), discarding %.3fs",
-			MaxPhysicsSubSteps, AccumulatedTime);
-		AccumulatedTime = 0.0f;
+		PhysWalking(DeltaSeconds, FrameInputVector);
 	}
 }
 

@@ -1,5 +1,11 @@
 ﻿#include "pch.h"
 #include "CapsuleComponent.h"
+#include "World.h"
+#include "Source/Runtime/Engine/Physics/PhysScene.h"
+#include <PxPhysicsAPI.h>
+
+using namespace physx;
+
 // IMPLEMENT_CLASS is now auto-generated in .generated.cpp
 //BEGIN_PROPERTIES(UCapsuleComponent)
 //MARK_AS_COMPONENT("캡슐 충돌 컴포넌트", "캡슐 모양의 충돌체를 생성하는 컴포넌트입니다.")
@@ -11,6 +17,11 @@ UCapsuleComponent::UCapsuleComponent()
 {
     CapsuleHalfHeight = 0.5f;
     CapsuleRadius = 0.5f;
+}
+
+UCapsuleComponent::~UCapsuleComponent()
+{
+    DestroyPhysXActor();
 }
 
 void UCapsuleComponent::OnRegister(UWorld* World)
@@ -45,6 +56,29 @@ void UCapsuleComponent::OnRegister(UWorld* World)
             CapsuleRadius = FMath::Max(LocalRadiusX, LocalRadiusY);
         }
     }
+
+    // PIE 모드에서 PhysX에 등록 (PVD 디버깅용) - 비활성화 (소멸 순서 문제)
+    // if (bRegisterToPhysX && World && World->bPie)
+    // {
+    //     CreatePhysXActor();
+    // }
+}
+
+void UCapsuleComponent::OnUnregister()
+{
+    // DestroyPhysXActor();  // 비활성화
+    Super::OnUnregister();
+}
+
+void UCapsuleComponent::TickComponent(float DeltaSeconds)
+{
+    Super::TickComponent(DeltaSeconds);
+
+    // PhysX Actor 위치 업데이트 - 비활성화
+    // if (PhysXActor)
+    // {
+    //     UpdatePhysXActorTransform();
+    // }
 }
 
 void UCapsuleComponent::DuplicateSubObjects()
@@ -212,4 +246,111 @@ void UCapsuleComponent::RenderDebugVolume(URenderer* Renderer) const
     AddHemisphereArcs(-1.0f);
 
     Renderer->AddLines(StartPoints, EndPoints, Colors);
+}
+
+void UCapsuleComponent::CreatePhysXActor()
+{
+    if (PhysXActor)
+        return;  // 이미 생성됨
+
+    UWorld* World = GetWorld();
+    if (!World)
+        return;
+
+    FPhysScene* PhysScene = World->GetPhysScene();
+    if (!PhysScene)
+        return;
+
+    PxPhysics* Physics = PhysScene->GetPhysics();
+    PxScene* Scene = PhysScene->GetScene();
+    if (!Physics || !Scene)
+        return;
+
+    // 현재 월드 트랜스폼
+    const FTransform WorldTransform = GetWorldTransform();
+    const float AbsScaleX = std::fabs(WorldTransform.Scale3D.X);
+    const float AbsScaleY = std::fabs(WorldTransform.Scale3D.Y);
+    const float AbsScaleZ = std::fabs(WorldTransform.Scale3D.Z);
+
+    // 월드 스케일 적용된 캡슐 크기
+    const float WorldRadius = CapsuleRadius * FMath::Max(AbsScaleX, AbsScaleY);
+    const float WorldHalfHeight = CapsuleHalfHeight * AbsScaleZ;
+    const float CylinderHalfHeight = FMath::Max(0.0f, WorldHalfHeight - WorldRadius);
+
+    // PhysX Transform (Z-up → X-up 캡슐 회전 포함)
+    PxQuat CapsuleRotation(PxHalfPi, PxVec3(0, 1, 0));  // Y축 기준 90도 회전
+    PxTransform Pose(
+        PxVec3(WorldTransform.Translation.X, WorldTransform.Translation.Y, WorldTransform.Translation.Z),
+        CapsuleRotation
+    );
+
+    // Kinematic Dynamic Actor 생성
+    PhysXActor = Physics->createRigidDynamic(Pose);
+    if (!PhysXActor)
+        return;
+
+    // Kinematic으로 설정 (물리 시뮬레이션 안 받음, 수동으로 위치 제어)
+    PhysXActor->setRigidBodyFlag(PxRigidBodyFlag::eKINEMATIC, true);
+
+    // 캡슐 Shape 생성
+    PxMaterial* Material = PhysScene->GetDefaultMaterial();
+    PxCapsuleGeometry CapsuleGeom(WorldRadius, CylinderHalfHeight);
+    PxShape* Shape = Physics->createShape(CapsuleGeom, *Material);
+    if (Shape)
+    {
+        // 충돌 처리 완전 제외 (PVD 시각화 전용)
+        Shape->setFlag(PxShapeFlag::eSIMULATION_SHAPE, false);
+        Shape->setFlag(PxShapeFlag::eSCENE_QUERY_SHAPE, false);
+        Shape->setFlag(PxShapeFlag::eVISUALIZATION, true);  // PVD에서만 보임
+        PhysXActor->attachShape(*Shape);
+        Shape->release();
+    }
+
+    // Scene에 등록
+    Scene->addActor(*PhysXActor);
+
+    UE_LOG("[CapsuleComponent] PhysX Kinematic Actor created (R=%.2f, H=%.2f)", WorldRadius, WorldHalfHeight);
+}
+
+void UCapsuleComponent::DestroyPhysXActor()
+{
+    if (!PhysXActor)
+        return;
+
+    UWorld* World = GetWorld();
+    if (World)
+    {
+        FPhysScene* PhysScene = World->GetPhysScene();
+        if (PhysScene)
+        {
+            PxScene* Scene = PhysScene->GetScene();
+            if (Scene)
+            {
+                Scene->removeActor(*PhysXActor);
+            }
+        }
+    }
+
+    PhysXActor->release();
+    PhysXActor = nullptr;
+
+    UE_LOG("[CapsuleComponent] PhysX Actor destroyed");
+}
+
+void UCapsuleComponent::UpdatePhysXActorTransform()
+{
+    if (!PhysXActor)
+        return;
+
+    const FTransform WorldTransform = GetWorldTransform();
+
+    // Z-up → X-up 캡슐 회전
+    PxQuat CapsuleRotation(PxHalfPi, PxVec3(0, 1, 0));
+    PxTransform NewPose(
+        PxVec3(WorldTransform.Translation.X, WorldTransform.Translation.Y, WorldTransform.Translation.Z),
+        CapsuleRotation
+    );
+
+    // Kinematic Target 설정 (다음 시뮬레이션에서 이 위치로 이동)
+    PhysXActor->setKinematicTarget(NewPose);
 }
