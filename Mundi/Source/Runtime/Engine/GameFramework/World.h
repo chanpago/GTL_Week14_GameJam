@@ -170,6 +170,11 @@ private:
 
     /** === 물리 씬 ===*/
     std::unique_ptr<FPhysScene> PhysScene;
+
+    // Fixed Timestep 물리 시뮬레이션
+    static constexpr float FixedPhysicsDeltaTime = 1.0f / 60.0f;  // 60Hz 물리
+    static constexpr int32 MaxPhysicsSubSteps = 8;                 // 최대 서브스텝
+    float AccumulatedPhysicsTime = 0.0f;                           // 누적 시간
     
     /** === GameMode === */
     AGameModeBase* GameMode = nullptr;

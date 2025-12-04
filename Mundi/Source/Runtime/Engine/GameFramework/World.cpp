@@ -315,12 +315,25 @@ void UWorld::Tick(float DeltaSeconds)
 		LuaManager->Tick(GetDeltaTime(EDeltaTime::Game));
 	}
 
-	// 물리 시뮬레이션 시작 (PIE에서만) - non-blocking
-	// 이번 프레임 물리 계산 시작, 결과는 다음 프레임에서 사용
+	// 물리 시뮬레이션 시작 (PIE에서만) - Fixed Timestep
 	if (PhysScene && bPie)
 	{
-		PhysScene->StepSimulation(GetDeltaTime(EDeltaTime::Game));
-		//PhysScene->StepSimulation(1.0f/60.0f);
+		AccumulatedPhysicsTime += GetDeltaTime(EDeltaTime::Game);
+
+		int32 NumSubSteps = 0;
+		while (AccumulatedPhysicsTime >= FixedPhysicsDeltaTime && NumSubSteps < MaxPhysicsSubSteps)
+		{
+			PhysScene->StepSimulation(FixedPhysicsDeltaTime);
+			AccumulatedPhysicsTime -= FixedPhysicsDeltaTime;
+			NumSubSteps++;
+		}
+
+		// 최대 서브스텝 초과 시 남은 시간 버림 (물리 폭주 방지)
+		if (NumSubSteps >= MaxPhysicsSubSteps && AccumulatedPhysicsTime > FixedPhysicsDeltaTime)
+		{
+			UE_LOG("[World] Physics substep limit reached, discarding %.3fs", AccumulatedPhysicsTime);
+			AccumulatedPhysicsTime = 0.0f;
+		}
 	}
 
 	// 지연 삭제 처리

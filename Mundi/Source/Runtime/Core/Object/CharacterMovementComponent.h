@@ -36,7 +36,7 @@ public:
 	bool IsFalling() const { return bIsFalling; }
 
 protected:
-	void PhysWalking(float DeltaSecond);
+	void PhysWalking(float DeltaSecond, const FVector& InputVector);
 	void PhysFalling(float DeltaSecond);
 
 	void CalcVelocity(const FVector& Input, float DeltaSecond, float Friction, float BrackingDecel);
@@ -83,6 +83,11 @@ protected:
 
 	const float GLOBAL_GRAVITY_Z = -9.8f;
 	const float GravityScale = 1.0f;
+
+	// Fixed Timestep 관련
+	const float FixedDeltaTime = 1.0f / 60.0f;  // 60Hz 물리 업데이트
+	const int32 MaxPhysicsSubSteps = 8;          // 최대 서브스텝 (프레임 드랍 시 제한)
+	float AccumulatedTime = 0.0f;                // 누적 시간
 
 
 };
