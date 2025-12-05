@@ -737,7 +737,7 @@ void UTargetActorTransformWidget::RenderBloomSettings(APlayerCameraManager* CamM
             ImGui::Spacing();
             ImGui::Text("Threshold");
             ImGui::SetNextItemWidth(-1);
-            if (ImGui::DragFloat("##BloomThreshold", &Bloom->Threshold, 0.01f, 0.0f, 10.0f, "%.2f"))
+            if (ImGui::DragFloat("##BloomThreshold", &Bloom->Threshold, 0.01f, 0.0f, 1.0f, "%.2f"))
             {
                 Bloom->Threshold = std::clamp(Bloom->Threshold, 0.0f, 10.0f);
             }
@@ -759,7 +759,7 @@ void UTargetActorTransformWidget::RenderBloomSettings(APlayerCameraManager* CamM
 
             ImGui::Text("Intensity");
             ImGui::SetNextItemWidth(-1);
-            if (ImGui::DragFloat("##BloomIntensity", &Bloom->Intensity, 0.05f, 0.0f, 10.0f, "%.2f"))
+            if (ImGui::DragFloat("##BloomIntensity", &Bloom->Intensity, 0.05f, 0.0f, 1.0f, "%.2f"))
             {
                 Bloom->Intensity = std::max(0.0f, Bloom->Intensity);
             }
