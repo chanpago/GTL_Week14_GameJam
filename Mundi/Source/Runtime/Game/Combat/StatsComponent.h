@@ -12,6 +12,7 @@
 //   StatsComponent->OnHealthChanged.AddDynamic(this, &AMyActor::HandleHealthChanged);
 // ============================================================================
 
+UCLASS(DisplayName = "스탯 컴포넌트", Description = "HP/스태미나 관리 컴포넌트")
 class UStatsComponent : public UActorComponent
 {
 public:
@@ -85,27 +86,46 @@ public:
     float GetMaxStamina() const { return MaxStamina; }
 
     // ========================================================================
-    // 스태미나 비용 (밸런싱용 - 직접 수정 가능)
+    // 스태미나 비용 (밸런싱용)
     // ========================================================================
+    UPROPERTY(EditAnywhere, Category = "Stamina Cost")
     float DodgeCost = 25.f;
+
+    UPROPERTY(EditAnywhere, Category = "Stamina Cost")
     float LightAttackCost = 15.f;
+
+    UPROPERTY(EditAnywhere, Category = "Stamina Cost")
     float HeavyAttackCost = 30.f;
+
+    UPROPERTY(EditAnywhere, Category = "Stamina Cost")
     float BlockCostPerHit = 20.f;
+
+    UPROPERTY(EditAnywhere, Category = "Stamina Cost")
     float ParryCost = 10.f;
 
     // ========================================================================
-    // 스탯 수치 (UPROPERTY로 에디터 노출 가능)
+    // HP 스탯
     // ========================================================================
-
-    // HP
+    UPROPERTY(EditAnywhere, Category = "Health")
     float MaxHealth = 100.f;
+
+    UPROPERTY(EditAnywhere, Category = "Health")
     float CurrentHealth = 100.f;
 
-    // 스태미나
+    // ========================================================================
+    // 스태미나 스탯
+    // ========================================================================
+    UPROPERTY(EditAnywhere, Category = "Stamina")
     float MaxStamina = 100.f;
+
+    UPROPERTY(EditAnywhere, Category = "Stamina")
     float CurrentStamina = 100.f;
-    float StaminaRegenRate = 20.f;          // 초당 회복량
-    float StaminaRegenDelay = 1.0f;         // 사용 후 회복 시작까지 딜레이
+
+    UPROPERTY(EditAnywhere, Category = "Stamina", Tooltip = "초당 회복량")
+    float StaminaRegenRate = 20.f;
+
+    UPROPERTY(EditAnywhere, Category = "Stamina", Tooltip = "사용 후 회복 시작까지 딜레이")
+    float StaminaRegenDelay = 1.0f;
 
 private:
     float TimeSinceStaminaUse = 0.f;

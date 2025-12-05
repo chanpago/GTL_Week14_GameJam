@@ -35,8 +35,17 @@ const bool AEnemyBase::bPropertiesRegistered = []() {
 
 BEGIN_PROPERTIES(AEnemyBase)
     MARK_AS_SPAWNABLE("AEnemyBase", "적 기본 객체")
+    ADD_PROPERTY(float, DetectionRange, "AI", true, "플레이어 감지 거리")
+    ADD_PROPERTY(float, AttackRange, "AI", true, "공격 사거리")
+    ADD_PROPERTY(float, LoseTargetRange, "AI", true, "타겟 잃는 거리")
+    ADD_PROPERTY(float, MoveSpeed, "Movement", true)
+    ADD_PROPERTY(float, RotationSpeed, "Movement", true)
+    ADD_PROPERTY(float, AttackCooldown, "Combat", true, "공격 쿨타임")
+    ADD_PROPERTY(int32, CurrentAttackPattern, "Combat", true)
+    ADD_PROPERTY(int32, MaxAttackPatterns, "Combat", true)
+    ADD_PROPERTY(bool, bIsAttacking, "Combat", true)
+    ADD_PROPERTY(bool, bHasSuperArmor, "Combat", true, "슈퍼아머 활성화")
 END_PROPERTIES()
-
 
 // ===== Lua Binding =====
 

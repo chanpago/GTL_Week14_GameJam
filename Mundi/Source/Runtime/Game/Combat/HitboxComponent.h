@@ -107,7 +107,10 @@ private:
     TArray<AActor*> HitActors;
 
     // 상태
+    UPROPERTY(EditAnywhere, Category = "Hitbox")
     bool bIsActive = false;
+
+    UPROPERTY(EditAnywhere, Category = "Debug")
     bool bDrawDebug = false;
 
     // 히트박스 소유자 (자신은 제외)

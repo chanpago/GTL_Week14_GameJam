@@ -104,24 +104,41 @@ protected:
     AActor* TargetActor = nullptr;
 
     // ========== 감지 설정 ==========
-    float DetectionRange = 1000.f;      // 플레이어 감지 거리
-    float AttackRange = 200.f;          // 공격 사거리
-    float LoseTargetRange = 1500.f;     // 타겟 잃는 거리
+    UPROPERTY(EditAnywhere, Category = "AI", Tooltip = "플레이어 감지 거리")
+    float DetectionRange = 1000.f;
+
+    UPROPERTY(EditAnywhere, Category = "AI", Tooltip = "공격 사거리")
+    float AttackRange = 200.f;
+
+    UPROPERTY(EditAnywhere, Category = "AI", Tooltip = "타겟 잃는 거리")
+    float LoseTargetRange = 1500.f;
 
     // ========== 이동 ==========
+    UPROPERTY(EditAnywhere, Category = "Movement")
     float MoveSpeed = 300.f;
+
+    UPROPERTY(EditAnywhere, Category = "Movement")
     float RotationSpeed = 5.f;
 
     // ========== 공격 ==========
-    float AttackCooldown = 2.0f;        // 공격 쿨타임
+    UPROPERTY(EditAnywhere, Category = "Combat", Tooltip = "공격 쿨타임")
+    float AttackCooldown = 2.0f;
+
     float AttackTimer = 0.f;
+
+    UPROPERTY(EditAnywhere, Category = "Combat")
     int32 CurrentAttackPattern = 0;
+
+    UPROPERTY(EditAnywhere, Category = "Combat")
     int32 MaxAttackPatterns = 2;
 
     // ========== 경직 ==========
     float StaggerTimer = 0.f;
 
     // ========== 상태 플래그 ==========
+    UPROPERTY(EditAnywhere, Category = "Combat")
     bool bIsAttacking = false;
+
+    UPROPERTY(EditAnywhere, Category = "Combat", Tooltip = "슈퍼아머 활성화")
     bool bHasSuperArmor = false;
 };

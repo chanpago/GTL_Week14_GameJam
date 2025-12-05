@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug_StandAlone|x64">
@@ -710,12 +710,7 @@
     <ClCompile Include="Generated\UPawnMovementComponent.generated.cpp" />
     <ClCompile Include="Generated\UParticleSystemComponent.generated.cpp" />
     <ClCompile Include="Generated\AMyCar.generated.cpp" />
-    <ClCompile Include="Generated\USpringArmComponent.generated.cpp" />
-    <ClCompile Include="Generated\UHitboxComponent.generated.cpp" />
-    <ClCompile Include="Generated\UStatsComponent.generated.cpp" />
-    <ClCompile Include="Generated\AEnemyBase.generated.cpp" />
-    <ClCompile Include="Generated\APlayerCharacter.generated.cpp" />
-  </ItemGroup>
+    <ClCompile Include="Generated\USpringArmComponent.generated.cpp" /><ClCompile Include="Generated\UHitboxComponent.generated.cpp" /><ClCompile Include="Generated\UStatsComponent.generated.cpp" /><ClCompile Include="Generated\AEnemyBase.generated.cpp" /><ClCompile Include="Generated\APlayerCharacter.generated.cpp" /></ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shaders\Common\LightingBuffers.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
@@ -1213,12 +1208,7 @@
     <ClInclude Include="Generated\UPawnMovementComponent.generated.h" />
     <ClInclude Include="Generated\UParticleSystemComponent.generated.h" />
     <ClInclude Include="Generated\AMyCar.generated.h" />
-    <ClInclude Include="Generated\USpringArmComponent.generated.h" />
-    <ClInclude Include="Generated\UHitboxComponent.generated.h" />
-    <ClInclude Include="Generated\UStatsComponent.generated.h" />
-    <ClInclude Include="Generated\AEnemyBase.generated.h" />
-    <ClInclude Include="Generated\APlayerCharacter.generated.h" />
-  </ItemGroup>
+    <ClInclude Include="Generated\USpringArmComponent.generated.h" /><ClInclude Include="Generated\UHitboxComponent.generated.h" /><ClInclude Include="Generated\UStatsComponent.generated.h" /><ClInclude Include="Generated\AEnemyBase.generated.h" /><ClInclude Include="Generated\APlayerCharacter.generated.h" /></ItemGroup>
   <ItemGroup>
     <None Include="ClassDiagram.cd" />
     <None Include="Tools\CodeGenerator\generate.py" />

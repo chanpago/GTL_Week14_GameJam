@@ -34,9 +34,16 @@ const bool APlayerCharacter::bPropertiesRegistered = []() {
 // ===== Property Reflection =====
 
 BEGIN_PROPERTIES(APlayerCharacter)
-    MARK_AS_SPAWNABLE("APlayerCharacter", "Auto-generated APlayerCharacter")
+    MARK_AS_SPAWNABLE("플레이어 캐릭터", "플레이어가 조작하는 캐릭터")
+    ADD_PROPERTY(bool, bIsInvincible, "Combat", true)
+    ADD_PROPERTY(bool, bIsBlocking, "Combat", true)
+    ADD_PROPERTY(bool, bIsParrying, "Combat", true)
+    ADD_PROPERTY(float, ParryWindowDuration, "Combat", true, "패리 판정 시간")
+    ADD_PROPERTY(int32, ComboCount, "Combat", true)
+    ADD_PROPERTY(int32, MaxComboCount, "Combat", true)
+    ADD_PROPERTY(float, MoveSpeed, "Movement", true)
+    ADD_PROPERTY(float, RotationSpeed, "Movement", true)
 END_PROPERTIES()
-
 
 // ===== Lua Binding =====
 

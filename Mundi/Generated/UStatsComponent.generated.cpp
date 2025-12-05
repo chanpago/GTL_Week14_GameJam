@@ -34,9 +34,19 @@ const bool UStatsComponent::bPropertiesRegistered = []() {
 // ===== Property Reflection =====
 
 BEGIN_PROPERTIES(UStatsComponent)
-    MARK_AS_COMPONENT("UStatsComponent", "Auto-generated UStatsComponent")
+    MARK_AS_COMPONENT("스탯 컴포넌트", "HP/스태미나 관리 컴포넌트")
+    ADD_PROPERTY(float, DodgeCost, "Stamina Cost", true)
+    ADD_PROPERTY(float, LightAttackCost, "Stamina Cost", true)
+    ADD_PROPERTY(float, HeavyAttackCost, "Stamina Cost", true)
+    ADD_PROPERTY(float, BlockCostPerHit, "Stamina Cost", true)
+    ADD_PROPERTY(float, ParryCost, "Stamina Cost", true)
+    ADD_PROPERTY(float, MaxHealth, "Health", true)
+    ADD_PROPERTY(float, CurrentHealth, "Health", true)
+    ADD_PROPERTY(float, MaxStamina, "Stamina", true)
+    ADD_PROPERTY(float, CurrentStamina, "Stamina", true)
+    ADD_PROPERTY(float, StaminaRegenRate, "Stamina", true, "초당 회복량")
+    ADD_PROPERTY(float, StaminaRegenDelay, "Stamina", true, "사용 후 회복 시작까지 딜레이")
 END_PROPERTIES()
-
 
 // ===== Lua Binding =====
 

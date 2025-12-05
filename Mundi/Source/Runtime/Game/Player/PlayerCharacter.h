@@ -13,6 +13,7 @@ class UCameraComponent;
 // APlayerCharacter - 플레이어 캐릭터 예시
 // ============================================================================
 
+UCLASS(DisplayName = "플레이어 캐릭터", Description = "플레이어가 조작하는 캐릭터")
 class APlayerCharacter : public ACharacter, public IDamageable
 {
 public:
@@ -101,21 +102,36 @@ protected:
     ECombatState CombatState = ECombatState::Idle;
 
     // ========== 상태 플래그 ==========
+    UPROPERTY(EditAnywhere, Category = "Combat")
     bool bIsInvincible = false;         // 무적 (회피 중)
+
+    UPROPERTY(EditAnywhere, Category = "Combat")
     bool bIsBlocking = false;           // 가드 중
+
+    UPROPERTY(EditAnywhere, Category = "Combat")
     bool bIsParrying = false;           // 패리 윈도우
+
     bool bCanCombo = false;             // 콤보 입력 가능
 
     // ========== 타이머 ==========
     float ParryWindowTimer = 0.f;
-    float ParryWindowDuration = 0.2f;   // 패리 판정 시간
+
+    UPROPERTY(EditAnywhere, Category = "Combat", Tooltip = "패리 판정 시간")
+    float ParryWindowDuration = 0.2f;
+
     float StaggerTimer = 0.f;
 
     // ========== 콤보 ==========
+    UPROPERTY(EditAnywhere, Category = "Combat")
     int32 ComboCount = 0;
+
+    UPROPERTY(EditAnywhere, Category = "Combat")
     int32 MaxComboCount = 3;
 
     // ========== 이동 ==========
+    UPROPERTY(EditAnywhere, Category = "Movement")
     float MoveSpeed = 500.f;
+
+    UPROPERTY(EditAnywhere, Category = "Movement")
     float RotationSpeed = 10.f;
 };
