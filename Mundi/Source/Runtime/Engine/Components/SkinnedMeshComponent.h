@@ -35,7 +35,9 @@ public:
      * @brief 렌더링할 스켈레탈 메시 에셋 설정 (UStaticMeshComponent::SetStaticMesh와 동일한 역할)
      * @param PathFileName 새 스켈레탈 메시 에셋 경로
      */
+    // PreserveMaterials: when true, keeps existing MaterialSlots/MIDs when switching meshes during load
     virtual void SetSkeletalMesh(const FString& PathFileName);
+    void SetSkeletalMesh(const FString& PathFileName, bool bPreserveMaterials);
     /**
      * @brief 이 컴포넌트의 USkeletalMesh 에셋을 반환
      */

@@ -11,6 +11,7 @@
 #include "Windows/ControlPanelWindow.h"
 #include "Windows/SViewportWindow.h"
 #include "Windows/SSkeletalMeshViewerWindow.h"
+#include "Source/Runtime/Engine/Components/SkeletalMeshComponent.h"
 #include "Windows/ConsoleWindow.h"
 #include "Windows/ContentBrowserWindow.h"
 #include "Widgets/MainToolbarWidget.h"
@@ -251,6 +252,28 @@ void USlateManager::OpenSkeletalMeshViewerWithFile(const char* FilePath)
         SkeletalViewerWindow->LoadSkeletalMesh(FilePath);
         UE_LOG("Opening SkeletalMeshViewer with file: %s", FilePath);
     }
+}
+
+void USlateManager::OpenSkeletalMeshViewerWithComponent(USkeletalMeshComponent* Component)
+{
+    if (!SkeletalViewerWindow)
+    {
+        OpenSkeletalMeshViewer();
+    }
+
+    if (!SkeletalViewerWindow || !Component)
+    {
+        return;
+    }
+
+    // Use the component's current skeletal mesh (if any) and mirror its materials
+    if (USkeletalMesh* Mesh = Component->GetSkeletalMesh())
+    {
+        SkeletalViewerWindow->LoadSkeletalMesh(Mesh->GetPathFileName());
+    }
+
+    // Apply materials from the component to the preview actor in the viewer
+    SkeletalViewerWindow->LoadFromComponent(Component);
 }
 
 void USlateManager::OpenSkeletalMeshViewerWithAsset(UPhysicsAsset* PhysicsAsset, const FString& SavePath)

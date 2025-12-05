@@ -1426,7 +1426,8 @@ void USkeletalMeshComponent::Serialize(const bool bInIsLoading, JSON& InOutHandl
         // Base (USkinnedMeshComponent) already restores SkeletalMesh; ensure internal state is initialized
         if (SkeletalMesh)
         {
-            SetSkeletalMesh(SkeletalMesh->GetPathFileName());
+            // Preserve materials that were loaded by base Serialize
+            USkinnedMeshComponent::SetSkeletalMesh(SkeletalMesh->GetPathFileName(), /*bPreserveMaterials*/ true);
         }
 
         // Load animation graph from saved path if available
