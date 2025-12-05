@@ -68,6 +68,9 @@ public:
 
     void SetPIEWorld(UWorld* InWorld);
 
+    // 메인 뷰포트 접근자
+    SViewportWindow* GetMainViewport() const { return MainViewport; }
+
     // 콘솔 관리
     void ToggleConsole();
     bool IsConsoleVisible() const { return bIsConsoleVisible; }

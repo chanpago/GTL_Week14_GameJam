@@ -42,13 +42,22 @@ private:
     ID2D1DeviceContext* D2DContext = nullptr;
     IDWriteFactory* DWriteFactory = nullptr;
 
+    // WIC for image loading
+    IWICImagingFactory* WICFactory = nullptr;
+
+    // Logo image
+    ID2D1Bitmap* LogoBitmap = nullptr;
+    float LogoWidth = 0.f;
+    float LogoHeight = 0.f;
+
     // Text formats
     IDWriteTextFormat* TitleFormat = nullptr;     // Large font for game title
     IDWriteTextFormat* SubtitleFormat = nullptr;  // Smaller font for "Press any key"
     IDWriteTextFormat* DeathTextFormat = nullptr; // "YOU DIED" / "DEMIGOD FELLED" format
 
     // Brushes
-    ID2D1SolidColorBrush* TextBrush = nullptr;
+    ID2D1SolidColorBrush* TextBrush = nullptr;        // Title text color
+    ID2D1SolidColorBrush* SubtitleBrush = nullptr;    // White for subtitle
     ID2D1SolidColorBrush* DeathTextBrush = nullptr;   // Blood red for "YOU DIED"
     ID2D1SolidColorBrush* VictoryTextBrush = nullptr; // Golden for "DEMIGOD FELLED"
 

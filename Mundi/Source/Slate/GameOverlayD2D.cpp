@@ -3,6 +3,7 @@
 #include <d2d1_1.h>
 #include <dwrite.h>
 #include <dxgi1_2.h>
+#include <wincodec.h>
 #include <cmath>
 #include <Windows.h>
 
@@ -11,10 +12,19 @@
 #include "World.h"
 #include "GameModeBase.h"
 #include "GameState.h"
+#include "GameEngine.h"
+#include "D3D11RHI.h"
+#include "FViewport.h"
 #include "Source/Runtime/Core/Misc/PathUtils.h"
+
+#ifdef _EDITOR
+#include "USlateManager.h"
+#include "Source/Slate/Windows/SViewportWindow.h"
+#endif
 
 #pragma comment(lib, "d2d1")
 #pragma comment(lib, "dwrite")
+#pragma comment(lib, "windowscodecs")
 
 // Custom font settings
 static const wchar_t* CUSTOM_FONT_NAME = L"Mantinia";
@@ -73,6 +83,12 @@ void UGameOverlayD2D::Initialize(ID3D11Device* InDevice, ID3D11DeviceContext* In
         return;
     }
 
+    // Initialize WIC factory for image loading
+    if (FAILED(CoCreateInstance(CLSID_WICImagingFactory, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&WICFactory))))
+    {
+        // Continue without WIC - images won't work but text will
+    }
+
     // Load custom font from file (build full path using GDataDir)
     // Note: Using 0 instead of FR_PRIVATE so DirectWrite can see the font
     FWideString FontPath = UTF8ToWide(GDataDir) + L"/UI/Fonts/Mantinia Regular.otf";
@@ -91,7 +107,7 @@ void UGameOverlayD2D::Initialize(ID3D11Device* InDevice, ID3D11DeviceContext* In
             DWRITE_FONT_WEIGHT_REGULAR,
             DWRITE_FONT_STYLE_NORMAL,
             DWRITE_FONT_STRETCH_NORMAL,
-            144.0f,
+            200.0f,
             L"en-us",
             &TitleFormat);
 
@@ -108,7 +124,7 @@ void UGameOverlayD2D::Initialize(ID3D11Device* InDevice, ID3D11DeviceContext* In
             DWRITE_FONT_WEIGHT_NORMAL,
             DWRITE_FONT_STYLE_NORMAL,
             DWRITE_FONT_STRETCH_NORMAL,
-            48.0f,
+            35.0f,
             L"en-us",
             &SubtitleFormat);
 
@@ -133,6 +149,37 @@ void UGameOverlayD2D::Initialize(ID3D11Device* InDevice, ID3D11DeviceContext* In
         {
             DeathTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
             DeathTextFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+        }
+    }
+
+    // Load logo image
+    if (WICFactory && D2DContext)
+    {
+        FWideString LogoPath = UTF8ToWide(GDataDir) + L"/UI/Icons/JeldenJingLogo.png";
+
+        IWICBitmapDecoder* Decoder = nullptr;
+        if (SUCCEEDED(WICFactory->CreateDecoderFromFilename(LogoPath.c_str(), nullptr, GENERIC_READ, WICDecodeMetadataCacheOnLoad, &Decoder)))
+        {
+            IWICBitmapFrameDecode* Frame = nullptr;
+            if (SUCCEEDED(Decoder->GetFrame(0, &Frame)))
+            {
+                IWICFormatConverter* Converter = nullptr;
+                if (SUCCEEDED(WICFactory->CreateFormatConverter(&Converter)))
+                {
+                    if (SUCCEEDED(Converter->Initialize(Frame, GUID_WICPixelFormat32bppPBGRA, WICBitmapDitherTypeNone, nullptr, 0.0f, WICBitmapPaletteTypeMedianCut)))
+                    {
+                        if (SUCCEEDED(D2DContext->CreateBitmapFromWicBitmap(Converter, nullptr, &LogoBitmap)))
+                        {
+                            D2D1_SIZE_F Size = LogoBitmap->GetSize();
+                            LogoWidth = Size.width;
+                            LogoHeight = Size.height;
+                        }
+                    }
+                    SafeRelease(Converter);
+                }
+                SafeRelease(Frame);
+            }
+            SafeRelease(Decoder);
         }
     }
 
@@ -165,10 +212,15 @@ void UGameOverlayD2D::EnsureInitialized()
     }
 
     SafeRelease(TextBrush);
+    SafeRelease(SubtitleBrush);
     SafeRelease(DeathTextBrush);
     SafeRelease(VictoryTextBrush);
 
-    D2DContext->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::White), &TextBrush);
+    // Title text color: RGB(207, 185, 144)
+    D2DContext->CreateSolidColorBrush(D2D1::ColorF(207.0f/255.0f, 185.0f/255.0f, 144.0f/255.0f, 1.0f), &TextBrush);
+
+    // Subtitle text color: White
+    D2DContext->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::White), &SubtitleBrush);
 
     // Blood red for "YOU DIED"
     D2DContext->CreateSolidColorBrush(D2D1::ColorF(0.6f, 0.0f, 0.0f, 1.0f), &DeathTextBrush);
@@ -179,13 +231,16 @@ void UGameOverlayD2D::EnsureInitialized()
 
 void UGameOverlayD2D::ReleaseD2DResources()
 {
+    SafeRelease(LogoBitmap);
     SafeRelease(TextBrush);
+    SafeRelease(SubtitleBrush);
     SafeRelease(DeathTextBrush);
     SafeRelease(VictoryTextBrush);
     SafeRelease(DeathTextFormat);
     SafeRelease(SubtitleFormat);
     SafeRelease(TitleFormat);
     SafeRelease(DWriteFactory);
+    SafeRelease(WICFactory);
     SafeRelease(D2DContext);
     SafeRelease(D2DDevice);
     SafeRelease(D2DFactory);
@@ -250,14 +305,24 @@ ID2D1LinearGradientBrush* UGameOverlayD2D::CreateBannerGradientBrush(float Scree
 
 void UGameOverlayD2D::DrawStartMenu(float ScreenW, float ScreenH)
 {
-    // Get delta time for animation
-    float DeltaTime = UUIManager::GetInstance().GetDeltaTime();
-    PulseTimer += DeltaTime;
+    // Draw logo in background (centered, match height of screen)
+    if (LogoBitmap && LogoWidth > 0 && LogoHeight > 0)
+    {
+        // Target size: 75% of screen height, maintain aspect ratio
+        float TargetH = ScreenH;
+        float Scale = TargetH / LogoHeight;
+        float ScaledW = LogoWidth * Scale;
+        float ScaledH = TargetH;
 
-    // Calculate pulse alpha (0.3 to 1.0 range, never fully invisible)
-    const float PI = 3.14159265f;
-    float Alpha = 0.3f + 0.7f * (0.5f + 0.5f * sinf(PulseTimer * PulseSpeed * PI));
-    TextBrush->SetOpacity(Alpha);
+        // Center the logo
+        float DrawX = (ScreenW - ScaledW) * 0.5f;
+        float DrawY = (ScreenH - ScaledH) * 0.5f;
+
+        D2D1_RECT_F LogoRect = D2D1::RectF(DrawX, DrawY, DrawX + ScaledW, DrawY + ScaledH);
+        D2DContext->DrawBitmap(LogoBitmap, LogoRect, 1.0f);
+    }
+
+    TextBrush->SetOpacity(1.0f);
 
     // Title text - centered, upper portion of screen
     const wchar_t* TitleText = L"Jelden Jing";
@@ -271,13 +336,13 @@ void UGameOverlayD2D::DrawStartMenu(float ScreenW, float ScreenH)
 
     // Subtitle text - centered, below title
     const wchar_t* SubtitleText = L"Press any key to start";
-    D2D1_RECT_F SubtitleRect = D2D1::RectF(0, ScreenH * 0.55f, ScreenW, ScreenH * 0.65f);
+    D2D1_RECT_F SubtitleRect = D2D1::RectF(0, ScreenH * 0.85f, ScreenW, ScreenH * 0.65f);
     D2DContext->DrawTextW(
         SubtitleText,
         static_cast<UINT32>(wcslen(SubtitleText)),
         SubtitleFormat,
         SubtitleRect,
-        TextBrush);
+        SubtitleBrush);
 }
 
 void UGameOverlayD2D::DrawDeathScreen(float ScreenW, float ScreenH, const wchar_t* Text, bool bIsVictory)
@@ -386,11 +451,30 @@ void UGameOverlayD2D::Draw()
         return;
     }
 
-    // Get swap chain dimensions
-    DXGI_SWAP_CHAIN_DESC Desc;
-    SwapChain->GetDesc(&Desc);
-    float ScreenW = static_cast<float>(Desc.BufferDesc.Width);
-    float ScreenH = static_cast<float>(Desc.BufferDesc.Height);
+    // Get viewport dimensions
+    // In editor mode, use MainViewport from USlateManager (PIE viewport)
+    // In game mode, use GEngine.GameViewport
+    FViewport* Viewport = nullptr;
+
+#ifdef _EDITOR
+    SViewportWindow* MainViewportWindow = USlateManager::GetInstance().GetMainViewport();
+    if (MainViewportWindow)
+    {
+        Viewport = MainViewportWindow->GetViewport();
+    }
+#else
+    Viewport = GEngine.GameViewport.get();
+#endif
+
+    if (!Viewport)
+    {
+        return;
+    }
+
+    float ViewportX = static_cast<float>(Viewport->GetStartX());
+    float ViewportY = static_cast<float>(Viewport->GetStartY());
+    float ScreenW = static_cast<float>(Viewport->GetSizeX());
+    float ScreenH = static_cast<float>(Viewport->GetSizeY());
 
     // Create D2D bitmap from backbuffer
     IDXGISurface* Surface = nullptr;
@@ -416,6 +500,14 @@ void UGameOverlayD2D::Draw()
     D2DContext->SetTarget(TargetBmp);
     D2DContext->BeginDraw();
 
+    // Apply transform to offset drawing to viewport region
+    D2DContext->SetTransform(D2D1::Matrix3x2F::Translation(ViewportX, ViewportY));
+
+    // Set clip rect to viewport bounds
+    D2DContext->PushAxisAlignedClip(
+        D2D1::RectF(0, 0, ScreenW, ScreenH),
+        D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
+
     // Draw based on current state
     switch (FlowState)
     {
@@ -434,6 +526,10 @@ void UGameOverlayD2D::Draw()
     default:
         break;
     }
+
+    // Pop clip and reset transform
+    D2DContext->PopAxisAlignedClip();
+    D2DContext->SetTransform(D2D1::Matrix3x2F::Identity());
 
     D2DContext->EndDraw();
     D2DContext->SetTarget(nullptr);
