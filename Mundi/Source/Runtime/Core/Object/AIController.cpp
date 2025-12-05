@@ -1,4 +1,4 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include "AIController.h"
 #include "Pawn.h"
 #include "Actor.h"
@@ -16,25 +16,25 @@ void AAIController::Tick(float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
 
-    if (!bAIEnabled || !Pawn)
-    {
-        return;
-    }
+    //if (!bAIEnabled || !Pawn)
+    //{
+    //    return;
+    //}
 
-    // 이동 처리
-    if (bIsMoving)
-    {
-        UpdateMovement(DeltaSeconds);
-    }
+    //// 이동 처리
+    //if (bIsMoving)
+    //{
+    //    UpdateMovement(DeltaSeconds);
+    //}
 
-    // 회전 처리
-    if (bHasFocusPoint)
-    {
-        UpdateRotation(DeltaSeconds);
-    }
+    //// 회전 처리
+    //if (bHasFocusPoint)
+    //{
+    //    UpdateRotation(DeltaSeconds);
+    //}
 
-    // AI 로직 업데이트
-    UpdateAI(DeltaSeconds);
+    //// AI 로직 업데이트
+    //UpdateAI(DeltaSeconds);
 }
 
 // ============================================================================

@@ -1,0 +1,105 @@
+{
+  "Links" : [{
+      "FromNodeID" : 1,
+      "FromPinName" : "Entry",
+      "ToNodeID" : 3,
+      "ToPinName" : "Enter"
+    }, {
+      "FromNodeID" : 2,
+      "FromPinName" : "Value",
+      "ToNodeID" : 3,
+      "ToPinName" : "Animation"
+    }, {
+      "FromNodeID" : 4,
+      "FromPinName" : "Value",
+      "ToNodeID" : 3,
+      "ToPinName" : "Looping"
+    }, {
+      "FromNodeID" : 5,
+      "FromPinName" : "Value",
+      "ToNodeID" : 3,
+      "ToPinName" : "PlayRate"
+    }],
+  "Nodes" : [{
+      "ClassName" : "UK2Node_AnimStateEntry",
+      "NodeID" : 1,
+      "NodePosX" : 1226.000000,
+      "NodePosY" : 437.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "exec",
+          "PinName" : "Entry"
+        }]
+    }, {
+      "AnimPath" : "Data/FBX/SKEL_Monster_Skeleton/Animation/Anim_DKM_Attack_01.FBX_Unreal Take",
+      "ClassName" : "UK2Node_AnimSequence",
+      "NodeID" : 2,
+      "NodePosX" : 856.000000,
+      "NodePosY" : 560.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "UAnimSequence",
+          "PinName" : "Value"
+        }]
+    }, {
+      "ClassName" : "UK2Node_AnimState",
+      "EnableRootMotion" : false,
+      "NodeID" : 3,
+      "NodePosX" : 1594.000000,
+      "NodePosY" : 435.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 0,
+          "PinCategory" : "exec",
+          "PinName" : "Enter"
+        }, {
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "exec",
+          "PinName" : "Exit"
+        }, {
+          "DefaultValue" : "",
+          "Direction" : 0,
+          "PinCategory" : "UAnimSequence",
+          "PinName" : "Animation"
+        }, {
+          "DefaultValue" : "false",
+          "Direction" : 0,
+          "PinCategory" : "bool",
+          "PinName" : "Looping"
+        }, {
+          "DefaultValue" : "1.0",
+          "Direction" : 0,
+          "PinCategory" : "float",
+          "PinName" : "PlayRate"
+        }],
+      "StateName" : "NewState"
+    }, {
+      "ClassName" : "UK2Node_Literal_Bool",
+      "NodeID" : 4,
+      "NodePosX" : 1222.000000,
+      "NodePosY" : 656.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "bool",
+          "PinName" : "Value"
+        }],
+      "Value" : false
+    }, {
+      "ClassName" : "UK2Node_Literal_Float",
+      "NodeID" : 5,
+      "NodePosX" : 1185.000000,
+      "NodePosY" : 768.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "float",
+          "PinName" : "Value"
+        }],
+      "Value" : 1.000000
+    }],
+  "UniqueIDCounter" : 8
+}

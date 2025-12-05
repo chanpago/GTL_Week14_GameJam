@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug_StandAlone|x64">
@@ -724,7 +724,7 @@
     <ClCompile Include="Generated\APlayerCharacter.generated.cpp" />
     <ClCompile Include="Generated\AGameState.generated.cpp" />
     <ClCompile Include="Generated\AGameStateBase.generated.cpp" />
-  </ItemGroup>
+  <ClCompile Include="Generated\AAIController.generated.cpp" /><ClCompile Include="Generated\ABossEnemy.generated.cpp" /><ClCompile Include="Generated\AEnemyAIController.generated.cpp" /></ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shaders\Common\LightingBuffers.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
@@ -1236,7 +1236,7 @@
     <ClInclude Include="Generated\APlayerCharacter.generated.h" />
     <ClInclude Include="Generated\AGameState.generated.h" />
     <ClInclude Include="Generated\AGameStateBase.generated.h" />
-  </ItemGroup>
+  <ClInclude Include="Generated\AAIController.generated.h" /><ClInclude Include="Generated\ABossEnemy.generated.h" /><ClInclude Include="Generated\AEnemyAIController.generated.h" /></ItemGroup>
   <ItemGroup>
     <None Include="ClassDiagram.cd" />
     <None Include="Tools\CodeGenerator\generate.py" />

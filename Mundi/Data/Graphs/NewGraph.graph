@@ -1,0 +1,104 @@
+{
+  "Links" : [{
+      "FromNodeID" : 1,
+      "FromPinName" : "Entry",
+      "ToNodeID" : 2,
+      "ToPinName" : "Enter"
+    }, {
+      "FromNodeID" : 3,
+      "FromPinName" : "Value",
+      "ToNodeID" : 2,
+      "ToPinName" : "Animation"
+    }, {
+      "FromNodeID" : 4,
+      "FromPinName" : "Value",
+      "ToNodeID" : 2,
+      "ToPinName" : "Looping"
+    }, {
+      "FromNodeID" : 5,
+      "FromPinName" : "Value",
+      "ToNodeID" : 2,
+      "ToPinName" : "PlayRate"
+    }],
+  "Nodes" : [{
+      "ClassName" : "UK2Node_AnimStateEntry",
+      "NodeID" : 1,
+      "NodePosX" : 617.000000,
+      "NodePosY" : 624.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "exec",
+          "PinName" : "Entry"
+        }]
+    }, {
+      "ClassName" : "UK2Node_AnimState",
+      "NodeID" : 2,
+      "NodePosX" : 824.000000,
+      "NodePosY" : 588.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 0,
+          "PinCategory" : "exec",
+          "PinName" : "Enter"
+        }, {
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "exec",
+          "PinName" : "Exit"
+        }, {
+          "DefaultValue" : "",
+          "Direction" : 0,
+          "PinCategory" : "UAnimSequence",
+          "PinName" : "Animation"
+        }, {
+          "DefaultValue" : "false",
+          "Direction" : 0,
+          "PinCategory" : "bool",
+          "PinName" : "Looping"
+        }, {
+          "DefaultValue" : "1.0",
+          "Direction" : 0,
+          "PinCategory" : "float",
+          "PinName" : "PlayRate"
+        }],
+      "StateName" : "NewState"
+    }, {
+      "AnimPath" : "Data/JamesWalking.fbx_mixamo.com",
+      "ClassName" : "UK2Node_AnimSequence",
+      "NodeID" : 3,
+      "NodePosX" : 411.000000,
+      "NodePosY" : 704.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "UAnimSequence",
+          "PinName" : "Value"
+        }]
+    }, {
+      "ClassName" : "UK2Node_Literal_Bool",
+      "NodeID" : 4,
+      "NodePosX" : 534.000000,
+      "NodePosY" : 784.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "bool",
+          "PinName" : "Value"
+        }],
+      "Value" : true
+    }, {
+      "ClassName" : "UK2Node_Literal_Float",
+      "NodeID" : 5,
+      "NodePosX" : 449.000000,
+      "NodePosY" : 864.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "float",
+          "PinName" : "Value"
+        }],
+      "Value" : 1.000000
+    }],
+  "UniqueIDCounter" : 6
+}

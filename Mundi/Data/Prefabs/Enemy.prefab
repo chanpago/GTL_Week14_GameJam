@@ -1,0 +1,136 @@
+{
+  "AttackCooldown" : 2.000000,
+  "AttackRange" : 200.000000,
+  "CurrentAttackPattern" : 0,
+  "DetectionRange" : 1000.000000,
+  "LoseTargetRange" : 1500.000000,
+  "MaxAttackPatterns" : 2,
+  "MoveSpeed" : 300.000000,
+  "ObjectName" : "AEnemyBase_0",
+  "OwnedComponents" : [{
+      "AnimGraphPath" : "",
+      "CollisionEnabled_Internal" : 2,
+      "Id" : 3816,
+      "MaterialSlots" : [{
+          "Type" : "None"
+        }, {
+          "AssetPath" : "MI_Assassin_Weapon_Skin4",
+          "Type" : "UMaterial"
+        }, {
+          "AssetPath" : "MI_Assassin_Armor_1_Skin4",
+          "Type" : "UMaterial"
+        }, {
+          "AssetPath" : "Fbx Default Material 2",
+          "Type" : "UMaterial"
+        }, {
+          "AssetPath" : "MI_Assassin_Armor_2_Skin4",
+          "Type" : "UMaterial"
+        }, {
+          "AssetPath" : "Fbx Default Material 4",
+          "Type" : "UMaterial"
+        }, {
+          "AssetPath" : "Fbx Default Material 5",
+          "Type" : "UMaterial"
+        }, {
+          "AssetPath" : "MI_Assassin_Body_Skin4",
+          "Type" : "UMaterial"
+        }, {
+          "AssetPath" : "Fbx Default Material 7",
+          "Type" : "UMaterial"
+        }, {
+          "AssetPath" : "M_Assassin_EyesGlass_Skin1",
+          "Type" : "UMaterial"
+        }, {
+          "AssetPath" : "M_Assassin_Eyes_Skin4",
+          "Type" : "UMaterial"
+        }],
+      "ObjectName" : "USkeletalMeshComponent_3",
+      "ParentId" : 3817,
+      "PhysicsAssetOverridePath" : "",
+      "RelativeLocation" : [0.000000, 0.000000, -1.300000],
+      "RelativeRotationEuler" : [0.000000, 0.000000, 0.000000],
+      "RelativeScale" : [1.000000, 1.000000, 1.000000],
+      "SkeletalMesh" : "Data/FBX/SKM_Assassin_Skin4.FBX",
+      "Type" : "USkeletalMeshComponent",
+      "bBlockComponent" : false,
+      "bCastShadows" : true,
+      "bGenerateOverlapEvents" : true,
+      "bHiddenInGame" : false,
+      "bIsActive" : true,
+      "bIsVisible" : true,
+      "bOverrideCollisionSetting" : false,
+      "bTickEnabled" : true
+    }, {
+      "BoxExtent" : [0.000000, 0.000000, 0.000000],
+      "CollisionEnabled_Internal" : 2,
+      "Id" : 3820,
+      "ObjectName" : "UHitboxComponent_1",
+      "ParentId" : 0,
+      "RelativeLocation" : [0.000000, 0.000000, 0.000000],
+      "RelativeRotationEuler" : [0.000000, 0.000000, 0.000000],
+      "RelativeScale" : [1.000000, 1.000000, 1.000000],
+      "Type" : "UHitboxComponent",
+      "bBlockComponent" : false,
+      "bDrawDebug" : false,
+      "bGenerateOverlapEvents" : true,
+      "bHiddenInGame" : false,
+      "bIsActive" : false,
+      "bIsVisible" : true,
+      "bOverrideCollisionSetting" : false,
+      "bShapeHiddenInGame" : true,
+      "bShapeIsVisible" : true,
+      "bTickEnabled" : true
+    }, {
+      "ObjectName" : "UCharacterMovementComponent_1",
+      "Type" : "UCharacterMovementComponent",
+      "bHiddenInGame" : false,
+      "bIsActive" : true,
+      "bTickEnabled" : true
+    }, {
+      "CapsuleHalfHeight" : 1.500000,
+      "CapsuleRadius" : 0.500000,
+      "CollisionEnabled_Internal" : 2,
+      "Id" : 3817,
+      "ObjectName" : "UCapsuleComponent_1",
+      "ParentId" : 0,
+      "RelativeLocation" : [-0.182573, 0.136256, 2.592000],
+      "RelativeRotationEuler" : [0.000000, -0.000000, 0.000000],
+      "RelativeScale" : [1.000000, 1.000000, 1.000000],
+      "Type" : "UCapsuleComponent",
+      "bBlockComponent" : false,
+      "bGenerateOverlapEvents" : true,
+      "bHiddenInGame" : false,
+      "bIsActive" : true,
+      "bIsVisible" : true,
+      "bOverrideCollisionSetting" : false,
+      "bRegisterToPhysX" : true,
+      "bShapeHiddenInGame" : true,
+      "bShapeIsVisible" : true,
+      "bTickEnabled" : true
+    }, {
+      "BlockCostPerHit" : 20.000000,
+      "CurrentHealth" : 100.000000,
+      "CurrentStamina" : 100.000000,
+      "DodgeCost" : 25.000000,
+      "HeavyAttackCost" : 30.000000,
+      "LightAttackCost" : 15.000000,
+      "MaxHealth" : 100.000000,
+      "MaxStamina" : 100.000000,
+      "ObjectName" : "UStatsComponent_1",
+      "ParryCost" : 10.000000,
+      "StaminaRegenDelay" : 1.000000,
+      "StaminaRegenRate" : 20.000000,
+      "Type" : "UStatsComponent",
+      "bHiddenInGame" : false,
+      "bIsActive" : true,
+      "bTickEnabled" : true
+    }],
+  "RootComponentId" : 3817,
+  "RotationSpeed" : 5.000000,
+  "Tag" : "",
+  "Type" : "AEnemyBase",
+  "bActorHiddenInGame" : false,
+  "bActorIsActive" : true,
+  "bHasSuperArmor" : false,
+  "bIsAttacking" : false
+}

@@ -1,0 +1,14 @@
+{
+  "Notifies" : [{
+      "Class" : "UAnimNotify_PlaySound",
+      "Data" : {
+        "SoundPath" : "Data/Audio/Die.wav"
+      },
+      "Duration" : 0.000000,
+      "Kind" : "Single",
+      "NotifyName" : "PlaySound: Die.wav",
+      "TriggerTime" : 0.249004
+    }],
+  "Type" : "AnimSequenceMeta",
+  "Version" : 1
+}

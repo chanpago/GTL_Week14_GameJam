@@ -26,11 +26,11 @@ void AEnemyBase::BeginPlay()
 {
     Super::BeginPlay();
 
-    //// 델리게이트 바인딩
-    //if (StatsComponent)
-    //{
-    //    StatsComponent->OnDeath.AddDynamic(this, &AEnemyBase::HandleDeath);
-    //}
+    // 델리게이트 바인딩
+    if (StatsComponent)
+    {
+      //  StatsComponent->OnDeath.AddDynamic(this, &AEnemyBase::HandleDeath);
+    }
 
     // 히트박스 소유자 설정
     if (HitboxComponent)

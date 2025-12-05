@@ -1,0 +1,456 @@
+{
+        "BodySetups" : [{
+            "Aggregate" : {
+              "Boxes" : [],
+              "Convexes" : [],
+              "Spheres" : [],
+              "Sphyls" : [{
+                  "Center" : [0.000000, 0.000000, 0.000000],
+                  "HalfLength" : 15.200000,
+                  "Radius" : 19.299999,
+                  "Rotation" : [0.000000, 0.000000, 0.000000, 1.000000]
+                }]
+            },
+            "AngularDamping" : 0.050000,
+            "Bone" : "Hips",
+            "EnableGravity" : true,
+            "LinearDamping" : 0.010000,
+            "Mass" : 10.000000,
+            "PhysMaterial" : {
+              "Density" : 1.000000,
+              "DynamicFriction" : 0.500000,
+              "Restitution" : 0.500000,
+              "StaticFriction" : 0.500000
+            },
+            "SimulatePhysics" : true
+          }, {
+            "Aggregate" : {
+              "Boxes" : [],
+              "Convexes" : [],
+              "Spheres" : [],
+              "Sphyls" : [{
+                  "Center" : [0.000000, 0.000000, 5.700000],
+                  "HalfLength" : 8.200000,
+                  "Radius" : 15.800000,
+                  "Rotation" : [0.000000, 0.000000, 0.000000, 1.000000]
+                }]
+            },
+            "AngularDamping" : 0.050000,
+            "Bone" : "Spine",
+            "EnableGravity" : true,
+            "LinearDamping" : 0.010000,
+            "Mass" : 10.000000,
+            "PhysMaterial" : {
+              "Density" : 1.000000,
+              "DynamicFriction" : 0.500000,
+              "Restitution" : 0.500000,
+              "StaticFriction" : 0.500000
+            },
+            "SimulatePhysics" : true
+          }, {
+            "Aggregate" : {
+              "Boxes" : [],
+              "Convexes" : [],
+              "Spheres" : [],
+              "Sphyls" : [{
+                  "Center" : [0.000000, 0.000000, 0.000000],
+                  "HalfLength" : 14.200000,
+                  "Radius" : 19.600000,
+                  "Rotation" : [0.000000, 0.000000, 0.000000, 1.000000]
+                }]
+            },
+            "AngularDamping" : 0.050000,
+            "Bone" : "Spine1",
+            "EnableGravity" : true,
+            "LinearDamping" : 0.010000,
+            "Mass" : 10.000000,
+            "PhysMaterial" : {
+              "Density" : 1.000000,
+              "DynamicFriction" : 0.500000,
+              "Restitution" : 0.500000,
+              "StaticFriction" : 0.500000
+            },
+            "SimulatePhysics" : true
+          }, {
+            "Aggregate" : {
+              "Boxes" : [],
+              "Convexes" : [],
+              "Spheres" : [],
+              "Sphyls" : [{
+                  "Center" : [0.000000, 0.000000, 0.000000],
+                  "HalfLength" : 11.900000,
+                  "Radius" : 21.799999,
+                  "Rotation" : [0.000000, 0.000000, 0.000000, 1.000000]
+                }]
+            },
+            "AngularDamping" : 0.050000,
+            "Bone" : "Spine2",
+            "EnableGravity" : true,
+            "LinearDamping" : 0.010000,
+            "Mass" : 10.000000,
+            "PhysMaterial" : {
+              "Density" : 1.000000,
+              "DynamicFriction" : 0.500000,
+              "Restitution" : 0.500000,
+              "StaticFriction" : 0.500000
+            },
+            "SimulatePhysics" : true
+          }, {
+            "Aggregate" : {
+              "Boxes" : [],
+              "Convexes" : [],
+              "Spheres" : [],
+              "Sphyls" : [{
+                  "Center" : [0.000000, 0.000000, 5.500000],
+                  "HalfLength" : 15.400000,
+                  "Radius" : 6.000000,
+                  "Rotation" : [0.000000, 0.000000, 0.000000, 1.000000]
+                }]
+            },
+            "AngularDamping" : 0.050000,
+            "Bone" : "LeftShoulder",
+            "EnableGravity" : true,
+            "LinearDamping" : 0.010000,
+            "Mass" : 10.000000,
+            "PhysMaterial" : {
+              "Density" : 1.000000,
+              "DynamicFriction" : 0.500000,
+              "Restitution" : 0.500000,
+              "StaticFriction" : 0.500000
+            },
+            "SimulatePhysics" : true
+          }, {
+            "Aggregate" : {
+              "Boxes" : [],
+              "Convexes" : [],
+              "Spheres" : [],
+              "Sphyls" : [{
+                  "Center" : [0.000000, 0.000000, 6.900000],
+                  "HalfLength" : 15.900000,
+                  "Radius" : 6.000000,
+                  "Rotation" : [0.000000, 0.000000, 0.000000, 1.000000]
+                }]
+            },
+            "AngularDamping" : 0.050000,
+            "Bone" : "RightShoulder",
+            "EnableGravity" : true,
+            "LinearDamping" : 0.010000,
+            "Mass" : 10.000000,
+            "PhysMaterial" : {
+              "Density" : 1.000000,
+              "DynamicFriction" : 0.500000,
+              "Restitution" : 0.500000,
+              "StaticFriction" : 0.500000
+            },
+            "SimulatePhysics" : true
+          }, {
+            "Aggregate" : {
+              "Boxes" : [],
+              "Convexes" : [],
+              "Spheres" : [],
+              "Sphyls" : [{
+                  "Center" : [0.000000, 0.000000, 10.300000],
+                  "HalfLength" : 17.000000,
+                  "Radius" : 5.400000,
+                  "Rotation" : [0.000000, 0.000000, 0.000000, 1.000000]
+                }]
+            },
+            "AngularDamping" : 0.050000,
+            "Bone" : "LeftArm",
+            "EnableGravity" : true,
+            "LinearDamping" : 0.010000,
+            "Mass" : 10.000000,
+            "PhysMaterial" : {
+              "Density" : 1.000000,
+              "DynamicFriction" : 0.500000,
+              "Restitution" : 0.500000,
+              "StaticFriction" : 0.500000
+            },
+            "SimulatePhysics" : true
+          }, {
+            "Aggregate" : {
+              "Boxes" : [{
+                  "Center" : [0.000000, 0.000000, 10.400000],
+                  "Extents" : [3.400000, 8.000000, 11.900000],
+                  "Rotation" : [0.000000, 0.000000, 0.000000, 1.000000]
+                }],
+              "Convexes" : [],
+              "Spheres" : [],
+              "Sphyls" : []
+            },
+            "AngularDamping" : 0.050000,
+            "Bone" : "LeftHand",
+            "EnableGravity" : true,
+            "LinearDamping" : 0.010000,
+            "Mass" : 10.000000,
+            "PhysMaterial" : {
+              "Density" : 1.000000,
+              "DynamicFriction" : 0.500000,
+              "Restitution" : 0.500000,
+              "StaticFriction" : 0.500000
+            },
+            "SimulatePhysics" : true
+          }, {
+            "Aggregate" : {
+              "Boxes" : [],
+              "Convexes" : [],
+              "Spheres" : [],
+              "Sphyls" : [{
+                  "Center" : [0.000000, 0.000000, 9.800000],
+                  "HalfLength" : 13.800000,
+                  "Radius" : 5.700000,
+                  "Rotation" : [0.000000, 0.000000, 0.000000, 1.000000]
+                }]
+            },
+            "AngularDamping" : 0.050000,
+            "Bone" : "LeftForeArm",
+            "EnableGravity" : true,
+            "LinearDamping" : 0.010000,
+            "Mass" : 10.000000,
+            "PhysMaterial" : {
+              "Density" : 1.000000,
+              "DynamicFriction" : 0.500000,
+              "Restitution" : 0.500000,
+              "StaticFriction" : 0.500000
+            },
+            "SimulatePhysics" : true
+          }, {
+            "Aggregate" : {
+              "Boxes" : [],
+              "Convexes" : [],
+              "Spheres" : [{
+                  "Center" : [0.000000, 0.000000, 8.900000],
+                  "Radius" : 13.300000
+                }],
+              "Sphyls" : []
+            },
+            "AngularDamping" : 0.050000,
+            "Bone" : "Head",
+            "EnableGravity" : true,
+            "LinearDamping" : 0.010000,
+            "Mass" : 10.000000,
+            "PhysMaterial" : {
+              "Density" : 1.000000,
+              "DynamicFriction" : 0.500000,
+              "Restitution" : 0.500000,
+              "StaticFriction" : 0.500000
+            },
+            "SimulatePhysics" : true
+          }, {
+            "Aggregate" : {
+              "Boxes" : [],
+              "Convexes" : [],
+              "Spheres" : [],
+              "Sphyls" : [{
+                  "Center" : [0.000000, 0.000000, 12.100000],
+                  "HalfLength" : 15.900000,
+                  "Radius" : 7.100000,
+                  "Rotation" : [0.000000, 0.000000, 0.000000, 1.000000]
+                }]
+            },
+            "AngularDamping" : 0.050000,
+            "Bone" : "RightArm",
+            "EnableGravity" : true,
+            "LinearDamping" : 0.010000,
+            "Mass" : 10.000000,
+            "PhysMaterial" : {
+              "Density" : 1.000000,
+              "DynamicFriction" : 0.500000,
+              "Restitution" : 0.500000,
+              "StaticFriction" : 0.500000
+            },
+            "SimulatePhysics" : true
+          }, {
+            "Aggregate" : {
+              "Boxes" : [],
+              "Convexes" : [],
+              "Spheres" : [],
+              "Sphyls" : [{
+                  "Center" : [0.000000, 0.000000, 11.500000],
+                  "HalfLength" : 17.400000,
+                  "Radius" : 5.200000,
+                  "Rotation" : [0.000000, 0.000000, 0.000000, 1.000000]
+                }]
+            },
+            "AngularDamping" : 0.050000,
+            "Bone" : "RightForeArm",
+            "EnableGravity" : true,
+            "LinearDamping" : 0.010000,
+            "Mass" : 10.000000,
+            "PhysMaterial" : {
+              "Density" : 1.000000,
+              "DynamicFriction" : 0.500000,
+              "Restitution" : 0.500000,
+              "StaticFriction" : 0.500000
+            },
+            "SimulatePhysics" : true
+          }, {
+            "Aggregate" : {
+              "Boxes" : [{
+                  "Center" : [0.000000, 0.000000, 12.900000],
+                  "Extents" : [4.600000, 5.700000, 16.299999],
+                  "Rotation" : [0.000000, 0.000000, 0.000000, 1.000000]
+                }],
+              "Convexes" : [],
+              "Spheres" : [],
+              "Sphyls" : []
+            },
+            "AngularDamping" : 0.050000,
+            "Bone" : "RightHand",
+            "EnableGravity" : true,
+            "LinearDamping" : 0.010000,
+            "Mass" : 10.000000,
+            "PhysMaterial" : {
+              "Density" : 1.000000,
+              "DynamicFriction" : 0.500000,
+              "Restitution" : 0.500000,
+              "StaticFriction" : 0.500000
+            },
+            "SimulatePhysics" : true
+          }, {
+            "Aggregate" : {
+              "Boxes" : [],
+              "Convexes" : [],
+              "Spheres" : [],
+              "Sphyls" : [{
+                  "Center" : [0.000000, 0.000000, 25.900000],
+                  "HalfLength" : 24.000000,
+                  "Radius" : 9.500000,
+                  "Rotation" : [0.000000, 0.000000, 0.000000, 1.000000]
+                }]
+            },
+            "AngularDamping" : 0.050000,
+            "Bone" : "LeftUpLeg",
+            "EnableGravity" : true,
+            "LinearDamping" : 0.010000,
+            "Mass" : 10.000000,
+            "PhysMaterial" : {
+              "Density" : 1.000000,
+              "DynamicFriction" : 0.500000,
+              "Restitution" : 0.500000,
+              "StaticFriction" : 0.500000
+            },
+            "SimulatePhysics" : true
+          }, {
+            "Aggregate" : {
+              "Boxes" : [],
+              "Convexes" : [],
+              "Spheres" : [],
+              "Sphyls" : [{
+                  "Center" : [0.000000, 0.000000, 26.600000],
+                  "HalfLength" : 25.000000,
+                  "Radius" : 10.200000,
+                  "Rotation" : [0.000000, 0.000000, 0.000000, 1.000000]
+                }]
+            },
+            "AngularDamping" : 0.050000,
+            "Bone" : "RightUpLeg",
+            "EnableGravity" : true,
+            "LinearDamping" : 0.010000,
+            "Mass" : 10.000000,
+            "PhysMaterial" : {
+              "Density" : 1.000000,
+              "DynamicFriction" : 0.500000,
+              "Restitution" : 0.500000,
+              "StaticFriction" : 0.500000
+            },
+            "SimulatePhysics" : true
+          }, {
+            "Aggregate" : {
+              "Boxes" : [],
+              "Convexes" : [],
+              "Spheres" : [],
+              "Sphyls" : [{
+                  "Center" : [0.000000, 0.000000, 18.000000],
+                  "HalfLength" : 21.600000,
+                  "Radius" : 7.300000,
+                  "Rotation" : [0.000000, 0.000000, 0.000000, 1.000000]
+                }]
+            },
+            "AngularDamping" : 0.050000,
+            "Bone" : "LeftLeg",
+            "EnableGravity" : true,
+            "LinearDamping" : 0.010000,
+            "Mass" : 10.000000,
+            "PhysMaterial" : {
+              "Density" : 1.000000,
+              "DynamicFriction" : 0.500000,
+              "Restitution" : 0.500000,
+              "StaticFriction" : 0.500000
+            },
+            "SimulatePhysics" : true
+          }, {
+            "Aggregate" : {
+              "Boxes" : [],
+              "Convexes" : [],
+              "Spheres" : [],
+              "Sphyls" : [{
+                  "Center" : [0.000000, 0.000000, 18.299999],
+                  "HalfLength" : 22.100000,
+                  "Radius" : 7.200000,
+                  "Rotation" : [0.000000, 0.000000, 0.000000, 1.000000]
+                }]
+            },
+            "AngularDamping" : 0.050000,
+            "Bone" : "RightLeg",
+            "EnableGravity" : true,
+            "LinearDamping" : 0.010000,
+            "Mass" : 10.000000,
+            "PhysMaterial" : {
+              "Density" : 1.000000,
+              "DynamicFriction" : 0.500000,
+              "Restitution" : 0.500000,
+              "StaticFriction" : 0.500000
+            },
+            "SimulatePhysics" : true
+          }, {
+            "Aggregate" : {
+              "Boxes" : [{
+                  "Center" : [0.000000, 0.000000, 9.200000],
+                  "Extents" : [11.900000, 8.300000, 15.300000],
+                  "Rotation" : [0.000000, 0.329691, 0.000000, 0.944089]
+                }],
+              "Convexes" : [],
+              "Spheres" : [],
+              "Sphyls" : []
+            },
+            "AngularDamping" : 0.050000,
+            "Bone" : "LeftFoot",
+            "EnableGravity" : true,
+            "LinearDamping" : 0.010000,
+            "Mass" : 10.000000,
+            "PhysMaterial" : {
+              "Density" : 1.000000,
+              "DynamicFriction" : 0.500000,
+              "Restitution" : 0.500000,
+              "StaticFriction" : 0.500000
+            },
+            "SimulatePhysics" : true
+          }, {
+            "Aggregate" : {
+              "Boxes" : [{
+                  "Center" : [0.000000, 0.000000, 8.800000],
+                  "Extents" : [12.900000, 7.200000, 16.299999],
+                  "Rotation" : [0.000000, 0.342020, 0.000000, 0.939693]
+                }],
+              "Convexes" : [],
+              "Spheres" : [],
+              "Sphyls" : []
+            },
+            "AngularDamping" : 0.050000,
+            "Bone" : "RightFoot",
+            "EnableGravity" : true,
+            "LinearDamping" : 0.010000,
+            "Mass" : 10.000000,
+            "PhysMaterial" : {
+              "Density" : 1.000000,
+              "DynamicFriction" : 0.500000,
+              "Restitution" : 0.500000,
+              "StaticFriction" : 0.500000
+            },
+            "SimulatePhysics" : true
+          }],
+        "Constraints" : [],
+        "Name" : "test1",
+        "Type" : "PhysicsAsset"
+      }

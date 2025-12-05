@@ -446,9 +446,11 @@ GEMINI.md
 .env
 
 # Untracked Data Files
-/Mundi/Data/**
 /Mundi/DerivedDataCache/**
 /Mundi/ThirdParty/**
+
+# Data 폴더는 허용하되 FBX 폴더만 제외
+/Mundi/Data/FBX/
 
 # imgui-node-editor는 수정이 필요하므로 제외
 !/Mundi/ThirdParty/imgui-node-editor
