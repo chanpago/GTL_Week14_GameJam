@@ -81,6 +81,8 @@ public:
     void OpenSkeletalMeshViewer();
     void OpenSkeletalMeshViewerWithFile(const char* FilePath);
     void OpenSkeletalMeshViewerWithAsset(UPhysicsAsset* PhysicsAsset, const FString& SavePath);
+    // Open viewer and initialize with the mesh and materials from a component
+    void OpenSkeletalMeshViewerWithComponent(class USkeletalMeshComponent* Component);
 
     void OpenAnimationGraphEditor(UAnimationGraph* InAnimGraph);
     void CloseSkeletalMeshViewer();
