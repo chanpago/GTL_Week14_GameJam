@@ -16,9 +16,9 @@ void UStatsComponent::BeginPlay()
     CurrentHealth = MaxHealth;
     CurrentStamina = MaxStamina;
 
-    // 초기 상태 브로드캐스트
-    OnHealthChanged.Broadcast(CurrentHealth, MaxHealth);
-    OnStaminaChanged.Broadcast(CurrentStamina, MaxStamina);
+    // // 초기 상태 브로드캐스트
+    // OnHealthChanged.Broadcast(CurrentHealth, MaxHealth);
+    // OnStaminaChanged.Broadcast(CurrentStamina, MaxStamina);
 }
 
 void UStatsComponent::TickComponent(float DeltaTime)
@@ -38,7 +38,7 @@ void UStatsComponent::TickComponent(float DeltaTime)
             // 값이 변경되었을 때만 브로드캐스트
             if (CurrentStamina != OldStamina)
             {
-                OnStaminaChanged.Broadcast(CurrentStamina, MaxStamina);
+                //OnStaminaChanged.Broadcast(CurrentStamina, MaxStamina);
             }
         }
     }
@@ -58,12 +58,12 @@ void UStatsComponent::ApplyDamage(float Damage)
     float OldHealth = CurrentHealth;
     CurrentHealth = FMath::Max(0.f, CurrentHealth - Damage);
 
-    OnHealthChanged.Broadcast(CurrentHealth, MaxHealth);
+    //OnHealthChanged.Broadcast(CurrentHealth, MaxHealth);
 
     // 사망 체크
     if (OldHealth > 0.f && CurrentHealth <= 0.f)
     {
-        OnDeath.Broadcast();
+    //    OnDeath.Broadcast();
     }
 }
 
@@ -75,24 +75,24 @@ void UStatsComponent::Heal(float Amount)
     }
 
     CurrentHealth = FMath::Min(MaxHealth, CurrentHealth + Amount);
-    OnHealthChanged.Broadcast(CurrentHealth, MaxHealth);
+    //OnHealthChanged.Broadcast(CurrentHealth, MaxHealth);
 }
 
 void UStatsComponent::SetHealth(float NewHealth)
 {
     CurrentHealth = FMath::Clamp(NewHealth, 0.f, MaxHealth);
-    OnHealthChanged.Broadcast(CurrentHealth, MaxHealth);
+  //  OnHealthChanged.Broadcast(CurrentHealth, MaxHealth);
 
     if (CurrentHealth <= 0.f)
     {
-        OnDeath.Broadcast();
+    //    OnDeath.Broadcast();
     }
 }
 
 void UStatsComponent::RestoreFullHealth()
 {
     CurrentHealth = MaxHealth;
-    OnHealthChanged.Broadcast(CurrentHealth, MaxHealth);
+  //  OnHealthChanged.Broadcast(CurrentHealth, MaxHealth);
 }
 
 // ============================================================================
@@ -114,7 +114,7 @@ bool UStatsComponent::ConsumeStamina(float Amount)
     CurrentStamina -= Amount;
     TimeSinceStaminaUse = 0.f; // 회복 딜레이 리셋
 
-    OnStaminaChanged.Broadcast(CurrentStamina, MaxStamina);
+    //OnStaminaChanged.Broadcast(CurrentStamina, MaxStamina);
     return true;
 }
 
@@ -126,12 +126,12 @@ void UStatsComponent::RecoverStamina(float Amount)
     }
 
     CurrentStamina = FMath::Min(MaxStamina, CurrentStamina + Amount);
-    OnStaminaChanged.Broadcast(CurrentStamina, MaxStamina);
+    //OnStaminaChanged.Broadcast(CurrentStamina, MaxStamina);
 }
 
 void UStatsComponent::RestoreFullStamina()
 {
     CurrentStamina = MaxStamina;
     TimeSinceStaminaUse = StaminaRegenDelay; // 즉시 회복 가능 상태로
-    OnStaminaChanged.Broadcast(CurrentStamina, MaxStamina);
+ //   OnStaminaChanged.Broadcast(CurrentStamina, MaxStamina);
 }

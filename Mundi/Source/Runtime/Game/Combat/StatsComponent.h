@@ -19,9 +19,9 @@ public:
     GENERATED_REFLECTION_BODY()
 
     // 델리게이트 선언 (ParticleSystemComponent 방식)
-    DECLARE_DELEGATE(OnHealthChanged, float /*Current*/, float /*Max*/);
-    DECLARE_DELEGATE(OnStaminaChanged, float /*Current*/, float /*Max*/);
-    DECLARE_DELEGATE(OnDeath);
+    // DECLARE_DELEGATE(OnHealthChanged, float /*Current*/, float /*Max*/);
+    // DECLARE_DELEGATE(OnStaminaChanged, float /*Current*/, float /*Max*/);
+    // DECLARE_DELEGATE(OnDeath);
 
     UStatsComponent();
     virtual ~UStatsComponent() = default;
