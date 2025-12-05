@@ -1,5 +1,6 @@
 ﻿#include "pch.h"
 #include <string>
+#include <algorithm>
 #include "TargetActorTransformWidget.h"
 #include "UIManager.h"
 #include "ImGui/imgui.h"
@@ -37,6 +38,7 @@
 #include "Source/Runtime/Core/Misc/PathUtils.h"
 #include "PlayerCameraManager.h"
 #include "Camera/CamMod_DOF.h"
+#include "Camera/CamMod_Bloom.h"
 
 using namespace std;
 
@@ -547,6 +549,7 @@ void UTargetActorTransformWidget::RenderSelectedActorDetails(AActor* SelectedAct
 	if (APlayerCameraManager* CamMgr = Cast<APlayerCameraManager>(SelectedActor))
 	{
 		RenderDOFSettings(CamMgr);
+		RenderBloomSettings(CamMgr);
 	}
 }
 
@@ -674,6 +677,111 @@ void UTargetActorTransformWidget::RenderDOFSettings(APlayerCameraManager* CamMgr
 
 		ImGui::Unindent(10.0f);
 	}
+}
+
+void UTargetActorTransformWidget::RenderBloomSettings(APlayerCameraManager* CamMgr)
+{
+    if (!CamMgr)
+    {
+        return;
+    }
+
+    UCamMod_Bloom* Bloom = nullptr;
+    for (UCameraModifierBase* Mod : CamMgr->ActiveModifiers)
+    {
+        if (UCamMod_Bloom* Found = Cast<UCamMod_Bloom>(Mod))
+        {
+            Bloom = Found;
+            break;
+        }
+    }
+
+    bool bBloomEnabled = (Bloom != nullptr && Bloom->bEnabled);
+
+    if (ImGui::CollapsingHeader("Bloom", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        ImGui::Indent(10.0f);
+
+        bool bPrevEnabled = bBloomEnabled;
+        if (ImGui::Checkbox("Enable Bloom", &bBloomEnabled))
+        {
+            if (bBloomEnabled && !bPrevEnabled)
+            {
+                if (!Bloom)
+                {
+                    Bloom = NewObject<UCamMod_Bloom>();
+                    CamMgr->ActiveModifiers.Add(Bloom);
+                }
+                Bloom->bEnabled = true;
+            }
+            else if (!bBloomEnabled && bPrevEnabled)
+            {
+                if (Bloom)
+                {
+                    for (int32 i = CamMgr->ActiveModifiers.Num() - 1; i >= 0; --i)
+                    {
+                        if (CamMgr->ActiveModifiers[i] == Bloom)
+                        {
+                            CamMgr->ActiveModifiers.RemoveAt(i);
+                            break;
+                        }
+                    }
+                    DeleteObject(Bloom);
+                    Bloom = nullptr;
+                }
+            }
+        }
+
+        if (bBloomEnabled && Bloom)
+        {
+            ImGui::Spacing();
+            ImGui::Text("Threshold");
+            ImGui::SetNextItemWidth(-1);
+            if (ImGui::DragFloat("##BloomThreshold", &Bloom->Threshold, 0.01f, 0.0f, 10.0f, "%.2f"))
+            {
+                Bloom->Threshold = std::clamp(Bloom->Threshold, 0.0f, 10.0f);
+            }
+            if (ImGui::IsItemHovered())
+            {
+                ImGui::SetTooltip("Brightness level above which pixels start contributing to bloom");
+            }
+
+            ImGui::Text("Soft Knee");
+            ImGui::SetNextItemWidth(-1);
+            if (ImGui::DragFloat("##BloomSoftKnee", &Bloom->SoftKnee, 0.01f, 0.0f, 1.0f, "%.2f"))
+            {
+                Bloom->SoftKnee = std::clamp(Bloom->SoftKnee, 0.0f, 1.0f);
+            }
+            if (ImGui::IsItemHovered())
+            {
+                ImGui::SetTooltip("Controls how smoothly the threshold transitions into the bright-pass");
+            }
+
+            ImGui::Text("Intensity");
+            ImGui::SetNextItemWidth(-1);
+            if (ImGui::DragFloat("##BloomIntensity", &Bloom->Intensity, 0.05f, 0.0f, 10.0f, "%.2f"))
+            {
+                Bloom->Intensity = std::max(0.0f, Bloom->Intensity);
+            }
+            if (ImGui::IsItemHovered())
+            {
+                ImGui::SetTooltip("Scales how strong the bloom contribution appears");
+            }
+
+            ImGui::Text("Blur Radius");
+            ImGui::SetNextItemWidth(-1);
+            if (ImGui::DragFloat("##BloomBlurRadius", &Bloom->BlurRadius, 0.05f, 0.1f, 10.0f, "%.2f"))
+            {
+                Bloom->BlurRadius = std::clamp(Bloom->BlurRadius, 0.1f, 10.0f);
+            }
+            if (ImGui::IsItemHovered())
+            {
+                ImGui::SetTooltip("Controls the spread of the bloom blur in pixels");
+            }
+        }
+
+        ImGui::Unindent(10.0f);
+    }
 }
 
 // 컴포넌트의 프로퍼티 출력
