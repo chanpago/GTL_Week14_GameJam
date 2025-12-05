@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='utf-8'?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
   <ItemGroup>
     <FxCompile Include="Shaders\Effects\ParticleBeam.hlsl" />
@@ -457,7 +457,19 @@
     </ClCompile>
     <ClCompile Include="Source\Runtime\Engine\GameFramework\Camera\CamMod_Bloom.cpp" />
     <ClCompile Include="Source\Runtime\Renderer\PostProcessing\BloomPass.cpp" />
-  <ClCompile Include="Generated\AGameState.generated.cpp"><Filter>Generated</Filter></ClCompile><ClCompile Include="Generated\AGameStateBase.generated.cpp"><Filter>Generated</Filter></ClCompile></ItemGroup>
+    <ClCompile Include="Generated\UHitboxComponent.generated.cpp">
+      <Filter>Generated</Filter></ClCompile>
+    <ClCompile Include="Generated\UStatsComponent.generated.cpp">
+      <Filter>Generated</Filter></ClCompile>
+    <ClCompile Include="Generated\AEnemyBase.generated.cpp">
+      <Filter>Generated</Filter>
+    </ClCompile><ClCompile Include="Generated\APlayerCharacter.generated.cpp">
+      <Filter>Generated</Filter>
+    <ClCompile Include="Generated\AGameState.generated.cpp">
+      <Filter>Generated</Filter>
+    </ClCompile><ClCompile Include="Generated\AGameStateBase.generated.cpp">
+      <Filter>Generated</Filter>
+    </ClCompile></ItemGroup>
   <ItemGroup>
     <ClInclude Include="Generated\AActor.generated.h">
       <Filter>Generated</Filter>
@@ -935,7 +947,19 @@
     </ClInclude>
     <ClInclude Include="Source\Runtime\Engine\GameFramework\Camera\CamMod_Bloom.h" />
     <ClInclude Include="Source\Runtime\Renderer\PostProcessing\BloomPass.h" />
-  <ClInclude Include="Generated\AGameState.generated.h"><Filter>Generated</Filter></ClInclude><ClInclude Include="Generated\AGameStateBase.generated.h"><Filter>Generated</Filter></ClInclude></ItemGroup>
+    <ClInclude Include="Generated\UHitboxComponent.generated.h">
+      <Filter>Generated</Filter>
+    </ClInclude><ClInclude Include="Generated\UStatsComponent.generated.h">
+      <Filter>Generated</Filter>
+    </ClInclude><ClInclude Include="Generated\AEnemyBase.generated.h">
+      <Filter>Generated</Filter>
+    </ClInclude><ClInclude Include="Generated\APlayerCharacter.generated.h">
+      <Filter>Generated</Filter>
+    <ClInclude Include="Generated\AGameState.generated.h">
+      <Filter>Generated</Filter>
+    </ClInclude><ClInclude Include="Generated\AGameStateBase.generated.h">
+      <Filter>Generated</Filter>
+  </ClInclude></ItemGroup>
   <ItemGroup>
     <None Include="ClassDiagram.cd" />
     <None Include="Tools\CodeGenerator\generate.py" />
