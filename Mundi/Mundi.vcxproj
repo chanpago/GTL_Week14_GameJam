@@ -680,6 +680,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_StandAlone|x64'">false</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="Source\Slate\GameOverlayD2D.cpp" />
     <ClCompile Include="Source\Slate\ImGui\ImGuiHelper.cpp" />
     <ClCompile Include="Source\Slate\StatsOverlayD2D.cpp" />
     <ClCompile Include="Source\Slate\UIManager.cpp" />
@@ -1181,6 +1182,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_StandAlone|x64'">false</ExcludedFromBuild>
     </ClInclude>
+    <ClInclude Include="Source\Slate\GameOverlayD2D.h" />
     <ClInclude Include="Source\Slate\ImGui\ImGuiHelper.h" />
     <ClInclude Include="Source\Slate\StatsOverlayD2D.h" />
     <ClInclude Include="Source\Slate\UIManager.h" />
