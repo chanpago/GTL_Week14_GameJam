@@ -1,16 +1,16 @@
 ﻿#pragma once
 #include "Frustum.h"
 
-// TODO : Post Processing 떼어내기, 전방선언으로라든지...
+// TODO : Post Processing 떼어내기, 전방선언으로라든지... 결국 안 하는군 ㅎㅎ
 #include "PostProcessing/FadeInOutPass.h"
 #include "PostProcessing/VignettePass.h"
 #include "PostProcessing/HeightFogPass.h"
 #include "PostProcessing/GammaPass.h"
+#include "PostProcessing/BloomPass.h"
 #include "PostProcessing/DOFSetupPass.h"
 #include "PostProcessing/DOFBlurPass.h"
 #include "PostProcessing/DOFRecombinePass.h"
 
-// 전방 선언 (헤더 파일 의존성 최소화)
 class UWorld;
 class ACameraActor;
 class FViewport;
@@ -160,6 +160,7 @@ private:
 	FHeightFogPass HeightFogPass;
 	FFadeInOutPass FadeInOutPass;
 	FVignettePass VignettePass;
+	FBloomPass BloomPass;
 	FGammaPass GammaPass;
 	FDOFSetupPass DOFSetupPass;
 	FDOFBlurPass DOFBlurPass;

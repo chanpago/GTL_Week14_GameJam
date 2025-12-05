@@ -384,7 +384,7 @@ void USkeletalMeshComponent::SetSkeletalMesh(const FString& PathFileName)
         AssetToApply = PhysicsAssetOverride;
     }
     ApplyPhysicsAsset(AssetToApply);
-    
+
     if (SkeletalMesh && SkeletalMesh->GetSkeletalMeshData())
     {
         const FSkeleton& Skeleton = SkeletalMesh->GetSkeletalMeshData()->Skeleton;
@@ -411,10 +411,63 @@ void USkeletalMeshComponent::SetSkeletalMesh(const FString& PathFileName)
                 LocalBindMatrix = ThisBone.BindPose * ParentInverseBindPose;
             }
             // 계산된 로컬 행렬을 로컬 트랜스폼으로 변환
-            CurrentLocalSpacePose[i] = FTransform(LocalBindMatrix); 
+            CurrentLocalSpacePose[i] = FTransform(LocalBindMatrix);
         }
-        
-        ForceRecomputePose(); 
+
+        ForceRecomputePose();
+    }
+    else
+    {
+        // 메시 로드 실패 시 버퍼 비우기
+        CurrentLocalSpacePose.Empty();
+        CurrentComponentSpacePose.Empty();
+        TempFinalSkinningMatrices.Empty();
+        TempFinalSkinningNormalMatrices.Empty();
+    }
+}
+
+void USkeletalMeshComponent::SetSkeletalMesh(const FString& PathFileName, bool bPreserveMaterials)
+{
+    Super::SetSkeletalMesh(PathFileName, bPreserveMaterials);
+
+    UPhysicsAsset* DefaultPhysicsAsset = SkeletalMesh ? SkeletalMesh->PhysicsAsset : nullptr;
+    UPhysicsAsset* AssetToApply = DefaultPhysicsAsset;
+    if (HasPhysicsAssetOverride() && PhysicsAssetOverride)
+    {
+        AssetToApply = PhysicsAssetOverride;
+    }
+    ApplyPhysicsAsset(AssetToApply);
+
+    if (SkeletalMesh && SkeletalMesh->GetSkeletalMeshData())
+    {
+        const FSkeleton& Skeleton = SkeletalMesh->GetSkeletalMeshData()->Skeleton;
+        const int32 NumBones = Skeleton.Bones.Num();
+
+        CurrentLocalSpacePose.SetNum(NumBones);
+        CurrentComponentSpacePose.SetNum(NumBones);
+        TempFinalSkinningMatrices.SetNum(NumBones);
+        TempFinalSkinningNormalMatrices.SetNum(NumBones);
+
+        for (int32 i = 0; i < NumBones; ++i)
+        {
+            const FBone& ThisBone = Skeleton.Bones[i];
+            const int32 ParentIndex = ThisBone.ParentIndex;
+            FMatrix LocalBindMatrix;
+
+            if (ParentIndex == -1) // 루트 본
+            {
+                LocalBindMatrix = ThisBone.BindPose;
+            }
+            else // 자식 본
+            {
+                const FMatrix& ParentInverseBindPose = Skeleton.Bones[ParentIndex].InverseBindPose;
+                LocalBindMatrix = ThisBone.BindPose * ParentInverseBindPose;
+            }
+            // 계산된 로컬 행렬을 로컬 트랜스폼으로 변환
+            CurrentLocalSpacePose[i] = FTransform(LocalBindMatrix);
+        }
+
+        ForceRecomputePose();
     }
     else
     {
@@ -1427,7 +1480,7 @@ void USkeletalMeshComponent::Serialize(const bool bInIsLoading, JSON& InOutHandl
         if (SkeletalMesh)
         {
             // Preserve materials that were loaded by base Serialize
-            USkinnedMeshComponent::SetSkeletalMesh(SkeletalMesh->GetPathFileName(), /*bPreserveMaterials*/ true);
+            SetSkeletalMesh(SkeletalMesh->GetPathFileName(), /*bPreserveMaterials*/ true);
         }
 
         // Load animation graph from saved path if available

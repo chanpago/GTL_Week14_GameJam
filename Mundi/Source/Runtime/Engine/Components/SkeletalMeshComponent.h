@@ -41,6 +41,7 @@ public:
 
 public:
     void SetSkeletalMesh(const FString& PathFileName) override;
+    void SetSkeletalMesh(const FString& PathFileName, bool bPreserveMaterials);
 
     FAABB GetWorldAABB() const override;
 

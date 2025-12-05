@@ -47,6 +47,7 @@ public:
 	void RenderSelectedActorDetails(AActor* SelectedActor);
 	void RenderSelectedComponentDetails(UActorComponent* SelectedComponent);
 	void RenderDOFSettings(APlayerCameraManager* CamMgr);
+	void RenderBloomSettings(APlayerCameraManager* CamMgr);
 
 private:
 	UUIManager* UIManager = nullptr;

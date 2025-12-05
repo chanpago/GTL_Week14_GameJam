@@ -9,6 +9,7 @@ void D3D11RHI::Initialize(HWND hWindow)
     CreateFrameBuffer();
     CreateIdBuffer();
     CreateDOFResources();  // DOF 렌더 타겟 생성
+    CreateBloomResources();
     CreateRasterizerState();
     CreateBlendState();
     CONSTANT_BUFFER_LIST(CREATE_CONSTANT_BUFFER);
@@ -78,6 +79,7 @@ void D3D11RHI::Release()
     ReleaseFrameBuffer();
     ReleaseIdBuffer();
     ReleaseDOFResources();  // DOF 렌더 타겟 해제
+    ReleaseBloomResources();
 
     // Device + SwapChain
     ReleaseDeviceAndSwapChain();
@@ -763,6 +765,71 @@ void D3D11RHI::CreateDOFResources()
     UE_LOG("D3D11RHI: DOF Resources 생성 완료 (%d x %d)\n", halfWidth, halfHeight);
 }
 
+void D3D11RHI::CreateBloomResources()
+{
+    ReleaseBloomResources();
+
+    if (!Device || !SwapChain)
+    {
+        return;
+    }
+
+    DXGI_SWAP_CHAIN_DESC swapDesc = {};
+    SwapChain->GetDesc(&swapDesc);
+
+    UINT bloomWidth = std::max(1u, swapDesc.BufferDesc.Width / 2);
+    UINT bloomHeight = std::max(1u, swapDesc.BufferDesc.Height / 2);
+
+    D3D11_TEXTURE2D_DESC desc = {};
+    desc.Width = bloomWidth;
+    desc.Height = bloomHeight;
+    desc.MipLevels = 1;
+    desc.ArraySize = 1;
+    desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+    desc.SampleDesc.Count = 1;
+    desc.SampleDesc.Quality = 0;
+    desc.Usage = D3D11_USAGE_DEFAULT;
+    desc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+    desc.CPUAccessFlags = 0;
+    desc.MiscFlags = 0;
+
+    for (int32 idxTex = 0; idxTex < NUM_BLOOM_BUFFERS; ++idxTex)
+    {
+        HRESULT hr = Device->CreateTexture2D(&desc, nullptr, &BloomTextures[idxTex]);
+        if (FAILED(hr))
+        {
+            UE_LOG("D3D11RHI: Bloom Texture[%d] 생성 실패", idxTex);
+            return;
+        }
+
+        D3D11_RENDER_TARGET_VIEW_DESC rtvDesc = {};
+        rtvDesc.Format = desc.Format;
+        rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+        rtvDesc.Texture2D.MipSlice = 0;
+
+        hr = Device->CreateRenderTargetView(BloomTextures[idxTex], &rtvDesc, &BloomRTVs[idxTex]);
+        if (FAILED(hr))
+        {
+            UE_LOG("D3D11RHI: Bloom RTV[%d] 생성 실패", idxTex);
+            return;
+        }
+
+        D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+        srvDesc.Format = desc.Format;
+        srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+        srvDesc.Texture2D.MostDetailedMip = 0;
+        srvDesc.Texture2D.MipLevels = 1;
+
+        hr = Device->CreateShaderResourceView(BloomTextures[idxTex], &srvDesc, &BloomSRVs[idxTex]);
+        if (FAILED(hr))
+        {
+            UE_LOG("D3D11RHI: Bloom SRV[%d] 생성 실패", idxTex);
+            return;
+        }
+    }
+}
+
+
 void D3D11RHI::CreateRasterizerState()
 {
     D3D11_RASTERIZER_DESC deafultrasterizerdesc = {};
@@ -1022,6 +1089,29 @@ void D3D11RHI::ReleaseDOFResources()
         }
     }
 }
+void D3D11RHI::ReleaseBloomResources()
+{
+    for (int32 idxTex = 0; idxTex < NUM_BLOOM_BUFFERS; ++idxTex)
+    {
+        if (BloomSRVs[idxTex])
+        {
+            BloomSRVs[idxTex]->Release();
+            BloomSRVs[idxTex] = nullptr;
+        }
+        if (BloomRTVs[idxTex])
+        {
+            BloomRTVs[idxTex]->Release();
+            BloomRTVs[idxTex] = nullptr;
+        }
+        if (BloomTextures[idxTex])
+        {
+            BloomTextures[idxTex]->Release();
+            BloomTextures[idxTex] = nullptr;
+        }
+    }
+}
+
+
 
 void D3D11RHI::ReleaseDeviceAndSwapChain()
 {
@@ -1069,6 +1159,7 @@ void D3D11RHI::OMSetDepthStencilState(EComparisonFunc Func)
         break;
     case EComparisonFunc::LessEqualReadOnly:
         DeviceContext->OMSetDepthStencilState(DepthStencilStateLessEqualReadOnly, 0);
+        break;
     case EComparisonFunc::Disable:
 		DeviceContext->OMSetDepthStencilState(DepthStencilStateDisable, 0);
         break;
@@ -1133,6 +1224,7 @@ void D3D11RHI::OnResize(UINT NewWidth, UINT NewHeight)
     ReleaseFrameBuffer();
     ReleaseIdBuffer();
     ReleaseDOFResources();  // DOF 렌더 타겟 해제
+    ReleaseBloomResources();
 
     // 스왑체인 버퍼 리사이즈
     HRESULT hr = SwapChain->ResizeBuffers(
@@ -1152,6 +1244,7 @@ void D3D11RHI::OnResize(UINT NewWidth, UINT NewHeight)
     CreateFrameBuffer();
     CreateIdBuffer();
     CreateDOFResources();  // DOF 렌더 타겟 재생성
+    CreateBloomResources();
 
     // 뷰포트 갱신
     ViewportInfo.TopLeftX = 0.0f;

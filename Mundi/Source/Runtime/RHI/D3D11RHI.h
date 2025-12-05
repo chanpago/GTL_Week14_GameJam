@@ -233,12 +233,15 @@ public:
     ID3D11RenderTargetView* GetDOFRTV(int index) { return DOFRTVs[index]; }
     ID3D11ShaderResourceView** GetDOFSRVs() { return DOFSRVs; }
     ID3D11ShaderResourceView* GetDOFSRV(int index) { return DOFSRVs[index]; }
+    ID3D11RenderTargetView* GetBloomRTV(int index) { return BloomRTVs[index]; }
+    ID3D11ShaderResourceView* GetBloomSRV(int index) { return BloomSRVs[index]; }
 
 private:
 	void CreateDeviceAndSwapChain(HWND hWindow); // 여기서 디바이스, 디바이스 컨택스트, 스왑체인, 뷰포트를 초기화한다
 	void CreateFrameBuffer();
 	void CreateIdBuffer();
 	void CreateDOFResources();  // DOF 렌더 타겟 생성
+	void CreateBloomResources();
 	void CreateRasterizerState();
 	void CreateConstantBuffer(ID3D11Buffer** ConstantBuffer, uint32 Size);
 	void CreateDepthStencilState();
@@ -251,6 +254,7 @@ private:
 	void ReleaseFrameBuffer(); // fb, rtv
 	void ReleaseIdBuffer();
 	void ReleaseDOFResources();  // DOF 렌더 타겟 해제
+	void ReleaseBloomResources();
 	void ReleaseDeviceAndSwapChain();
 
 	// FSwapGuard 클래스가 D3D11RHI의 private 멤버에 접근할 수 있도록 허용
@@ -314,6 +318,12 @@ private:
 	ID3D11ShaderResourceView* DOFSRVs[NUM_DOF_BUFFERS] = {nullptr};
 	// [0] = Far Field, [1] = Near Field
 	// [2] = Temp Horizontal Blur, [3] = Temp Vertical Blur
+
+	// Bloom 렌더 타겟 (1/2 해상도 + 임시 버퍼)
+	static const int NUM_BLOOM_BUFFERS = 2;
+	ID3D11Texture2D* BloomTextures[NUM_BLOOM_BUFFERS] = { nullptr };
+	ID3D11RenderTargetView* BloomRTVs[NUM_BLOOM_BUFFERS] = { nullptr };
+	ID3D11ShaderResourceView* BloomSRVs[NUM_BLOOM_BUFFERS] = { nullptr };
 
     // 버퍼 핸들
 	CONSTANT_BUFFER_LIST(DECLARE_CONSTANT_BUFFER)

@@ -42,7 +42,7 @@ public:
     FString GetNotifyPath() const;
     
 protected:
-    
+
     TArray<FAnimNotifyEvent> Notifies;
 
     //TArray<FAnimNotifyTrack> AnimNotifyTracks;
@@ -51,5 +51,8 @@ protected:
 
     float RateScale;
 
-    bool bLoop;  
+    bool bLoop;
+
+    // 메타 파일 로드 시도 여부 (한 번만 시도하기 위한 플래그)
+    mutable bool bMetaLoadAttempted = false;  
 };

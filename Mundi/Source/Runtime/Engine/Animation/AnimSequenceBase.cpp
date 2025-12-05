@@ -43,9 +43,11 @@ bool UAnimSequenceBase::IsNotifyAvailable() const
 
 TArray<FAnimNotifyEvent>& UAnimSequenceBase::GetAnimNotifyEvents()
 {
-    // Lazy-load meta if empty and sidecar exists
-    if (Notifies.Num() == 0)
+    // Lazy-load meta if empty and sidecar exists (only attempt once)
+    if (Notifies.Num() == 0 && !bMetaLoadAttempted)
     {
+        bMetaLoadAttempted = true;
+
         FString FileName = "AnimNotifies";
         const FString Src = GetFilePath();
         if (!Src.empty())
@@ -59,9 +61,6 @@ TArray<FAnimNotifyEvent>& UAnimSequenceBase::GetAnimNotifyEvents()
         const FString MetaPathUtf8 = NormalizePath(GDataDir + "/" + FileName + ".anim.json");
         std::filesystem::path MetaPath(UTF8ToWide(MetaPathUtf8));
         std::error_code ec;
-
-        UE_LOG("GetAnimNotifyEvents - FilePath: %s, MetaPath: %s, Exists: %d",
-            Src.c_str(), MetaPathUtf8.c_str(), std::filesystem::exists(MetaPath, ec) ? 1 : 0);
 
         if (std::filesystem::exists(MetaPath, ec))
         {
