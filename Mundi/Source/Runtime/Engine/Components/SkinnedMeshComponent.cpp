@@ -66,7 +66,8 @@ void USkinnedMeshComponent::Serialize(const bool bInIsLoading, JSON& InOutHandle
 
    if (bInIsLoading)
    {
-      SetSkeletalMesh(SkeletalMesh->GetPathFileName());
+      // Preserve existing materials loaded by Super::Serialize
+      SetSkeletalMesh(SkeletalMesh->GetPathFileName(), /*bPreserveMaterials*/ true);
    }
    // @TODO - UStaticMeshComponent처럼 프로퍼티 기반 직렬화 로직 추가
 }
@@ -363,6 +364,101 @@ void USkinnedMeshComponent::SetSkeletalMesh(const FString& PathFileName)
       {
          // FGroupInfo에 InitialMaterialName이 있다고 가정
          SetMaterialByName(i, GroupInfos[i].InitialMaterialName);
+      }
+      MarkWorldPartitionDirty();
+      SkeletalMesh->BuildLocalAABBs();
+   }
+   else
+   {
+      SkeletalMesh = nullptr;
+      UpdateSkinningMatrices(TArray<FMatrix>(), TArray<FMatrix>());
+      PerformSkinning();
+   }
+}
+
+// Overload used during load to preserve existing material slots and MIDs
+void USkinnedMeshComponent::SetSkeletalMesh(const FString& PathFileName, bool bPreserveMaterials)
+{
+   // Cache old materials before any potential changes
+   TArray<UMaterialInterface*> OldMaterialSlots;
+   if (bPreserveMaterials)
+   {
+      OldMaterialSlots = MaterialSlots;
+   }
+
+   if (!bPreserveMaterials)
+   {
+      ClearDynamicMaterials();
+   }
+
+   SkeletalMesh = UResourceManager::GetInstance().Load<USkeletalMesh>(PathFileName);
+
+   if (CPUSkinnedVertexBuffer)
+   {
+      CPUSkinnedVertexBuffer->Release();
+      CPUSkinnedVertexBuffer = nullptr;
+   }
+
+   if (GPUSkinnedVertexBuffer)
+   {
+      GPUSkinnedVertexBuffer->Release();
+      GPUSkinnedVertexBuffer = nullptr;
+   }
+
+   if (SkinningMatrixSRV)
+   {
+      SkinningMatrixSRV->Release();
+      SkinningMatrixSRV = nullptr;
+   }
+   
+   if (SkinningMatrixBuffer)
+   {
+      SkinningMatrixBuffer->Release();
+      SkinningMatrixBuffer = nullptr;
+   }
+
+   if (SkinningNormalMatrixSRV)
+   {
+      SkinningNormalMatrixSRV->Release();
+      SkinningNormalMatrixSRV = nullptr;
+   }
+   
+   if (SkinningNormalMatrixBuffer)
+   {
+      SkinningNormalMatrixBuffer->Release();
+      SkinningNormalMatrixBuffer = nullptr;
+   }
+   
+   if (SkeletalMesh && SkeletalMesh->GetSkeletalMeshData())
+   {
+      SkeletalMesh->CreateCPUSkinnedVertexBuffer(&CPUSkinnedVertexBuffer);
+      SkeletalMesh->CreateGPUSkinnedVertexBuffer(&GPUSkinnedVertexBuffer);
+      
+      uint32 BoneCount = SkeletalMesh->GetBoneCount();
+      if (0 < BoneCount && !SkinningMatrixBuffer && !SkinningNormalMatrixBuffer)
+      {
+         SkeletalMesh->CreateStructuredBuffer(&SkinningMatrixBuffer, &SkinningMatrixSRV, BoneCount);
+         SkeletalMesh->CreateStructuredBuffer(&SkinningNormalMatrixBuffer, &SkinningNormalMatrixSRV, BoneCount);
+      }
+      
+      const TArray<FMatrix> IdentityMatrices(SkeletalMesh->GetBoneCount(), FMatrix::Identity());
+      UpdateSkinningMatrices(IdentityMatrices, IdentityMatrices);
+      PerformSkinning();
+      
+      const TArray<FGroupInfo>& GroupInfos = SkeletalMesh->GetMeshGroupInfo();
+      MaterialSlots.resize(GroupInfos.size());
+      for (int i = 0; i < GroupInfos.size(); ++i)
+      {
+         if (bPreserveMaterials && i < OldMaterialSlots.Num() && OldMaterialSlots[i] != nullptr)
+         {
+            // Keep previously loaded material (including any MID overrides)
+            MaterialSlots[i] = OldMaterialSlots[i];
+         }
+         else
+         {
+            // Default to the mesh's initial material name
+            SetMaterialByName(i, GroupInfos[i].InitialMaterialName);
+         }
       }
       MarkWorldPartitionDirty();
       SkeletalMesh->BuildLocalAABBs();
