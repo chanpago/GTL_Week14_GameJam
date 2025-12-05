@@ -6,7 +6,7 @@
   "OwnedComponents" : [{
       "BoxExtent" : [0.000000, 0.000000, 0.000000],
       "CollisionEnabled_Internal" : 2,
-      "Id" : 6121,
+      "Id" : 6443,
       "ObjectName" : "UHitboxComponent_1",
       "ParentId" : 0,
       "RelativeLocation" : [0.000000, 0.000000, 0.000000],
@@ -27,10 +27,10 @@
       "CapsuleHalfHeight" : 0.900000,
       "CapsuleRadius" : 0.300000,
       "CollisionEnabled_Internal" : 2,
-      "Id" : 6062,
+      "Id" : 6444,
       "ObjectName" : "UCapsuleComponent_1",
       "ParentId" : 0,
-      "RelativeLocation" : [-7.202923, -1.726968, 3.771774],
+      "RelativeLocation" : [-7.844350, -3.520751, 5.819717],
       "RelativeRotationEuler" : [0.000000, -0.000000, 0.000000],
       "RelativeScale" : [1.000000, 1.000000, 1.000000],
       "Type" : "UCapsuleComponent",
@@ -47,7 +47,7 @@
     }, {
       "AnimGraphPath" : "Data/Graphs/Shinobi.graph",
       "CollisionEnabled_Internal" : 2,
-      "Id" : 6063,
+      "Id" : 6445,
       "MaterialSlots" : [{
           "Type" : "None"
         }, {
@@ -204,7 +204,7 @@
           "Type" : "UMaterialInstanceDynamic"
         }],
       "ObjectName" : "USkeletalMeshComponent_3",
-      "ParentId" : 6062,
+      "ParentId" : 6444,
       "PhysicsAssetOverridePath" : "Data/Physics/Shinobi.phys",
       "RelativeLocation" : [0.000000, 0.000000, -0.900000],
       "RelativeRotationEuler" : [0.000000, -0.000000, 0.000000],
@@ -244,10 +244,13 @@
       "bTickEnabled" : true
     }],
   "ParryWindowDuration" : 0.200000,
-  "RootComponentId" : 6062,
+  "RootComponentId" : 6444,
   "RotationSpeed" : 10.000000,
   "Tag" : "",
   "Type" : "APlayerCharacter",
+  "WeaponBoneName" : "hand_r",
+  "WeaponOffset" : [0.000000, 0.000000, 0.000000],
+  "WeaponRotationOffset" : [0.000000, 0.000000, 0.000000],
   "bActorHiddenInGame" : false,
   "bActorIsActive" : true,
   "bIsBlocking" : false,
