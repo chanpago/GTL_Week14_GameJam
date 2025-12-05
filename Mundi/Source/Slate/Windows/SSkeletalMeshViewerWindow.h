@@ -40,6 +40,8 @@ public:
     void LoadSkeletalMesh(const FString& Path);
     void LoadPhysicsAsset(UPhysicsAsset* PhysicsAsset);
     void SetPhysicsAssetSavePath(const FString& SavePath);
+    // Initialize viewer preview using an existing component's mesh and materials
+    void LoadFromComponent(class USkeletalMeshComponent* SourceComponent);
 
 private:
     // Tabs

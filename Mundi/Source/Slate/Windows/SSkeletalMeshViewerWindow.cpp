@@ -27,6 +27,7 @@
 #include "Source/Runtime/Engine/Physics/PhysicalMaterial.h"
 #include <cstring>
 #include "RenderManager.h"
+#include "Source/Runtime/Renderer/Material.h"
 
 namespace
 {
@@ -2097,6 +2098,61 @@ void SSkeletalMeshViewerWindow::LoadSkeletalMesh(const FString& Path)
     else
     {
         UE_LOG("SSkeletalMeshViewerWindow: Failed to load skeletal mesh from %s", Path.c_str());
+    }
+}
+
+void SSkeletalMeshViewerWindow::LoadFromComponent(USkeletalMeshComponent* SourceComponent)
+{
+    if (!ActiveState || !ActiveState->PreviewActor || !SourceComponent)
+    {
+        return;
+    }
+
+    USkeletalMeshComponent* DestComp = ActiveState->PreviewActor->GetSkeletalMeshComponent();
+    if (!DestComp)
+    {
+        return;
+    }
+
+    // If source has a mesh, ensure the viewer is using the same mesh
+    if (USkeletalMesh* SrcMesh = SourceComponent->GetSkeletalMesh())
+    {
+        // Preserve viewer materials if already applied later in this function
+        ActiveState->PreviewActor->SetSkeletalMesh(SrcMesh->GetPathFileName());
+        ActiveState->CurrentMesh = SrcMesh;
+        ActiveState->LoadedMeshPath = SrcMesh->GetPathFileName();
+    }
+
+    // Mirror materials. Clone dynamic instance parameters to avoid sharing the same MID between worlds.
+    const TArray<UMaterialInterface*>& SrcSlots = SourceComponent->GetMaterialSlots();
+    for (uint32 i = 0; i < static_cast<uint32>(SrcSlots.Num()); ++i)
+    {
+        UMaterialInterface* SrcMat = SourceComponent->GetMaterial(i);
+        if (SrcMat == nullptr)
+        {
+            DestComp->SetMaterial(i, nullptr);
+            continue;
+        }
+
+        if (auto* SrcMID = Cast<UMaterialInstanceDynamic>(SrcMat))
+        {
+            UMaterialInterface* Parent = SrcMID->GetParentMaterial();
+            UMaterialInstanceDynamic* NewMID = nullptr;
+            if (Parent)
+            {
+                NewMID = UMaterialInstanceDynamic::Create(Parent);
+                if (NewMID)
+                {
+                    NewMID->CopyParametersFrom(SrcMID);
+                }
+            }
+            DestComp->SetMaterial(i, NewMID ? static_cast<UMaterialInterface*>(NewMID) : SrcMat);
+        }
+        else
+        {
+            // Plain UMaterial: reuse interface directly
+            DestComp->SetMaterial(i, SrcMat);
+        }
     }
 }
 

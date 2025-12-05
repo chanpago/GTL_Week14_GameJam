@@ -1236,25 +1236,32 @@ bool UPropertyRenderer::RenderSkeletalMeshProperty(const FProperty& Prop, void* 
 		}
 	}
 
-	if (ImGui::Button("Skeletal Viewer"))
-	{
-		if (!USlateManager::GetInstance().IsSkeletalMeshViewerOpen())
-		{
-			// Open viewer with the currently selected skeletal mesh if available
-			if (!CurrentPath.empty())
-			{
-				USlateManager::GetInstance().OpenSkeletalMeshViewerWithFile(CurrentPath.c_str());
-			}
-			else
-			{
-				USlateManager::GetInstance().OpenSkeletalMeshViewer();
-			}
-		}
-		else
-		{
-			USlateManager::GetInstance().CloseSkeletalMeshViewer();
-		}
-	}
+    if (ImGui::Button("Skeletal Viewer"))
+    {
+        if (!USlateManager::GetInstance().IsSkeletalMeshViewerOpen())
+        {
+            // If invoked from a SkeletalMeshComponent details, mirror its materials in the viewer
+            if (UObject* OwningObject = static_cast<UObject*>(Instance))
+            {
+                if (auto* SkelComp = Cast<USkeletalMeshComponent>(OwningObject))
+                {
+                    USlateManager::GetInstance().OpenSkeletalMeshViewerWithComponent(SkelComp);
+                }
+                else
+                {
+                    // Fallback to mesh-only open
+                    if (!CurrentPath.empty())
+                        USlateManager::GetInstance().OpenSkeletalMeshViewerWithFile(CurrentPath.c_str());
+                    else
+                        USlateManager::GetInstance().OpenSkeletalMeshViewer();
+                }
+            }
+        }
+        else
+        {
+            USlateManager::GetInstance().CloseSkeletalMeshViewer();
+        }
+    }
 
 	ImGui::SetNextItemWidth(240);
 	if (ImGui::Combo(Prop.Name, &SelectedIdx, &ItemsGetter, (void*)&CachedSkeletalMeshItems, static_cast<int>(CachedSkeletalMeshItems.size())))
