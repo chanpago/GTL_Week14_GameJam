@@ -175,10 +175,10 @@ float4 mainPS(PSInput In) : SV_TARGET
                 return float4(emissive, 1.0f);
             }
 
-            //if (finalColor.a < 0.01)
-            //{
-            //    discard;
-            //}
+            if (finalColor.a < 0.001)
+            {
+                discard;
+            }
 
             if (BlendMode == PARTICLE_BLENDMODE_OPAQUE)
             {

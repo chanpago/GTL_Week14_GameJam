@@ -57,6 +57,7 @@ PSInput mainVS(VSInput In)
     return Out;
 }
 
+float Intensity = 10.0f;
 float4 mainPS(PSInput In) : SV_TARGET
 {
     float2 uv = In.UV;
@@ -102,16 +103,21 @@ float4 mainPS(PSInput In) : SV_TARGET
             float4 tex = lerp(c0, c1, alpha);
             float4 finalColor = tex * In.Color;
             
-            return finalColor;
+            if (finalColor.a < 0.001)
+            {
+                discard;
+            }
+            
+            return finalColor * Intensity;
         }
     }
 
     float4 tex = RibbonTex.Sample(RibbonSampler, uv);
     if (length(tex.rgb) < 0.001f && tex.a < 0.001f)
     {
-        tex = float4(1.0f, 1.0f, 1.0f, 1.0f);
+        tex = float4(0.0f, 0.0f, 0.0f, 0.0f);
     }
     
-    float4 col = tex * In.Color;
+    float4 col = tex * In.Color * Intensity;
     return col;
 }
