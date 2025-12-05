@@ -277,10 +277,19 @@ void APlayerCameraManager::StartCameraShake(float InDuration, float AmpLoc, floa
 void APlayerCameraManager::StartFade(float InDuration, float FromAlpha, float ToAlpha, const FLinearColor& InColor,
 	int32 InPriority)
 {
+	// Remove existing fade modifiers to avoid stacking
+	for (int32 i = ActiveModifiers.Num() - 1; i >= 0; --i)
+	{
+		if (Cast<UCamMod_Fade>(ActiveModifiers[i]))
+		{
+			DeleteObject(ActiveModifiers[i]);
+			ActiveModifiers.RemoveAt(i);
+		}
+	}
+
 	UCamMod_Fade* FadeModifier = NewObject<UCamMod_Fade>();
 	FadeModifier->Priority = InPriority;
 	FadeModifier->bEnabled = true;
-
 	FadeModifier->FadeColor = InColor;
 	FadeModifier->StartAlpha = FMath::Clamp(FromAlpha, 0.f, 1.f);
 	FadeModifier->EndAlpha = FMath::Clamp(ToAlpha, 0.f, 1.f);
@@ -288,8 +297,23 @@ void APlayerCameraManager::StartFade(float InDuration, float FromAlpha, float To
 	FadeModifier->Elapsed = 0.f;
 	FadeModifier->CurrentAlpha = FadeModifier->StartAlpha;
 
+	// If instantaneous, finalize immediately so it renders this frame
+	if (FadeModifier->Duration <= 0.f)
+	{
+		FadeModifier->Elapsed = FadeModifier->Duration;
+		FadeModifier->CurrentAlpha = FadeModifier->EndAlpha;
+		FadeModifier->bEnabled = (FadeModifier->EndAlpha > 0.f);
+	}
+
 	ActiveModifiers.Add(FadeModifier);
-	// ActiveModifiers.Sort([](UCameraModifierBase* A, UCameraModifierBase* B){ return *A < *B; });
+
+	// Ensure post-process list contains the fade this frame (even if not ticked)
+	Modifiers.clear();
+	for (UCameraModifierBase* M : ActiveModifiers)
+	{
+		if (!M || !M->bEnabled || M->Weight <= 0.f) continue;
+		M->CollectPostProcess(Modifiers);
+	}
 }
 
 void APlayerCameraManager::StartLetterBox(float InDuration, float Aspect, float BarHeight, const FLinearColor& InColor, int32 InPriority)

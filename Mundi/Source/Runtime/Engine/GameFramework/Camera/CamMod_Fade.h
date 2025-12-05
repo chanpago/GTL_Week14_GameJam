@@ -26,7 +26,15 @@ public:
         CurrentAlpha = FMath::Lerp(StartAlpha, EndAlpha, T);
 
         // 완료 처리
-        if (T >= 1.f) bEnabled = false;
+        if (T >= 1.f) { bEnabled = (EndAlpha > 0.f); }
+    }
+
+    virtual void TickLifetime(float DeltaTime) override
+    {
+        if (EndAlpha <= 0.f && Duration >= 0.f)
+        {
+            if (Elapsed >= Duration) bEnabled = false;
+        }
     }
 
     virtual void CollectPostProcess(TArray<FPostProcessModifier>& Out) override

@@ -6,6 +6,8 @@ class APawn;
 class ACharacter;
 class AController;
 class APlayerController;
+class AGameState;
+class AGameStateBase;
 
 
 class AGameModeBase : public AActor
@@ -22,12 +24,14 @@ public:
 	UClass* DefaultPawnClass;
 	UClass* PlayerControllerClass;
 
-	// TODO: Creat GameState
-	// 원래는 GameState가 관리해야되지만, 임시로 GameMode가 관리하도록 만듦
+	// Runtime instance of the game state
 	UClass* GameStateClass;
+	AGameStateBase* GameState = nullptr;
 
 	// 게임 시작 시 호출
 	virtual void StartPlay();
+
+	AGameStateBase* GetGameState() const { return GameState; }
 	  
 
 	// 플레이어 리스폰할 때 사용
