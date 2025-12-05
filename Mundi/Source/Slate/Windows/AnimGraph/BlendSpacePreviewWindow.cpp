@@ -9,11 +9,13 @@
 #include "Source/Runtime/AssetManagement/ResourceManager.h"
 #include "Source/Runtime/AssetManagement/SkeletalMesh.h"
 #include "Source/Editor/Gizmo/GizmoActor.h"
+#include "Source/Runtime/Core/Misc/PathUtils.h"
 #include "FViewport.h"
 #include "FViewportClient.h"
 #include "RenderManager.h"
 #include "Renderer.h"
 #include "Source/Runtime/RHI/D3D11RHI.h"
+#include <filesystem>
 
 BlendSpacePreviewWindow::BlendSpacePreviewWindow()
 {
@@ -51,13 +53,12 @@ bool BlendSpacePreviewWindow::Initialize(UBlendSpace2D* InBlendSpace, UWorld* In
             FString AnimPath = Samples[0].Animation->GetFilePath();
             UE_LOG("BlendSpacePreview: AnimPath = %s", AnimPath.c_str());
 
-            // "Data/Character.fbx_Walk" -> "Data/Character.fbx"
-            size_t UnderscorePos = AnimPath.find_last_of('_');
-            if (UnderscorePos != FString::npos)
-            {
-                FString MeshPath = AnimPath.substr(0, UnderscorePos);
-                UE_LOG("BlendSpacePreview: MeshPath = %s", MeshPath.c_str());
+            // 메시 경로 찾기: Animation 폴더 상위에서 SK_ 패턴 메시 탐색
+            FString MeshPath = FindSkeletalMeshFromAnimPath(AnimPath);
 
+            if (!MeshPath.empty())
+            {
+                UE_LOG("BlendSpacePreview: Found MeshPath = %s", MeshPath.c_str());
                 USkeletalMesh* Mesh = UResourceManager::GetInstance().Load<USkeletalMesh>(MeshPath);
                 if (Mesh)
                 {
@@ -72,7 +73,7 @@ bool BlendSpacePreviewWindow::Initialize(UBlendSpace2D* InBlendSpace, UWorld* In
             }
             else
             {
-                UE_LOG("BlendSpacePreview: No underscore found in AnimPath");
+                UE_LOG("BlendSpacePreview: Could not find mesh for animation");
             }
         }
         else
@@ -526,4 +527,59 @@ void BlendSpacePreviewWindow::OnMouseMove(FVector2D MousePos)
             static_cast<int32>(LocalPos.X),
             static_cast<int32>(LocalPos.Y));
     }
+}
+
+FString BlendSpacePreviewWindow::FindSkeletalMeshFromAnimPath(const FString& AnimPath)
+{
+    namespace fs = std::filesystem;
+
+    // AnimPath 예시: "Data/FBX/ShinobiGirlAkane/Animation/Combo_Attack_01_01_Seq.FBX_Unreal Take"
+    // 목표: "Data/FBX/ShinobiGirlAkane/SK_AKANE_NoMask.FBX" 찾기
+
+    // 1. 애니메이션 이름 부분 제거 (마지막 _)
+    size_t UnderscorePos = AnimPath.find_last_of('_');
+    if (UnderscorePos == FString::npos)
+    {
+        return FString();
+    }
+    FString FbxPath = AnimPath.substr(0, UnderscorePos);  // "Data/FBX/.../Combo_Attack_01_01_Seq.FBX"
+
+    // 2. filesystem::path로 변환
+    FWideString WFbxPath = UTF8ToWide(FbxPath);
+    fs::path FsPath(WFbxPath);
+
+    // 3. "Animation" 폴더 상위로 이동
+    fs::path ParentDir = FsPath.parent_path();  // "Data/FBX/ShinobiGirlAkane/Animation"
+
+    // Animation 폴더인지 확인
+    if (ParentDir.filename().wstring() == L"Animation")
+    {
+        ParentDir = ParentDir.parent_path();  // "Data/FBX/ShinobiGirlAkane"
+    }
+
+    // 4. 해당 폴더에서 SK_ 패턴 FBX 파일 찾기
+    if (fs::exists(ParentDir) && fs::is_directory(ParentDir))
+    {
+        for (const auto& Entry : fs::directory_iterator(ParentDir))
+        {
+            if (!Entry.is_regular_file()) continue;
+
+            fs::path EntryPath = Entry.path();
+            FString Extension = WideToUTF8(EntryPath.extension().wstring());
+
+            // 대소문자 무시 비교
+            std::transform(Extension.begin(), Extension.end(), Extension.begin(), ::tolower);
+            if (Extension != ".fbx") continue;
+
+            FString Filename = WideToUTF8(EntryPath.filename().wstring());
+
+            // SK_ 또는 SKM_ 패턴 확인
+            if (Filename.find("SK_") == 0 || Filename.find("SKM_") == 0)
+            {
+                return WideToUTF8(EntryPath.wstring());
+            }
+        }
+    }
+
+    return FString();
 }

@@ -66,6 +66,9 @@ private:
     void CreateViewerState();
     void DestroyViewerState();
 
+    // 애니메이션 경로에서 스켈레탈 메시 경로 찾기
+    FString FindSkeletalMeshFromAnimPath(const FString& AnimPath);
+
 private:
     // 창 상태
     bool bIsOpen = true;
