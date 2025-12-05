@@ -41,14 +41,14 @@ void UHitboxComponent::TickComponent(float DeltaTime)
     }
 
     // 현재 오버랩 중인 액터들 체크
-    const TArray<FOverlapInfo>& Overlaps = GetOverlapInfos();
-    for (const FOverlapInfo& Info : Overlaps)
-    {
-        if (Info.OtherActor && Info.OtherActor != OwnerActor)
-        {
-            OnOverlapDetected(Info.OtherActor);
-        }
-    }
+    //const TArray<FOverlapInfo>& Overlaps = GetOverlapInfos();
+    //for (const FOverlapInfo& Info : Overlaps)
+    //{
+    //    if (Info.OtherActor && Info.OtherActor != OwnerActor)
+    //    {
+    //        OnOverlapDetected(Info.OtherActor);
+    //    }
+    //}
 }
 
 // ============================================================================

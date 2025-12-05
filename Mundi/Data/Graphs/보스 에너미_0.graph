@@ -45,7 +45,7 @@
         }]
     }, {
       "ClassName" : "UK2Node_AnimState",
-      "EnableRootMotion" : false,
+      "EnableRootMotion" : true,
       "NodeID" : 3,
       "NodePosX" : 190.000000,
       "NodePosY" : 8.000000,

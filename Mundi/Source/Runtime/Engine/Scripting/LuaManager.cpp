@@ -7,6 +7,9 @@
 #include "CameraActor.h"
 #include "CameraComponent.h"
 #include "PlayerCameraManager.h"
+#include "GameModeBase.h"
+#include "PlayerController.h"
+#include"Pawn.h"
 #include <tuple>
 
 sol::object MakeCompProxy(sol::state_view SolState, void* Instance, UClass* Class) {
@@ -273,6 +276,41 @@ FLuaManager::FLuaManager()
                 return nullptr;
             }
             return GWorld->GetPlayerCameraManager();
+        }
+    );
+    SharedLib.set_function("GetPlayer",
+        []() -> FGameObject*
+        {
+            if (!GWorld)
+            {
+                return nullptr;
+            }
+            AGameModeBase* GameMode = GWorld->GetGameMode();
+            if (!GameMode || !GameMode->PlayerController)
+            {
+                return nullptr;
+            }
+            APawn* Pawn = GameMode->PlayerController->GetPawn();
+            if (!Pawn)
+            {
+                return nullptr;
+            }
+            return Pawn->GetGameObject();
+        }
+    );
+    SharedLib.set_function("AddMovementInput",
+        [](FGameObject& GameObject, FVector Direction, float Scale)
+        {
+            AActor* Actor = GameObject.GetOwner();
+            if (!Actor)
+            {
+                return;
+            }
+            APawn* Pawn = Cast<APawn>(Actor);
+            if (Pawn)
+            {
+                Pawn->AddMovementInput(Direction, Scale);
+            }
         }
     );
     SharedLib.set_function("SetPlayerForward",

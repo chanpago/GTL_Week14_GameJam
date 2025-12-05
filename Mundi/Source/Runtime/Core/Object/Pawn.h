@@ -23,7 +23,8 @@ public:
 	virtual void PossessedBy(AController* NewController);
 	virtual void UnPossessed();
 
-	// 이동 입력을 추가 
+	// 이동 입력을 추가
+	//UFUNCTION(LuaBind, DisplayName = "AddMovementInput", Tooltip = "AddMovementInput")
 	virtual void AddMovementInput(FVector Direction, float Scale = 1.0f);
 	
 	// 현재 이동 입력 벡터 가져오기 

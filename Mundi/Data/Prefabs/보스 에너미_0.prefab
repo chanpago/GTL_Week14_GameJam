@@ -13,7 +13,7 @@
   "OwnedComponents" : [{
       "BoxExtent" : [0.000000, 0.000000, 0.000000],
       "CollisionEnabled_Internal" : 2,
-      "Id" : 4011,
+      "Id" : 11973,
       "ObjectName" : "UHitboxComponent_1",
       "ParentId" : 0,
       "RelativeLocation" : [0.000000, 0.000000, 0.000000],
@@ -33,7 +33,7 @@
     }, {
       "AnimGraphPath" : "Data/Graphs/보스 에너미_0.graph",
       "CollisionEnabled_Internal" : 2,
-      "Id" : 4004,
+      "Id" : 11974,
       "MaterialSlots" : [{
           "Type" : "None"
         }, {
@@ -44,7 +44,7 @@
           "Type" : "UMaterial"
         }],
       "ObjectName" : "USkeletalMeshComponent_1",
-      "ParentId" : 4005,
+      "ParentId" : 11993,
       "PhysicsAssetOverridePath" : "",
       "RelativeLocation" : [0.000000, 0.000000, 0.000000],
       "RelativeRotationEuler" : [0.000000, 0.000000, 0.000000],
@@ -60,6 +60,12 @@
       "bOverrideCollisionSetting" : false,
       "bTickEnabled" : true
     }, {
+      "ObjectName" : "UCharacterMovementComponent_1",
+      "Type" : "UCharacterMovementComponent",
+      "bHiddenInGame" : false,
+      "bIsActive" : true,
+      "bTickEnabled" : true
+    }, {
       "AngularDampingOverride" : 0.050000,
       "BoxExtent" : [0.500000, 0.500000, 0.500000],
       "CapsuleHalfHeight" : 0.500000,
@@ -69,7 +75,7 @@
       "CollisionRotation" : [0.000000, 0.000000, 0.000000],
       "CollisionType" : 1,
       "FrictionCombineModeOverride" : 2,
-      "Id" : 4006,
+      "Id" : 11990,
       "LinearDampingOverride" : 0.010000,
       "MassOverride" : 10.000000,
       "MaterialSlots" : [{
@@ -77,10 +83,10 @@
           "Type" : "UMaterial"
         }],
       "ObjectName" : "UStaticMeshComponent_1",
-      "ParentId" : 4004,
+      "ParentId" : 11974,
       "PhysMaterialPreset" : 0,
       "RelativeLocation" : [0.032534, 0.602087, 1.290079],
-      "RelativeRotationEuler" : [-68.721695, 51.815056, -96.392860],
+      "RelativeRotationEuler" : [-68.721664, 51.815048, -96.392838],
       "RelativeScale" : [1.000000, 1.000000, 1.000000],
       "RestitutionCombineModeOverride" : 2,
       "SphereRadius" : 0.500000,
@@ -100,11 +106,11 @@
       "CapsuleHalfHeight" : 0.500000,
       "CapsuleRadius" : 0.500000,
       "CollisionEnabled_Internal" : 2,
-      "Id" : 4005,
+      "Id" : 11993,
       "ObjectName" : "UCapsuleComponent_1",
       "ParentId" : 0,
-      "RelativeLocation" : [4.714525, -5.536409, -0.147031],
-      "RelativeRotationEuler" : [0.000000, -0.000000, 130.423752],
+      "RelativeLocation" : [-0.838904, -0.396567, 2.790041],
+      "RelativeRotationEuler" : [0.000000, -0.000000, 130.423737],
       "RelativeScale" : [1.000000, 1.000000, 1.000000],
       "Type" : "UCapsuleComponent",
       "bBlockComponent" : false,
@@ -135,14 +141,15 @@
       "bIsActive" : true,
       "bTickEnabled" : true
     }, {
-      "ObjectName" : "UCharacterMovementComponent_1",
-      "Type" : "UCharacterMovementComponent",
+      "ObjectName" : "ULuaScriptComponent_2",
+      "ScriptFilePath" : "AI/BossAI.lua",
+      "Type" : "ULuaScriptComponent",
       "bHiddenInGame" : false,
       "bIsActive" : true,
       "bTickEnabled" : true
     }],
   "Phase2HealthThreshold" : 0.500000,
-  "RootComponentId" : 4005,
+  "RootComponentId" : 11993,
   "RotationSpeed" : 5.000000,
   "Tag" : "",
   "Type" : "ABossEnemy",

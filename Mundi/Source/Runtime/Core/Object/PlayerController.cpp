@@ -15,6 +15,12 @@ APlayerController::~APlayerController()
 {
 }
 
+void APlayerController::BeginPlay()
+{
+	Super::BeginPlay();
+
+}
+
 void APlayerController::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);

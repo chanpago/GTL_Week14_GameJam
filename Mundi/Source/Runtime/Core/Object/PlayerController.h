@@ -10,6 +10,7 @@ public:
 	APlayerController();
 	virtual ~APlayerController() override;
 
+	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
 
 	virtual void SetupInput();

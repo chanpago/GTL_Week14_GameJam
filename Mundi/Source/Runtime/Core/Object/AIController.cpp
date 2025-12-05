@@ -16,10 +16,10 @@ void AAIController::Tick(float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
 
-    //if (!bAIEnabled || !Pawn)
-    //{
-    //    return;
-    //}
+    if (!bAIEnabled || !Pawn)
+    {
+        return;
+    }
 
     //// 이동 처리
     //if (bIsMoving)
