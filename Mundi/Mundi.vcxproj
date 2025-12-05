@@ -291,6 +291,7 @@
     <ClCompile Include="Source\Runtime\Core\Object\MyCar.cpp" />
     <ClCompile Include="Source\Editor\FBX\BlendSpace\BlendSpace2D.cpp" />
     <ClCompile Include="Source\Runtime\Engine\GameFramework\Camera\CamMod_Bloom.cpp" />
+    <ClCompile Include="Source\Runtime\Engine\Animation\AnimMontage.cpp" />
     <ClCompile Include="Source\Runtime\Engine\GameFramework\Camera\CamMod_DOF.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Components\SpringArmComponent.cpp" />
     <ClCompile Include="Source\Runtime\Engine\GameFramework\Camera\CamMod_Gamma.cpp" />
@@ -918,6 +919,7 @@
     <ClInclude Include="Source\Runtime\Engine\Animation\AnimationStateMachine.h" />
     <ClInclude Include="Source\Runtime\Engine\Animation\AnimDateModel.h" />
     <ClInclude Include="Source\Runtime\Engine\Animation\AnimInstance.h" />
+    <ClInclude Include="Source\Runtime\Engine\Animation\AnimMontage.h" />
     <ClInclude Include="Source\Runtime\Engine\Animation\AnimNotify.h" />
     <ClInclude Include="Source\Runtime\Engine\Animation\AnimNotifyState.h" />
     <ClInclude Include="Source\Runtime\Engine\Animation\AnimNotifyState_Trail.h" />

@@ -4,6 +4,7 @@
 #include "AnimTypes.h"
 #include "AnimationStateMachine.h"
 #include "AnimSequence.h"
+#include "AnimMontage.h"
 // For notify dispatching
 #include "Source/Runtime/Engine/Animation/AnimNotify.h"
 
@@ -29,7 +30,9 @@ void UAnimInstance::Initialize(USkeletalMeshComponent* InComponent)
 
 void UAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
-    // 상태머신이 있으면 먼저 ProcessState 호출
+    // ============================================================
+    // 1. 상태머신 처리
+    // ============================================================
     if (AnimStateMachine)
     {
         AnimStateMachine->ProcessState(DeltaSeconds);
@@ -47,6 +50,11 @@ void UAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
     // 현재 상태 시간 갱신
     AdvancePlayState(CurrentPlayState, DeltaSeconds);
 
+    // ============================================================
+    // 2. 기본 포즈 평가 (상태머신 결과)
+    // ============================================================
+    TArray<FTransform> BasePose;
+
     const bool bIsBlending = (BlendTimeRemaining > 0.0f && (BlendTargetState.Sequence != nullptr || BlendTargetState.PoseProvider != nullptr));
 
     if (bIsBlending)
@@ -62,13 +70,7 @@ void UAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
         EvaluatePoseForState(CurrentPlayState, FromPose, DeltaSeconds);
         EvaluatePoseForState(BlendTargetState, TargetPose, DeltaSeconds);
 
-        TArray<FTransform> BlendedPose;
-        BlendPoseArrays(FromPose, TargetPose, BlendAlpha, BlendedPose);
-
-        if (OwningComponent && BlendedPose.Num() > 0)
-        {
-            OwningComponent->SetAnimationPose(BlendedPose);
-        }
+        BlendPoseArrays(FromPose, TargetPose, BlendAlpha, BasePose);
 
         BlendTimeRemaining = FMath::Max(BlendTimeRemaining - DeltaSeconds, 0.0f);
         if (BlendTimeRemaining <= 1e-4f)
@@ -81,21 +83,33 @@ void UAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
             BlendTotalTime = 0.0f;
         }
     }
-    else if (OwningComponent)
+    else
     {
-        TArray<FTransform> Pose;
-        EvaluatePoseForState(CurrentPlayState, Pose, DeltaSeconds);
-
-        if (Pose.Num() > 0)
-        {
-            OwningComponent->SetAnimationPose(Pose);
-        }
+        EvaluatePoseForState(CurrentPlayState, BasePose, DeltaSeconds);
     }
 
-    // 노티파이 트리거
-    TriggerAnimNotifies(DeltaSeconds);
+    // ============================================================
+    // 3. 몽타주 처리 (상태머신 위에 오버레이)
+    // ============================================================
+    TArray<FTransform> FinalPose = BasePose;
 
-    // 커브 업데이트
+    if (bMontageActive && MontageState.Montage)
+    {
+        FinalPose = ProcessMontage(BasePose, DeltaSeconds);
+    }
+
+    // ============================================================
+    // 4. 최종 포즈 적용
+    // ============================================================
+    if (OwningComponent && FinalPose.Num() > 0)
+    {
+        OwningComponent->SetAnimationPose(FinalPose);
+    }
+
+    // ============================================================
+    // 5. 노티파이 & 커브
+    // ============================================================
+    TriggerAnimNotifies(DeltaSeconds);
     UpdateAnimationCurves();
 }
 
@@ -604,4 +618,234 @@ void UAnimInstance::GetPoseForLayer(int32 LayerIndex, TArray<FTransform>& OutPos
         }
     }
 
+}
+
+// ============================================================
+// Montage API
+// ============================================================
+
+void UAnimInstance::Montage_Play(UAnimMontage* Montage, float BlendIn, float BlendOut, float PlayRate)
+{
+    if (!Montage)
+    {
+        UE_LOG("Montage_Play: Invalid montage");
+        return;
+    }
+
+    if (!Montage->GetSourceSequence())
+    {
+        UE_LOG("Montage_Play: Montage has no source sequence");
+        return;
+    }
+
+    float PlayLength = Montage->GetPlayLength();
+    if (PlayLength <= 0.0f)
+    {
+        UE_LOG("Montage_Play: Invalid play length");
+        return;
+    }
+
+    // 몽타주 상태 설정
+    MontageState.Montage = Montage;
+    MontageState.CurrentTime = 0.0f;
+    MontageState.PreviousTime = 0.0f;
+    MontageState.PlayRate = PlayRate;
+    MontageState.bIsPlaying = true;
+    MontageState.BlendInTime = FMath::Max(BlendIn, 0.001f);
+    MontageState.BlendOutTime = FMath::Max(BlendOut, 0.001f);
+    MontageState.CurrentWeight = 0.0f;
+    MontageState.BlendOutStartTime = PlayLength - MontageState.BlendOutTime;
+    MontageState.bIsBlendingOut = false;
+
+    bMontageActive = true;
+
+    UE_LOG("Montage_Play: %s (BlendIn: %.2f, BlendOut: %.2f, PlayRate: %.2f)",
+        Montage->ObjectName.ToString().c_str(), BlendIn, BlendOut, PlayRate);
+}
+
+void UAnimInstance::Montage_Stop(float BlendOut)
+{
+    if (!bMontageActive || !MontageState.bIsPlaying)
+    {
+        return;
+    }
+
+    // 강제 블렌드 아웃 시작
+    MontageState.BlendOutTime = FMath::Max(BlendOut, 0.001f);
+    MontageState.BlendOutStartTime = MontageState.CurrentTime;
+    MontageState.bIsBlendingOut = true;
+
+    UE_LOG("Montage_Stop: BlendOut %.2f", BlendOut);
+}
+
+bool UAnimInstance::Montage_IsPlaying() const
+{
+    return bMontageActive && MontageState.bIsPlaying;
+}
+
+float UAnimInstance::Montage_GetPosition() const
+{
+    return MontageState.CurrentTime;
+}
+
+UAnimMontage* UAnimInstance::Montage_GetCurrentMontage() const
+{
+    if (bMontageActive && MontageState.bIsPlaying)
+    {
+        return MontageState.Montage;
+    }
+    return nullptr;
+}
+
+TArray<FTransform> UAnimInstance::ProcessMontage(const TArray<FTransform>& BasePose, float DeltaSeconds)
+{
+    TArray<FTransform> Result = BasePose;
+
+    if (!MontageState.bIsPlaying || !MontageState.Montage)
+    {
+        bMontageActive = false;
+        return Result;
+    }
+
+    UAnimSequence* SourceSequence = MontageState.Montage->GetSourceSequence();
+    if (!SourceSequence)
+    {
+        bMontageActive = false;
+        return Result;
+    }
+
+    float PlayLength = MontageState.Montage->GetPlayLength();
+    if (PlayLength <= 0.0f)
+    {
+        bMontageActive = false;
+        return Result;
+    }
+
+    // ============================================================
+    // 시간 진행
+    // ============================================================
+    MontageState.PreviousTime = MontageState.CurrentTime;
+    MontageState.CurrentTime += DeltaSeconds * MontageState.PlayRate;
+
+    // ============================================================
+    // 몽타주 노티파이 처리
+    // ============================================================
+    float DeltaMove = DeltaSeconds * MontageState.PlayRate;
+    TArray<FPendingAnimNotify> PendingNotifies;
+    MontageState.Montage->GetAnimNotifiesInRange(MontageState.PreviousTime, DeltaMove, PendingNotifies);
+
+    for (const FPendingAnimNotify& Pending : PendingNotifies)
+    {
+        const FAnimNotifyEvent& Event = *Pending.Event;
+
+        if (OwningComponent)
+        {
+            switch (Pending.Type)
+            {
+            case EPendingNotifyType::Trigger:
+                if (Event.Notify)
+                {
+                    Event.Notify->Notify(OwningComponent, SourceSequence);
+                }
+                break;
+            case EPendingNotifyType::StateBegin:
+                if (Event.NotifyState)
+                {
+                    Event.NotifyState->NotifyBegin(OwningComponent, SourceSequence, Event.Duration);
+                }
+                break;
+            case EPendingNotifyType::StateTick:
+                if (Event.NotifyState)
+                {
+                    Event.NotifyState->NotifyTick(OwningComponent, SourceSequence, Event.Duration);
+                }
+                break;
+            case EPendingNotifyType::StateEnd:
+                if (Event.NotifyState)
+                {
+                    Event.NotifyState->NotifyEnd(OwningComponent, SourceSequence, Event.Duration);
+                }
+                break;
+            }
+        }
+    }
+
+    // ============================================================
+    // 가중치 계산 (블렌드 인/아웃)
+    // ============================================================
+    float TargetWeight = 1.0f;
+
+    // 블렌드 인 구간
+    if (MontageState.CurrentTime < MontageState.BlendInTime && !MontageState.bIsBlendingOut)
+    {
+        TargetWeight = MontageState.CurrentTime / MontageState.BlendInTime;
+    }
+    // 블렌드 아웃 구간 (강제 또는 자연 종료)
+    else if (MontageState.bIsBlendingOut || MontageState.CurrentTime >= MontageState.BlendOutStartTime)
+    {
+        float BlendOutProgress;
+        if (MontageState.bIsBlendingOut)
+        {
+            // 강제 블렌드 아웃: BlendOutStartTime부터 시작
+            BlendOutProgress = (MontageState.CurrentTime - MontageState.BlendOutStartTime) / MontageState.BlendOutTime;
+        }
+        else
+        {
+            // 자연 블렌드 아웃
+            BlendOutProgress = (MontageState.CurrentTime - MontageState.BlendOutStartTime) / MontageState.BlendOutTime;
+        }
+        TargetWeight = 1.0f - FMath::Clamp(BlendOutProgress, 0.0f, 1.0f);
+    }
+
+    MontageState.CurrentWeight = FMath::Clamp(TargetWeight, 0.0f, 1.0f);
+
+    // ============================================================
+    // 몽타주 포즈 평가 (원본 시퀀스에서)
+    // ============================================================
+    TArray<FTransform> MontagePose;
+
+    UAnimDataModel* DataModel = SourceSequence->GetDataModel();
+    if (DataModel && BasePose.Num() > 0)
+    {
+        const int32 NumBones = DataModel->GetNumBoneTracks();
+        MontagePose.SetNum(NumBones);
+
+        FAnimExtractContext Context(MontageState.CurrentTime, false);  // 루프 안 함
+        FPoseContext PoseContext(NumBones);
+        SourceSequence->GetAnimationPose(PoseContext, Context);
+        MontagePose = PoseContext.Pose;
+    }
+
+    // ============================================================
+    // 블렌딩 (BasePose + MontagePose)
+    // ============================================================
+    if (MontagePose.Num() > 0 && MontageState.CurrentWeight > 0.0f)
+    {
+        BlendPoseArrays(BasePose, MontagePose, MontageState.CurrentWeight, Result);
+    }
+
+    // ============================================================
+    // 종료 체크
+    // ============================================================
+    bool bShouldEnd = false;
+
+    // 자연 종료: 재생 시간 초과
+    if (MontageState.CurrentTime >= PlayLength)
+    {
+        bShouldEnd = true;
+    }
+    // 강제 종료: 블렌드 아웃 완료
+    else if (MontageState.bIsBlendingOut && MontageState.CurrentWeight <= 0.0f)
+    {
+        bShouldEnd = true;
+    }
+
+    if (bShouldEnd)
+    {
+        MontageState.bIsPlaying = false;
+        bMontageActive = false;
+        UE_LOG("Montage finished: %s", MontageState.Montage->ObjectName.ToString().c_str());
+    }
+
+    return Result;
 }

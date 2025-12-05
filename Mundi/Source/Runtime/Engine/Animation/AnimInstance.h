@@ -5,6 +5,7 @@
 // Forward declarations
 class UAnimationStateMachine;
 class UAnimSequence;
+class UAnimMontage;
 class USkeletalMeshComponent;
 
 /**
@@ -27,6 +28,43 @@ struct FAnimationPlayState
     float BlendWeight = 1.0f;
     bool bIsLooping = false;
     bool bIsPlaying = false;
+};
+
+/**
+ * @brief 몽타주 재생 상태를 관리하는 구조체
+ * @note 상태머신과 별개로 동작하며, 상태머신 위에 오버레이됨
+ */
+struct FMontagePlayState
+{
+    /** 재생할 몽타주 */
+    UAnimMontage* Montage = nullptr;
+
+    /** 현재 재생 시간 */
+    float CurrentTime = 0.0f;
+
+    /** 이전 프레임 재생 시간 (노티파이 검출용) */
+    float PreviousTime = 0.0f;
+
+    /** 재생 속도 */
+    float PlayRate = 1.0f;
+
+    /** 재생 중인지 여부 */
+    bool bIsPlaying = false;
+
+    /** 블렌드 인 시간 */
+    float BlendInTime = 0.1f;
+
+    /** 블렌드 아웃 시간 */
+    float BlendOutTime = 0.1f;
+
+    /** 현재 블렌드 가중치 (0~1) */
+    float CurrentWeight = 0.0f;
+
+    /** 블렌드 아웃 시작 시간 (PlayLength - BlendOutTime) */
+    float BlendOutStartTime = 0.0f;
+
+    /** 강제 블렌드 아웃 중인지 (Montage_Stop 호출됨) */
+    bool bIsBlendingOut = false;
 };
 
 /**
@@ -291,6 +329,50 @@ public:
     FQuat GetRootMotionRotation() const { return RootMotionRotation; }
 
     // ============================================================
+    // Montage API
+    // ============================================================
+
+    /**
+     * @brief 몽타주 재생
+     * @param Montage 재생할 몽타주
+     * @param BlendIn 블렌드 인 시간 (기본 0.1초)
+     * @param BlendOut 블렌드 아웃 시간 (기본 0.1초)
+     * @param PlayRate 재생 속도 (기본 1.0)
+     *
+     * @example
+     * // 피격 시
+     * AnimInstance->Montage_Play(HitMontage, 0.1f, 0.2f);
+     *
+     * // 공격 시
+     * AnimInstance->Montage_Play(AttackMontage, 0.05f, 0.1f, 1.2f);
+     */
+    void Montage_Play(UAnimMontage* Montage, float BlendIn = 0.1f, float BlendOut = 0.1f, float PlayRate = 1.0f);
+
+    /**
+     * @brief 현재 재생 중인 몽타주 정지
+     * @param BlendOut 블렌드 아웃 시간 (기본 0.1초)
+     */
+    void Montage_Stop(float BlendOut = 0.1f);
+
+    /**
+     * @brief 몽타주가 재생 중인지 확인
+     * @return true면 몽타주 재생 중
+     */
+    bool Montage_IsPlaying() const;
+
+    /**
+     * @brief 현재 몽타주 재생 위치 반환
+     * @return 현재 재생 시간 (초)
+     */
+    float Montage_GetPosition() const;
+
+    /**
+     * @brief 현재 재생 중인 몽타주 반환
+     * @return 몽타주 (없으면 nullptr)
+     */
+    UAnimMontage* Montage_GetCurrentMontage() const;
+
+    // ============================================================
     // Getters
     // ============================================================
 
@@ -302,6 +384,9 @@ protected:
     void AdvancePlayState(FAnimationPlayState& PlayState, float DeltaSeconds);
     void BlendPoseArrays(const TArray<FTransform>& FromPose, const TArray<FTransform>& ToPose, float Alpha, TArray<FTransform>& OutPose) const;
     void GetPoseForLayer(int32 LayerIndex, TArray<FTransform>& OutPose, float DeltaSeconds);
+
+    // 몽타주 헬퍼
+    TArray<FTransform> ProcessMontage(const TArray<FTransform>& BasePose, float DeltaSeconds);
 
     // 소유 컴포넌트
     USkeletalMeshComponent* OwningComponent = nullptr;
@@ -345,6 +430,16 @@ protected:
 
     //마스킹 데이터
     bool bUseUpperBody = false;
-    TArray<bool> UpperBodyMask; // true면 상체 
+    TArray<bool> UpperBodyMask; // true면 상체
+
+    // ============================================================
+    // Montage
+    // ============================================================
+
+    /** 몽타주 재생 상태 */
+    FMontagePlayState MontageState;
+
+    /** 몽타주가 활성화되어 있는지 여부 */
+    bool bMontageActive = false;
 };
 
