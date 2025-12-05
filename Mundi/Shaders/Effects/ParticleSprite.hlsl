@@ -119,6 +119,7 @@ PSInput mainVS(VSInput In)
     return Out;
 }
 
+float AdditiveIntensity = 5.0f;
 float4 mainPS(PSInput In) : SV_TARGET
 {
     float2 uv = In.UV;
@@ -170,9 +171,14 @@ float4 mainPS(PSInput In) : SV_TARGET
 
             if (BlendMode == PARTICLE_BLENDMODE_ADDITIVE)
             {
-                float3 emissive = finalColor.rgb * finalColor.a;
+                float3 emissive = (finalColor.rgb * finalColor.a) * AdditiveIntensity;
                 return float4(emissive, 1.0f);
             }
+
+            //if (finalColor.a < 0.01)
+            //{
+            //    discard;
+            //}
 
             if (BlendMode == PARTICLE_BLENDMODE_OPAQUE)
             {
@@ -190,7 +196,7 @@ float4 mainPS(PSInput In) : SV_TARGET
     // Additive 모드는 알파를 밝기 가중치로 사용하고 discard 하지 않음
     if (BlendMode == PARTICLE_BLENDMODE_ADDITIVE)
     {
-        float3 emissive = color.rgb * color.a;
+        float3 emissive = color.rgb * color.a * AdditiveIntensity;
         return float4(emissive, 1.0f);
     }
 

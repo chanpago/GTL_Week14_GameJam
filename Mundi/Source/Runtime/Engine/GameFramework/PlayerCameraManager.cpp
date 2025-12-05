@@ -7,6 +7,7 @@
 #include "Camera/CamMod_Vignette.h"
 #include "Camera/CamMod_Gamma.h"
 #include "Camera/CamMod_DOF.h"
+#include "Camera/CamMod_Bloom.h"
 #include "SceneView.h"
 #include "CameraActor.h"
 #include "World.h"
@@ -73,6 +74,53 @@ void APlayerCameraManager::DuplicateSubObjects()
 
 	// Vignette 인덱스 초기화
 	LastVignetteIdx = 0;
+}
+
+void APlayerCameraManager::Serialize(bool bIsLoading, JSON& InOutJson)
+{
+	Super::Serialize(bIsLoading, InOutJson);
+
+	if (bIsLoading)
+	{
+		if (InOutJson.hasKey("Modifiers_Bloom"))
+		{
+			// 기존 Bloom 모디파이어 제거
+			for (int i = ActiveModifiers.Num() - 1; i >= 0; --i)
+			{
+				if (Cast<UCamMod_Bloom>(ActiveModifiers[i]))
+				{
+					DeleteObject(ActiveModifiers[i]);
+					ActiveModifiers.RemoveAt(i);
+				}
+			}
+
+			JSON& BloomModsJson = InOutJson["Modifiers_Bloom"];
+			for (int i = 0; i < BloomModsJson.length(); ++i)
+			{
+				UCamMod_Bloom* NewBloomMod = NewObject<UCamMod_Bloom>();
+				NewBloomMod->Serialize(true, BloomModsJson[i]);
+				ActiveModifiers.Add(NewBloomMod);
+			}
+		}
+	}
+	else
+	{
+		JSON BloomModsJson = JSON::Make(JSON::Class::Array);
+		for (UCameraModifierBase* Mod : ActiveModifiers)
+		{
+			if (UCamMod_Bloom* BloomMod = Cast<UCamMod_Bloom>(Mod))
+			{
+				JSON BloomModJson = JSON::Make(JSON::Class::Object);
+				BloomMod->Serialize(false, BloomModJson);
+				BloomModsJson.append(BloomModJson);
+			}
+		}
+
+		if (BloomModsJson.length() > 0)
+		{
+			InOutJson["Modifiers_Bloom"] = BloomModsJson;
+		}
+	}
 }
 
 void APlayerCameraManager::BeginPlay()

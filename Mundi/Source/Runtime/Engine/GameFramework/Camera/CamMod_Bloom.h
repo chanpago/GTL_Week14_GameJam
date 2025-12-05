@@ -14,6 +14,8 @@ public:
 
 	virtual void CollectPostProcess(TArray<FPostProcessModifier>& Out) override;
 
+	void Serialize(bool bIsLoading, JSON& InOutJson);
+
 public:
 	float Threshold = 1.0f;
 	float SoftKnee = 0.5f;
