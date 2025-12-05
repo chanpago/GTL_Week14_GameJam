@@ -166,5 +166,19 @@ void AGameState::HandleStateTick(float DeltaTime)
     if (PlayerHealth.Current > PlayerHealth.Max) PlayerHealth.Current = PlayerHealth.Max;
     if (BossHealth.Current < 0.0f) BossHealth.Current = 0.0f;
     if (BossHealth.Current > BossHealth.Max) BossHealth.Current = BossHealth.Max;
+
+    // Debug keys for testing death/victory screens (only during Fighting state)
+    if (GameFlowState == EGameFlowState::Fighting)
+    {
+        UInputManager& Input = UInputManager::GetInstance();
+        if (Input.IsKeyPressed('K'))
+        {
+            EnterDefeat();
+        }
+        if (Input.IsKeyPressed('L'))
+        {
+            EnterVictory();
+        }
+    }
 }
 
