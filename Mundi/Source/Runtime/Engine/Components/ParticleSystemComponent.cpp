@@ -1440,7 +1440,8 @@ void UParticleSystemComponent::BuildBeamParticleBatch(TArray<FDynamicEmitterData
 
     ReleaseBeamBuffers();
     
-    const FVector ViewOrigin = View->ViewLocation;
+    const FVector ViewOrigin = View ? View->ViewLocation : FVector::Zero();
+    const FVector ViewForward = View ? View->ViewRotation.GetForwardVector() : FVector(1, 0, 0);
 
     // [중요] 이미터 단위로 루프를 돕니다. (이미터마다 재질이 다를 수 있으므로)
     for (FDynamicEmitterDataBase* Base : EmitterRenderData)
@@ -1457,8 +1458,10 @@ void UParticleSystemComponent::BuildBeamParticleBatch(TArray<FDynamicEmitterData
         TArray<FParticleBeamVertex> EmitterVertices;
         TArray<uint32> EmitterIndices;
 
-        const int32 TessellationFactor = Src->TessellationFactor;
-        const float BeamWidth = FMath::Max(0.01f, Src->BeamWidth); 
+        const int32 TessellationFactor = FMath::Max(1, Src->TessellationFactor);
+        const uint32 SegmentCount = static_cast<uint32>(TessellationFactor);
+        const float InvSegmentCount = 1.0f / static_cast<float>(SegmentCount);
+        const float BeamWidth = FMath::Max(0.01f, Src->BeamWidth);
 
         // 파티클 루프 (Accumulate)
         for (int32 LocalIdx = 0; LocalIdx < Src->ActiveParticleCount; ++LocalIdx)
@@ -1488,22 +1491,23 @@ void UParticleSystemComponent::BuildBeamParticleBatch(TArray<FDynamicEmitterData
             if (BeamDir.IsZero()) continue;
 
             FVector ToCam = (ViewOrigin - Start).GetSafeNormal();
-            FVector Right = FVector::Cross(BeamDir, ToCam).GetSafeNormal();
-            if (Right.IsZero())
+            FVector NoiseRight = FVector::Cross(BeamDir, ToCam).GetSafeNormal();
+            if (NoiseRight.IsZero())
             {
-                Right = FVector::Cross(BeamDir, FVector(0, 0, 1)).GetSafeNormal();
-                if (Right.IsZero()) Right = FVector::Cross(BeamDir, FVector(0, 1, 0)).GetSafeNormal();
+                NoiseRight = FVector::Cross(BeamDir, FVector(0, 0, 1)).GetSafeNormal();
+                if (NoiseRight.IsZero()) NoiseRight = FVector::Cross(BeamDir, FVector(0, 1, 0)).GetSafeNormal();
             }
-            FVector Up = FVector::Cross(Right, BeamDir).GetSafeNormal();
+            FVector NoiseUp = FVector::Cross(NoiseRight, BeamDir).GetSafeNormal();
 
             // [인덱스 오프셋] 현재까지 쌓인 정점 개수를 더해줘야 합니다.
             uint32 BaseVertexIndex = EmitterVertices.Num();
-            const uint32 SegmentCount = TessellationFactor;
+            FVector PrevPosition = Start;
+            bool bHasPrevPosition = false;
 
             // 정점 생성
             for (uint32 i = 0; i <= SegmentCount; ++i)
             {
-                float t = (float)i / SegmentCount;
+                float t = i * InvSegmentCount;
                 FVector Position = FVector::Lerp(Start, End, t);
 
                 if (i > 0 && i < SegmentCount && Src->NoiseAmplitude > 0.0f)
@@ -1512,12 +1516,29 @@ void UParticleSystemComponent::BuildBeamParticleBatch(TArray<FDynamicEmitterData
                     float NoiseValue1 = sin(NoisePhase) * 0.5f + sin(NoisePhase * 2.3f) * 0.3f;
                     float NoiseValue2 = cos(NoisePhase * 1.3f) * 0.5f + cos(NoisePhase * 3.7f) * 0.3f;
                     float FallOff = sin(t * 3.14159f);
-                    Position += Right * NoiseValue1 * Src->NoiseAmplitude * FallOff;
-                    Position += Up * NoiseValue2 * Src->NoiseAmplitude * FallOff;
+                    Position += NoiseRight * NoiseValue1 * Src->NoiseAmplitude * FallOff;
+                    Position += NoiseUp * NoiseValue2 * Src->NoiseAmplitude * FallOff;
                 }
 
-                FVector LeftPos = Position - Right * BeamWidth * 0.5f;
-                FVector RightPos = Position + Right * BeamWidth * 0.5f;
+                FVector SegmentTangent = BeamDir;
+                if (bHasPrevPosition)
+                {
+                    SegmentTangent = (Position - PrevPosition).GetSafeNormal();
+                    if (SegmentTangent.IsZero()) SegmentTangent = BeamDir;
+                }
+
+                FVector ToCamSegment = (ViewOrigin - Position).GetSafeNormal();
+                if (ToCamSegment.IsZero()) ToCamSegment = ViewForward;
+
+                FVector FacingRight = FVector::Cross(SegmentTangent, ToCamSegment).GetSafeNormal();
+                if (FacingRight.IsZero())
+                {
+                    FacingRight = FVector::Cross(SegmentTangent, FVector(0, 0, 1)).GetSafeNormal();
+                    if (FacingRight.IsZero()) FacingRight = FVector::Cross(SegmentTangent, FVector(0, 1, 0)).GetSafeNormal();
+                }
+
+                FVector LeftPos = Position - FacingRight * BeamWidth * 0.5f;
+                FVector RightPos = Position + FacingRight * BeamWidth * 0.5f;
 
                 FParticleBeamVertex V1, V2;
                 V1.Position = LeftPos;  V1.UV = FVector2D(0.0f, t); V1.Color = Particle->Color;
@@ -1525,6 +1546,9 @@ void UParticleSystemComponent::BuildBeamParticleBatch(TArray<FDynamicEmitterData
 
                 EmitterVertices.Add(V1);
                 EmitterVertices.Add(V2);
+
+                PrevPosition = Position;
+                bHasPrevPosition = true;
             }
 
             // 인덱스 생성
@@ -1595,4 +1619,13 @@ void UParticleSystemComponent::BuildBeamParticleBatch(TArray<FDynamicEmitterData
 
     } // End Emitter Loop
 }
+
+
+
+
+
+
+
+
+
 

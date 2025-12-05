@@ -161,7 +161,7 @@
                     "AlphaPoint2Time" : 1.000000,
                     "AlphaPoint2Value" : 0.000000,
                     "ColorOverLife_Max" : [0.011583, 0.011583, 0.011583, 1.000000],
-                    "ColorOverLife_Min" : [1.000000, 1.000000, 1.000000, 1.000000],
+                    "ColorOverLife_Min" : [0.621622, 0.621622, 0.621622, 1.000000],
                     "ColorOverLife_bUseRange" : true,
                     "Type" : "ColorOverLife",
                     "bEnabled" : true,

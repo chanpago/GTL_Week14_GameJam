@@ -54,12 +54,15 @@ float4 mainPS(PSInput input) : SV_TARGET
     // 텍스처 샘플링
     float4 texColor = BeamTexture.Sample(BeamSampler, input.UV);
 
+    // 파티클 색상과 곱하기
+
     float beamDist = abs(input.UV.x - 0.5f);
     float softFalloff = exp(-25.0f * beamDist * beamDist); // bell curve falloff across width
 
-    // 파티클 색상과 곱하기
-    float4 finalColor = texColor * input.Color;
-    finalColor.a *= softFalloff;
+    float4 finalColor = texColor * input.Color;\r\n    finalColor.a *= softFalloff;
 
     return finalColor;
 }
+
+
+
