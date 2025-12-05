@@ -1,0 +1,363 @@
+{
+  "Links" : [{
+      "FromNodeID" : 1,
+      "FromPinName" : "Output",
+      "ToNodeID" : 11,
+      "ToPinName" : "Animation"
+    }, {
+      "FromNodeID" : 2,
+      "FromPinName" : "Entry",
+      "ToNodeID" : 11,
+      "ToPinName" : "Enter"
+    }, {
+      "FromNodeID" : 11,
+      "FromPinName" : "Exit",
+      "ToNodeID" : 48,
+      "ToPinName" : "Execute"
+    }, {
+      "FromNodeID" : 40,
+      "FromPinName" : "Value",
+      "ToNodeID" : 11,
+      "ToPinName" : "PlayRate"
+    }, {
+      "FromNodeID" : 0,
+      "FromPinName" : "Value",
+      "ToNodeID" : 62,
+      "ToPinName" : "A"
+    }, {
+      "FromNodeID" : 0,
+      "FromPinName" : "Value",
+      "ToNodeID" : 11,
+      "ToPinName" : "Looping"
+    }, {
+      "FromNodeID" : 47,
+      "FromPinName" : "Speed",
+      "ToNodeID" : 1,
+      "ToPinName" : "Parameter"
+    }, {
+      "FromNodeID" : 48,
+      "FromPinName" : "Transition To",
+      "ToNodeID" : 50,
+      "ToPinName" : "Enter"
+    }, {
+      "FromNodeID" : 50,
+      "FromPinName" : "Exit",
+      "ToNodeID" : 57,
+      "ToPinName" : "Execute"
+    }, {
+      "FromNodeID" : 51,
+      "FromPinName" : "Value",
+      "ToNodeID" : 50,
+      "ToPinName" : "Animation"
+    }, {
+      "FromNodeID" : 55,
+      "FromPinName" : "Value",
+      "ToNodeID" : 48,
+      "ToPinName" : "Blend Time"
+    }, {
+      "FromNodeID" : 55,
+      "FromPinName" : "Value",
+      "ToNodeID" : 57,
+      "ToPinName" : "Blend Time"
+    }, {
+      "FromNodeID" : 57,
+      "FromPinName" : "Transition To",
+      "ToNodeID" : 11,
+      "ToPinName" : "Enter"
+    }, {
+      "FromNodeID" : 59,
+      "FromPinName" : "Is Falling",
+      "ToNodeID" : 48,
+      "ToPinName" : "Can Transition"
+    }, {
+      "FromNodeID" : 59,
+      "FromPinName" : "Is Falling",
+      "ToNodeID" : 60,
+      "ToPinName" : "A"
+    }, {
+      "FromNodeID" : 60,
+      "FromPinName" : "Result",
+      "ToNodeID" : 57,
+      "ToPinName" : "Can Transition"
+    }, {
+      "FromNodeID" : 61,
+      "FromPinName" : "Value",
+      "ToNodeID" : 50,
+      "ToPinName" : "PlayRate"
+    }, {
+      "FromNodeID" : 62,
+      "FromPinName" : "Result",
+      "ToNodeID" : 50,
+      "ToPinName" : "Looping"
+    }],
+  "Nodes" : [{
+      "ClassName" : "UK2Node_BlendSpace1D",
+      "MaxRange" : 6.000000,
+      "MinRange" : 0.000000,
+      "NodeID" : 1,
+      "NodePosX" : 1448.000000,
+      "NodePosY" : 532.000000,
+      "NumSamples" : 3,
+      "Pins" : [{
+          "DefaultValue" : "0.0",
+          "Direction" : 0,
+          "PinCategory" : "float",
+          "PinName" : "Parameter"
+        }, {
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "UAnimSequence",
+          "PinName" : "Output"
+        }],
+      "SampleAnim_0" : "Data/FBX/Animation/Idle_Seq.FBX_Unreal Take",
+      "SampleAnim_1" : "Data/FBX/Animation/Run_Loop_F_0_Seq.FBX_Unreal Take",
+      "SampleAnim_2" : "Data/FBX/Animation/Run_Loop_F_0_Seq.FBX_Unreal Take",
+      "SamplePos_0" : 0.000000,
+      "SamplePos_1" : 6.000000,
+      "SamplePos_2" : 2.610000
+    }, {
+      "ClassName" : "UK2Node_AnimStateEntry",
+      "NodeID" : 2,
+      "NodePosX" : 1129.000000,
+      "NodePosY" : 448.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "exec",
+          "PinName" : "Entry"
+        }]
+    }, {
+      "ClassName" : "UK2Node_AnimState",
+      "EnableRootMotion" : true,
+      "NodeID" : 11,
+      "NodePosX" : 2232.000000,
+      "NodePosY" : 440.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 0,
+          "PinCategory" : "exec",
+          "PinName" : "Enter"
+        }, {
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "exec",
+          "PinName" : "Exit"
+        }, {
+          "DefaultValue" : "",
+          "Direction" : 0,
+          "PinCategory" : "UAnimSequence",
+          "PinName" : "Animation"
+        }, {
+          "DefaultValue" : "false",
+          "Direction" : 0,
+          "PinCategory" : "bool",
+          "PinName" : "Looping"
+        }, {
+          "DefaultValue" : "1.0",
+          "Direction" : 0,
+          "PinCategory" : "float",
+          "PinName" : "PlayRate"
+        }],
+      "StateName" : "Locomotion"
+    }, {
+      "ClassName" : "UK2Node_Literal_Float",
+      "NodeID" : 40,
+      "NodePosX" : 1953.000000,
+      "NodePosY" : 672.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "float",
+          "PinName" : "Value"
+        }],
+      "Value" : 1.000000
+    }, {
+      "ClassName" : "UK2Node_Literal_Bool",
+      "NodeID" : 0,
+      "NodePosX" : 1958.000000,
+      "NodePosY" : 592.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "bool",
+          "PinName" : "Value"
+        }],
+      "Value" : true
+    }, {
+      "ClassName" : "UK2Node_GetSpeed",
+      "NodeID" : 47,
+      "NodePosX" : 1281.000000,
+      "NodePosY" : 544.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "float",
+          "PinName" : "Speed"
+        }]
+    }, {
+      "ClassName" : "UK2Node_AnimTransition",
+      "NodeID" : 48,
+      "NodePosX" : 3006.000000,
+      "NodePosY" : 436.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 0,
+          "PinCategory" : "exec",
+          "PinName" : "Execute"
+        }, {
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "exec",
+          "PinName" : "Transition To"
+        }, {
+          "DefaultValue" : "",
+          "Direction" : 0,
+          "PinCategory" : "bool",
+          "PinName" : "Can Transition"
+        }, {
+          "DefaultValue" : "",
+          "Direction" : 0,
+          "PinCategory" : "float",
+          "PinName" : "Blend Time"
+        }]
+    }, {
+      "ClassName" : "UK2Node_AnimState",
+      "EnableRootMotion" : false,
+      "NodeID" : 50,
+      "NodePosX" : 4216.000000,
+      "NodePosY" : 436.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 0,
+          "PinCategory" : "exec",
+          "PinName" : "Enter"
+        }, {
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "exec",
+          "PinName" : "Exit"
+        }, {
+          "DefaultValue" : "",
+          "Direction" : 0,
+          "PinCategory" : "UAnimSequence",
+          "PinName" : "Animation"
+        }, {
+          "DefaultValue" : "false",
+          "Direction" : 0,
+          "PinCategory" : "bool",
+          "PinName" : "Looping"
+        }, {
+          "DefaultValue" : "1.0",
+          "Direction" : 0,
+          "PinCategory" : "float",
+          "PinName" : "PlayRate"
+        }],
+      "StateName" : "NewState"
+    }, {
+      "AnimPath" : "Data/FBX/Animation/Jump_Loop_0_Seq.FBX_Unreal Take",
+      "ClassName" : "UK2Node_AnimSequence",
+      "NodeID" : 51,
+      "NodePosX" : 3475.000000,
+      "NodePosY" : 512.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "UAnimSequence",
+          "PinName" : "Value"
+        }]
+    }, {
+      "ClassName" : "UK2Node_Literal_Float",
+      "NodeID" : 55,
+      "NodePosX" : 2481.000000,
+      "NodePosY" : 96.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "float",
+          "PinName" : "Value"
+        }],
+      "Value" : 0.100000
+    }, {
+      "ClassName" : "UK2Node_AnimTransition",
+      "NodeID" : 57,
+      "NodePosX" : 2990.000000,
+      "NodePosY" : 64.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 0,
+          "PinCategory" : "exec",
+          "PinName" : "Execute"
+        }, {
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "exec",
+          "PinName" : "Transition To"
+        }, {
+          "DefaultValue" : "",
+          "Direction" : 0,
+          "PinCategory" : "bool",
+          "PinName" : "Can Transition"
+        }, {
+          "DefaultValue" : "",
+          "Direction" : 0,
+          "PinCategory" : "float",
+          "PinName" : "Blend Time"
+        }]
+    }, {
+      "ClassName" : "UK2Node_GetIsFalling",
+      "NodeID" : 59,
+      "NodePosX" : 2721.000000,
+      "NodePosY" : 496.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "bool",
+          "PinName" : "Is Falling"
+        }]
+    }, {
+      "ClassName" : "UK2Node_Not_Bool",
+      "NodeID" : 60,
+      "NodePosX" : 2901.000000,
+      "NodePosY" : 283.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 0,
+          "PinCategory" : "bool",
+          "PinName" : "A"
+        }, {
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "bool",
+          "PinName" : "Result"
+        }]
+    }, {
+      "ClassName" : "UK2Node_Literal_Float",
+      "NodeID" : 61,
+      "NodePosX" : 3878.000000,
+      "NodePosY" : 652.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "float",
+          "PinName" : "Value"
+        }],
+      "Value" : 20.000000
+    }, {
+      "ClassName" : "UK2Node_Not_Bool",
+      "NodeID" : 62,
+      "NodePosX" : 2931.000000,
+      "NodePosY" : 714.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 0,
+          "PinCategory" : "bool",
+          "PinName" : "A"
+        }, {
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "bool",
+          "PinName" : "Result"
+        }]
+    }],
+  "UniqueIDCounter" : 63
+}
