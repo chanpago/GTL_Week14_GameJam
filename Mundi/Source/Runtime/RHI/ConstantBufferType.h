@@ -88,6 +88,14 @@ struct alignas(16) FVinetteBufferType // b2
 };
 static_assert(sizeof(FVinetteBufferType) % 16 == 0, "CB must be 16-byte aligned");
 
+struct alignas(16) FBloomSettingsBufferType
+{
+    FVector4 Params0; // x=Threshold, y=SoftKnee, z=Intensity, w=Mode
+    FVector4 Params1; // x=InvWidth, y=InvHeight, z=BlurRadius, w=unused
+    FVector4 Params2; // x=DirectionX, y=DirectionY, z=unused, w=unused
+};
+static_assert(sizeof(FBloomSettingsBufferType) % 16 == 0, "CB must be 16-byte aligned");
+
 struct alignas(16) FGammaCorrectionBufferType
 {
     float Gamma;
@@ -290,6 +298,7 @@ MACRO(FogBufferType)                \
 MACRO(FFadeInOutBufferType)         \
 MACRO(FGammaCorrectionBufferType)   \
 MACRO(FVinetteBufferType)           \
+MACRO(FBloomSettingsBufferType)     \
 MACRO(FXAABufferType)               \
 MACRO(FDOFSetupBufferType)          \
 MACRO(FDOFBlurBufferType)           \
@@ -319,6 +328,7 @@ CONSTANT_BUFFER_INFO(FogBufferType, 2, false, true)
 CONSTANT_BUFFER_INFO(FFadeInOutBufferType, 2, false, true)
 CONSTANT_BUFFER_INFO(FGammaCorrectionBufferType, 2, false, true)
 CONSTANT_BUFFER_INFO(FVinetteBufferType, 2, false, true)
+CONSTANT_BUFFER_INFO(FBloomSettingsBufferType, 2, false, true)
 CONSTANT_BUFFER_INFO(FXAABufferType, 2, false, true)
 CONSTANT_BUFFER_INFO(FDOFSetupBufferType, 2, false, true)      // b2, PS only (DOF Setup Pass)
 CONSTANT_BUFFER_INFO(FDOFBlurBufferType, 2, false, true)       // b2, PS only (DOF Blur Pass)

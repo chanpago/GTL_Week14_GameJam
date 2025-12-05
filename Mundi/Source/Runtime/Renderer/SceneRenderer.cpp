@@ -1199,6 +1199,9 @@ void FSceneRenderer::RenderPostProcessingPasses()
 		case EPostProcessEffectType::Vignette:
 			VignettePass.Execute(Modifier, View, RHIDevice);
 			break;
+		case EPostProcessEffectType::Bloom:
+			BloomPass.Execute(Modifier, View, RHIDevice);
+			break;
 		case EPostProcessEffectType::Gamma:
 			GammaPass.Execute(Modifier, View, RHIDevice);
 			break;

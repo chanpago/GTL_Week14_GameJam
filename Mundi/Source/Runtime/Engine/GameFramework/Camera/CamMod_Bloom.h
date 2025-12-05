@@ -10,8 +10,14 @@ public:
 	UCamMod_Bloom() = default;
 	virtual ~UCamMod_Bloom() = default;
 
-	virtual void ApplyToView(float DeltaTime, FMinimalViewInfo* ViewInfo) override;
+	virtual void ApplyToView(float DeltaTime, FMinimalViewInfo* ViewInfo) override {};
 
 	virtual void CollectPostProcess(TArray<FPostProcessModifier>& Out) override;
+
+public:
+	float Threshold = 1.0f;
+	float SoftKnee = 0.5f;
+	float Intensity = 1.0f;
+	float BlurRadius = 1.0f;
 };
 
