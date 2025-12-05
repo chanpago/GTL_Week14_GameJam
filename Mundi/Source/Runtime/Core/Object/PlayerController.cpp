@@ -55,10 +55,23 @@ void APlayerController::SetupInput()
 
 void APlayerController::ProcessMovementInput(float DeltaTime)
 {
+	// InputManager 사용
+	UInputManager& InputManager = UInputManager::GetInstance();
+
+	// Ctrl 키로 Lock-on 토글
+	if (InputManager.IsKeyPressed(VK_CONTROL))
+	{
+		bIsLockOn = !bIsLockOn;
+		if (bIsLockOn)
+		{
+			// 현재 바라보는 방향의 Yaw 저장
+			FVector PawnEuler = Pawn->GetActorRotation().ToEulerZYXDeg();
+			LockedYaw = PawnEuler.Z;
+		}
+	}
+
 	FVector InputDir = FVector::Zero();
 
-	// InputManager 사용
-	UInputManager& InputManager =  UInputManager::GetInstance();
 	if (InputManager.IsKeyDown('W'))
 	{
 		InputDir.X += 1.0f;
@@ -87,14 +100,24 @@ void APlayerController::ProcessMovementInput(float DeltaTime)
 		WorldDir.Z = 0.0f; // 수평 이동만
 		WorldDir.Normalize();
 
-		// 이동 방향으로 캐릭터 회전 (목표 방향까지만)
-		float TargetYaw = std::atan2(WorldDir.Y, WorldDir.X) * (180.0f / PI);
-		FQuat TargetRotation = FQuat::MakeFromEulerZYX(FVector(0.0f, 0.0f, TargetYaw));
+		// Lock-on 상태에 따라 회전 처리
+		if (!bIsLockOn)
+		{
+			// 이동 방향으로 캐릭터 회전 (목표 방향까지만)
+			float TargetYaw = std::atan2(WorldDir.Y, WorldDir.X) * (180.0f / PI);
+			FQuat TargetRotation = FQuat::MakeFromEulerZYX(FVector(0.0f, 0.0f, TargetYaw));
 
-		// 부드러운 회전 (보간) - 목표에 도달하면 멈춤
-		FQuat CurrentRotation = Pawn->GetActorRotation();
-		FQuat NewRotation = FQuat::Slerp(CurrentRotation, TargetRotation, FMath::Clamp(DeltaTime * 3.0f, 0.0f, 1.0f));
-		Pawn->SetActorRotation(NewRotation);
+			// 부드러운 회전 (보간) - 목표에 도달하면 멈춤
+			FQuat CurrentRotation = Pawn->GetActorRotation();
+			FQuat NewRotation = FQuat::Slerp(CurrentRotation, TargetRotation, FMath::Clamp(DeltaTime * 3.0f, 0.0f, 1.0f));
+			Pawn->SetActorRotation(NewRotation);
+		}
+		else
+		{
+			// Lock-on 상태: 고정된 방향 유지
+			FQuat LockedRotation = FQuat::MakeFromEulerZYX(FVector(0.0f, 0.0f, LockedYaw));
+			Pawn->SetActorRotation(LockedRotation);
+		}
 
 		// 이동 적용
 		Pawn->AddMovementInput(WorldDir * (Pawn->GetVelocity() * DeltaTime));

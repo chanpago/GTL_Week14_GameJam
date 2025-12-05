@@ -7,6 +7,7 @@
 #include "Source/Runtime/Engine/Animation/AnimInstance.h"
 #include "Source/Runtime/Engine/Animation/AnimationStateMachine.h"
 #include "Source/Editor/FBX/BlendSpace/BlendSpace1D.h"
+#include "Source/Editor/FBX/BlendSpace/BlendSpace2D.h"
 
 void FAnimBlueprintCompiler::Compile(UAnimationGraph* InGraph, UAnimInstance* InAnimInstance, UAnimationStateMachine* OutStateMachine)
 {
@@ -45,7 +46,7 @@ void FAnimBlueprintCompiler::Compile(UAnimationGraph* InGraph, UAnimInstance* In
                 {
                     FBlueprintValue Result = SourcePin->OwningNode->EvaluatePin(SourcePin, &Context);
 
-                    // AnimSequence인지 BlendSpace1D인지 확인
+                    // AnimSequence인지 BlendSpace1D/2D인지 확인
                     if (std::holds_alternative<UAnimSequence*>(Result.Value))
                     {
                         UAnimSequence* AnimSeq = Result.Get<UAnimSequence*>();
@@ -55,6 +56,12 @@ void FAnimBlueprintCompiler::Compile(UAnimationGraph* InGraph, UAnimInstance* In
                     else if (std::holds_alternative<UBlendSpace1D*>(Result.Value))
                     {
                         UBlendSpace1D* BlendSpace = Result.Get<UBlendSpace1D*>();
+                        NewState.Sequence = nullptr;
+                        NewState.PoseProvider = BlendSpace;
+                    }
+                    else if (std::holds_alternative<UBlendSpace2D*>(Result.Value))
+                    {
+                        UBlendSpace2D* BlendSpace = Result.Get<UBlendSpace2D*>();
                         NewState.Sequence = nullptr;
                         NewState.PoseProvider = BlendSpace;
                     }

@@ -26,7 +26,7 @@ BlendSpacePreviewWindow::~BlendSpacePreviewWindow()
     DestroyViewerState();
 }
 
-bool BlendSpacePreviewWindow::Initialize(UBlendSpace2D* InBlendSpace, UWorld* InWorld, ID3D11Device* InDevice)
+bool BlendSpacePreviewWindow::Initialize(UBlendSpace2D* InBlendSpace, UWorld* InWorld, ID3D11Device* InDevice, const FString& InMeshPath)
 {
     BlendSpace = InBlendSpace;
     World = InWorld;
@@ -42,48 +42,25 @@ bool BlendSpacePreviewWindow::Initialize(UBlendSpace2D* InBlendSpace, UWorld* In
     // 뷰어 상태 생성
     CreateViewerState();
 
-    // BlendSpace의 첫 번째 애니메이션에서 메시 경로 추출 및 로드
-    if (BlendSpace && PreviewState && PreviewState->PreviewActor)
+    // 전달받은 메시 경로로 로드
+    if (PreviewState && PreviewState->PreviewActor && !InMeshPath.empty())
     {
-        const TArray<FBlendSample2D>& Samples = BlendSpace->GetSamples();
-        UE_LOG("BlendSpacePreview: Samples count = %d", Samples.Num());
-
-        if (Samples.Num() > 0 && Samples[0].Animation)
+        UE_LOG("BlendSpacePreview: Loading mesh from path: %s", InMeshPath.c_str());
+        USkeletalMesh* Mesh = UResourceManager::GetInstance().Load<USkeletalMesh>(InMeshPath);
+        if (Mesh)
         {
-            FString AnimPath = Samples[0].Animation->GetFilePath();
-            UE_LOG("BlendSpacePreview: AnimPath = %s", AnimPath.c_str());
-
-            // 메시 경로 찾기: Animation 폴더 상위에서 SK_ 패턴 메시 탐색
-            FString MeshPath = FindSkeletalMeshFromAnimPath(AnimPath);
-
-            if (!MeshPath.empty())
-            {
-                UE_LOG("BlendSpacePreview: Found MeshPath = %s", MeshPath.c_str());
-                USkeletalMesh* Mesh = UResourceManager::GetInstance().Load<USkeletalMesh>(MeshPath);
-                if (Mesh)
-                {
-                    PreviewState->PreviewActor->SetSkeletalMesh(MeshPath);
-                    PreviewState->CurrentMesh = Mesh;
-                    UE_LOG("BlendSpacePreview: Mesh loaded successfully");
-                }
-                else
-                {
-                    UE_LOG("BlendSpacePreview: Failed to load mesh from %s", MeshPath.c_str());
-                }
-            }
-            else
-            {
-                UE_LOG("BlendSpacePreview: Could not find mesh for animation");
-            }
+            PreviewState->PreviewActor->SetSkeletalMesh(InMeshPath);
+            PreviewState->CurrentMesh = Mesh;
+            UE_LOG("BlendSpacePreview: Mesh loaded successfully");
         }
         else
         {
-            UE_LOG("BlendSpacePreview: No samples or first sample has no animation");
+            UE_LOG("BlendSpacePreview: Failed to load mesh from %s", InMeshPath.c_str());
         }
     }
-    else
+    else if (InMeshPath.empty())
     {
-        UE_LOG("BlendSpacePreview: BlendSpace or PreviewState or PreviewActor is null");
+        UE_LOG("BlendSpacePreview: No mesh path provided - set Preview Mesh in the node");
     }
 
     return true;

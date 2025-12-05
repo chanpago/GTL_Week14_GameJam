@@ -35,8 +35,10 @@ const bool ACharacter::bPropertiesRegistered = []() {
 
 BEGIN_PROPERTIES(ACharacter)
     MARK_AS_SPAWNABLE("캐릭터", "캐릭터 액터")
+    ADD_PROPERTY(FString, WeaponBoneName, "Weapon", true)
+    ADD_PROPERTY(FVector, WeaponOffset, "Weapon", true)
+    ADD_PROPERTY(FVector, WeaponRotationOffset, "Weapon", true)
 END_PROPERTIES()
-
 
 // ===== Lua Binding =====
 

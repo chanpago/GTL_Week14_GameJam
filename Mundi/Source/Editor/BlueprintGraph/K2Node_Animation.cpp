@@ -7,6 +7,7 @@
 #include "Source/Editor/FBX/BlendSpace/BlendSpace1D.h"
 #include "Source/Editor/FBX/BlendSpace/BlendSpace2D.h"
 #include "Source/Runtime/Engine/Animation/AnimInstance.h"
+#include "Source/Runtime/AssetManagement/SkeletalMesh.h"
 
 namespace ed = ax::NodeEditor;
 
@@ -224,10 +225,12 @@ void UK2Node_AnimState::AllocateDefaultPins()
 void UK2Node_AnimState::RenderBody()
 {
     ImGui::PushItemWidth(150.0f);
-    ImGui::InputText("상태 이름", &StateName);
+    ImGui::InputText("##state_name", &StateName);
     ImGui::PopItemWidth();
 
-    ImGui::Checkbox("Root Motion", &bEnableRootMotion);
+    ImGui::Checkbox("##root_motion", &bEnableRootMotion);
+    ImGui::SameLine();
+    ImGui::Text("Root Motion");
 }
 
 void UK2Node_AnimState::GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const
@@ -747,6 +750,9 @@ void UK2Node_BlendSpace2D::Serialize(const bool bInIsLoading, JSON& InOutHandle)
             FJsonSerializer::ReadInt32(InOutHandle, KeyC, TriangleIndicesC[i]);
         }
 
+        // 프리뷰 메시 경로 로드
+        FJsonSerializer::ReadString(InOutHandle, "PreviewMeshPath", PreviewMeshPath);
+
         RebuildBlendSpace();
     }
     else
@@ -784,6 +790,12 @@ void UK2Node_BlendSpace2D::Serialize(const bool bInIsLoading, JSON& InOutHandle)
             InOutHandle[KeyA] = TriangleIndicesA[i];
             InOutHandle[KeyB] = TriangleIndicesB[i];
             InOutHandle[KeyC] = TriangleIndicesC[i];
+        }
+
+        // 프리뷰 메시 경로 저장
+        if (!PreviewMeshPath.empty())
+        {
+            InOutHandle["PreviewMeshPath"] = PreviewMeshPath;
         }
     }
 }
@@ -839,6 +851,83 @@ void UK2Node_BlendSpace2D::RenderBody()
         if (MaxY < MinY) MaxY = MinY + 10.0f;
         BlendSpace->SetParameterRange(FVector2D(MinX, MinY), FVector2D(MaxX, MaxY));
     }
+
+    // -------------------------------------------------------------------------
+    // 1.5 스켈레탈 메시 선택 UI
+    // -------------------------------------------------------------------------
+    ImGui::Separator();
+    ImGui::Text("Preview Mesh:");
+
+    FString MeshPopupID = "##MeshSelectPopup_" + std::to_string(NodeID);
+    FString MeshDisplayName = PreviewMeshPath.empty() ? "None (Click to select)" : PreviewMeshPath;
+
+    // 경로가 길면 파일명만 표시
+    if (!PreviewMeshPath.empty())
+    {
+        size_t LastSlash = PreviewMeshPath.find_last_of("/\\");
+        if (LastSlash != FString::npos)
+        {
+            MeshDisplayName = PreviewMeshPath.substr(LastSlash + 1);
+        }
+    }
+
+    if (ImGui::Button(MeshDisplayName.c_str(), ImVec2(200, 0)))
+    {
+        ed::Suspend();
+        ImGui::OpenPopup(MeshPopupID.c_str());
+        ed::Resume();
+    }
+
+    if (ImGui::IsPopupOpen(MeshPopupID.c_str()))
+    {
+        ed::Suspend();
+        if (ImGui::BeginPopup(MeshPopupID.c_str()))
+        {
+            ImGui::Text("Select Skeletal Mesh");
+            ImGui::Separator();
+
+            // 검색 입력 필드
+            ImGui::SetNextItemWidth(200.0f);
+            ImGui::InputTextWithHint("##MeshSearch", "Search...", MeshSearchBuffer, sizeof(MeshSearchBuffer));
+            ImGui::Separator();
+
+            FString SearchLower = MeshSearchBuffer;
+            std::transform(SearchLower.begin(), SearchLower.end(), SearchLower.begin(), ::tolower);
+
+            ImGui::BeginChild("MeshList", ImVec2(300, 200), true);
+
+            TArray<USkeletalMesh*> AllMeshes = RESOURCE.GetAll<USkeletalMesh>();
+            for (USkeletalMesh* Mesh : AllMeshes)
+            {
+                if (!Mesh) continue;
+
+                FString MeshPath = Mesh->GetFilePath();
+
+                // 검색 필터링
+                if (!SearchLower.empty())
+                {
+                    FString PathLower = MeshPath;
+                    std::transform(PathLower.begin(), PathLower.end(), PathLower.begin(), ::tolower);
+                    if (PathLower.find(SearchLower) == FString::npos)
+                    {
+                        continue;
+                    }
+                }
+
+                bool bSelected = (PreviewMeshPath == MeshPath);
+                if (ImGui::Selectable(MeshPath.c_str(), bSelected))
+                {
+                    PreviewMeshPath = MeshPath;
+                    ImGui::CloseCurrentPopup();
+                }
+                if (bSelected) ImGui::SetItemDefaultFocus();
+            }
+            ImGui::EndChild();
+            ImGui::EndPopup();
+        }
+        ed::Resume();
+    }
+    ImGui::Separator();
 
     // -------------------------------------------------------------------------
     // 2. Add Sample / Clear Selection 버튼

@@ -21,6 +21,10 @@ protected:
 protected:
     bool bMouseLookEnabled = true;
 
+    // Lock-on (방향 고정)
+    bool bIsLockOn = false;
+    float LockedYaw = 0.f;
+
 private:
 	float Sensitivity = 0.1;
 

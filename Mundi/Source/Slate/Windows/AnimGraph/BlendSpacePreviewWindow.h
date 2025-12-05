@@ -27,8 +27,9 @@ public:
      * @param InBlendSpace 프리뷰할 BlendSpace2D
      * @param InWorld 월드 (뷰포트용)
      * @param InDevice D3D 디바이스
+     * @param InMeshPath 프리뷰용 스켈레탈 메시 경로 (비어있으면 메시 표시 안함)
      */
-    bool Initialize(UBlendSpace2D* InBlendSpace, UWorld* InWorld, ID3D11Device* InDevice);
+    bool Initialize(UBlendSpace2D* InBlendSpace, UWorld* InWorld, ID3D11Device* InDevice, const FString& InMeshPath = "");
 
     // SWindow overrides
     virtual void OnRender() override;

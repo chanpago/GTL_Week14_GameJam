@@ -151,7 +151,7 @@ void USceneComponent::SetWorldTransform(const FTransform& W)
 }
  
 void USceneComponent::SetWorldLocation(const FVector& L)
-{
+ {
     FTransform W = GetWorldTransform();
     W.Translation = L;
     SetWorldTransform(W);

@@ -1,0 +1,67 @@
+{
+  "ObjectName" : "캐릭터_0",
+  "OwnedComponents" : [{
+      "CapsuleHalfHeight" : 1.000000,
+      "CapsuleRadius" : 0.300000,
+      "CollisionEnabled_Internal" : 0,
+      "Id" : 13605,
+      "ObjectName" : "UCapsuleComponent_1",
+      "ParentId" : 0,
+      "RelativeLocation" : [-2.931665, -8.800660, 6.907586],
+      "RelativeRotationEuler" : [0.000000, -0.000000, 0.000000],
+      "RelativeScale" : [1.000000, 1.000000, 1.000000],
+      "Type" : "UCapsuleComponent",
+      "bBlockComponent" : false,
+      "bGenerateOverlapEvents" : true,
+      "bHiddenInGame" : false,
+      "bIsActive" : true,
+      "bIsVisible" : true,
+      "bOverrideCollisionSetting" : false,
+      "bShapeHiddenInGame" : false,
+      "bShapeIsVisible" : true,
+      "bTickEnabled" : true
+    }, {
+      "AnimGraphPath" : "Data/Graphs/Future.graph",
+      "CollisionEnabled_Internal" : 2,
+      "Id" : 13606,
+      "MaterialSlots" : [{
+          "Type" : "None"
+        }, {
+          "AssetPath" : "Ch06_body",
+          "Type" : "UMaterial"
+        }, {
+          "AssetPath" : "Ch06_eyelashes",
+          "Type" : "UMaterial"
+        }, {
+          "AssetPath" : "Ch06_body1",
+          "Type" : "UMaterial"
+        }],
+      "ObjectName" : "USkeletalMeshComponent_1",
+      "ParentId" : 13605,
+      "PhysicsAssetOverridePath" : "Data/Physics/ttt1.phys",
+      "RelativeLocation" : [0.000000, 0.000000, -1.000000],
+      "RelativeRotationEuler" : [0.000000, -0.000000, 0.000000],
+      "RelativeScale" : [1.000000, 1.000000, 1.000000],
+      "SkeletalMesh" : "Data/FBX/James_Mixamo_Idle.fbx",
+      "Type" : "USkeletalMeshComponent",
+      "bBlockComponent" : false,
+      "bCastShadows" : true,
+      "bGenerateOverlapEvents" : true,
+      "bHiddenInGame" : false,
+      "bIsActive" : true,
+      "bIsVisible" : true,
+      "bOverrideCollisionSetting" : false,
+      "bTickEnabled" : true
+    }, {
+      "ObjectName" : "UCharacterMovementComponent_1",
+      "Type" : "UCharacterMovementComponent",
+      "bHiddenInGame" : false,
+      "bIsActive" : true,
+      "bTickEnabled" : true
+    }],
+  "RootComponentId" : 13605,
+  "Tag" : "",
+  "Type" : "ACharacter",
+  "bActorHiddenInGame" : false,
+  "bActorIsActive" : true
+}

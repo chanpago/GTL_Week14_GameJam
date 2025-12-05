@@ -230,6 +230,10 @@ public:
     /** 애니메이션 검색 버퍼 */
     char AnimSearchBuffer[128] = {0};
 
+    /** 프리뷰용 스켈레탈 메시 경로 */
+    FString PreviewMeshPath;
+    char MeshSearchBuffer[128] = {0};
+
     virtual void Serialize(const bool bInIsLoading, JSON& InOutHandle) override;
 
     // --- UEdGraphNode 인터페이스 ---

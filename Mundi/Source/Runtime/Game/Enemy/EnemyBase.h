@@ -7,6 +7,7 @@
 
 class UStatsComponent;
 class UHitboxComponent;
+class AEnemyAIController;
 
 // ============================================================================
 // AI 상태
@@ -57,10 +58,18 @@ public:
     void SetTarget(AActor* NewTarget) { TargetActor = NewTarget; }
     AActor* GetTarget() const { return TargetActor; }
 
+    /** AIController 접근 */
+    AEnemyAIController* GetAIController() const { return AIController; }
+
+    /** 슈퍼아머 상태 */
+    bool HasSuperArmor() const { return bHasSuperArmor; }
+    void SetSuperArmor(bool bEnabled) { bHasSuperArmor = bEnabled; }
+
     // ========================================================================
     // 컴포넌트 접근
     // ========================================================================
     UStatsComponent* GetStatsComponent() const { return StatsComponent; }
+    UHitboxComponent* GetHitboxComponent() const { return HitboxComponent; }
 
 protected:
     // ========================================================================
@@ -84,25 +93,36 @@ protected:
     virtual void MoveToTarget(float DeltaTime);
 
     // ========================================================================
-    // 공격
+    // 공격 (AIController에서 호출)
     // ========================================================================
     virtual void StartAttack();
+
+public:
+    /** AIController에서 호출하는 공격 실행 */
     virtual void ExecuteAttackPattern(int32 PatternIndex);
+
+    /** 공격 완료 알림 (애니메이션 노티파이에서 호출) */
+    virtual void NotifyAttackFinished();
+
+protected:
 
     // ========================================================================
     // 콜백
     // ========================================================================
     void HandleDeath();
 
-protected:
+
     // ========== 컴포넌트 ==========
     UStatsComponent* StatsComponent = nullptr;
     UHitboxComponent* HitboxComponent = nullptr;
 
+    // ========== AI 컨트롤러 ==========
+    AEnemyAIController* AIController = nullptr;
+
     // ========== AI 상태 ==========
     EEnemyAIState AIState = EEnemyAIState::Idle;
     AActor* TargetActor = nullptr;
-
+public:
     // ========== 감지 설정 ==========
     UPROPERTY(EditAnywhere, Category = "AI", Tooltip = "플레이어 감지 거리")
     float DetectionRange = 1000.f;
@@ -141,4 +161,17 @@ protected:
 
     UPROPERTY(EditAnywhere, Category = "Combat", Tooltip = "슈퍼아머 활성화")
     bool bHasSuperArmor = false;
+
+public:
+    // ========== 프리팹 설정 (에디터에서 지정) ==========
+
+    /** 적 메시 프리팹 경로 */
+    UPROPERTY(EditAnywhere, Category = "Prefab", DisplayName = "메시 프리팹 경로")
+    FString MeshPrefabPath;
+
+    /** 프리팹에서 메시 로드 */
+    void LoadMeshFromPrefab();
+
+    /** 프리팹 경로로 적 스폰 (static) */
+    static AEnemyBase* SpawnFromPrefab(UWorld* World, const FString& PrefabPath, const FVector& Location);
 };

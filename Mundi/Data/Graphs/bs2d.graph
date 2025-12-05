@@ -1,0 +1,59 @@
+{
+  "Links" : [],
+  "Nodes" : [{
+      "ClassName" : "UK2Node_BlendSpace2D",
+      "MaxX" : 100.000000,
+      "MaxY" : 100.000000,
+      "MinX" : -100.000000,
+      "MinY" : -100.000000,
+      "NodeID" : 1,
+      "NodePosX" : 2168.000000,
+      "NodePosY" : 548.000000,
+      "NumSamples" : 5,
+      "NumTriangles" : 4,
+      "Pins" : [{
+          "DefaultValue" : "0.0",
+          "Direction" : 0,
+          "PinCategory" : "float",
+          "PinName" : "X"
+        }, {
+          "DefaultValue" : "0.0",
+          "Direction" : 0,
+          "PinCategory" : "float",
+          "PinName" : "Y"
+        }, {
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "UAnimSequence",
+          "PinName" : "Output"
+        }],
+      "SampleAnim_0" : "Data/FBX/James_Mixamo_Idle.fbx_mixamo.com",
+      "SampleAnim_1" : "Data/FBX/James_Mixamo_Idle.fbx_Take 001",
+      "SampleAnim_2" : "Data/FBX/James_Mixamo_Walk.fbx_mixamo.com",
+      "SampleAnim_3" : "Data/FBX/James_Mixamo_Run.fbx_mixamo.com",
+      "SampleAnim_4" : "Data/FBX/James_Mixamo_ShortJump.fbx_mixamo.com",
+      "SamplePosX_0" : 1.000000,
+      "SamplePosX_1" : 0.000000,
+      "SamplePosX_2" : -100.000000,
+      "SamplePosX_3" : 100.000000,
+      "SamplePosX_4" : -1.000000,
+      "SamplePosY_0" : -1.000000,
+      "SamplePosY_1" : -100.000000,
+      "SamplePosY_2" : 0.000000,
+      "SamplePosY_3" : 0.000000,
+      "SamplePosY_4" : 100.000000,
+      "TriA_0" : 4,
+      "TriA_1" : 4,
+      "TriA_2" : 2,
+      "TriA_3" : 1,
+      "TriB_0" : 2,
+      "TriB_1" : 3,
+      "TriB_2" : 1,
+      "TriB_3" : 3,
+      "TriC_0" : 0,
+      "TriC_1" : 0,
+      "TriC_2" : 0,
+      "TriC_3" : 0
+    }],
+  "UniqueIDCounter" : 2
+}

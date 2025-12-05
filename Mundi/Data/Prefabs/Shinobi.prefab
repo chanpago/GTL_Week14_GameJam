@@ -1,0 +1,259 @@
+{
+  "ComboCount" : 0,
+  "MaxComboCount" : 3,
+  "MoveSpeed" : 500.000000,
+  "ObjectName" : "플레이어 캐릭터_0",
+  "OwnedComponents" : [{
+      "BlockCostPerHit" : 20.000000,
+      "CurrentHealth" : 100.000000,
+      "CurrentStamina" : 100.000000,
+      "DodgeCost" : 25.000000,
+      "HeavyAttackCost" : 30.000000,
+      "LightAttackCost" : 15.000000,
+      "MaxHealth" : 100.000000,
+      "MaxStamina" : 100.000000,
+      "ObjectName" : "UStatsComponent_1",
+      "ParryCost" : 10.000000,
+      "StaminaRegenDelay" : 1.000000,
+      "StaminaRegenRate" : 20.000000,
+      "Type" : "UStatsComponent",
+      "bHiddenInGame" : false,
+      "bIsActive" : true,
+      "bTickEnabled" : true
+    }, {
+      "AnimGraphPath" : "Data/Graphs/Shinobi.graph",
+      "CollisionEnabled_Internal" : 2,
+      "Id" : 6695,
+      "MaterialSlots" : [{
+          "Type" : "None"
+        }, {
+          "Overrides" : {
+            "Scalars" : {
+
+            },
+            "Textures" : {
+              "0" : "Data/FBX/ShinobiGirlAkane/Textures/Eyes/T_EYES_BASECOLOR_PURPLE_02.PNG",
+              "1" : "Data/FBX/ShinobiGirlAkane/Textures/Eyes/T_EYES_NORMAL.PNG"
+            },
+            "Vectors" : {
+
+            }
+          },
+          "ParentPath" : "MI_SHINOBIGIRL_EYES_Brown",
+          "Type" : "UMaterialInstanceDynamic"
+        }, {
+          "Overrides" : {
+            "Scalars" : {
+
+            },
+            "Textures" : {
+              "0" : "Data/FBX/ShinobiGirlAkane/Textures/Eyes/T_EYES_BASECOLOR_PURPLE_02.PNG",
+              "1" : "Data/FBX/ShinobiGirlAkane/Textures/Eyes/T_EYES_NORMAL.PNG"
+            },
+            "Vectors" : {
+
+            }
+          },
+          "ParentPath" : "MI_SHINOBIGIRL_EYES_Brown_1",
+          "Type" : "UMaterialInstanceDynamic"
+        }, {
+          "Overrides" : {
+            "Scalars" : {
+
+            },
+            "Textures" : {
+              "0" : "Data/FBX/ShinobiGirlAkane/Textures/T_SHINOBIGIRL_Teeth_BASECOLOR.PNG",
+              "1" : "Data/FBX/ShinobiGirlAkane/Textures/T_SHINOBIGIRL_TEETH_NORMAL.PNG"
+            },
+            "Vectors" : {
+
+            }
+          },
+          "ParentPath" : "M_SHINOBIGIRL_Teeth",
+          "Type" : "UMaterialInstanceDynamic"
+        }, {
+          "Overrides" : {
+            "Scalars" : {
+
+            },
+            "Textures" : {
+              "0" : "Data/FBX/ShinobiGirlAkane/Textures/T_SHINOBIGIRL_HEAD_BaseColor.PNG",
+              "1" : "Data/FBX/ShinobiGirlAkane/Textures/T_SHINOBIGIRL_HEAD_Normal.PNG"
+            },
+            "Vectors" : {
+
+            }
+          },
+          "ParentPath" : "MI_SHINOBIGIRL_HEAD",
+          "Type" : "UMaterialInstanceDynamic"
+        }, {
+          "Overrides" : {
+            "Scalars" : {
+
+            },
+            "Textures" : {
+              "0" : "Data/FBX/ShinobiGirlAkane/Textures/T_SHINOBIGIRL_LASHES_BASECOLOR.PNG"
+            },
+            "Vectors" : {
+
+            }
+          },
+          "ParentPath" : "M_SHINOBIGIRL_LASHES",
+          "Type" : "UMaterialInstanceDynamic"
+        }, {
+          "AssetPath" : "MI_SHINOBIGIRL_CARUNCLE_01",
+          "Type" : "UMaterial"
+        }, {
+          "Overrides" : {
+            "Scalars" : {
+
+            },
+            "Textures" : {
+              "0" : "Data/FBX/ShinobiGirlAkane/Textures/T_SHINOBIGIRL_ARMOR_BaseColor_01.PNG",
+              "1" : "Data/FBX/ShinobiGirlAkane/Textures/T_SHINOBIGIRL_ARMOR_Normal.PNG"
+            },
+            "Vectors" : {
+
+            }
+          },
+          "ParentPath" : "MI_SHINOBIGIRL_ARMOR_01",
+          "Type" : "UMaterialInstanceDynamic"
+        }, {
+          "Overrides" : {
+            "Scalars" : {
+
+            },
+            "Textures" : {
+              "0" : "Data/FBX/ShinobiGirlAkane/Textures/T_SHINOBIGIRL_CLOTHES_BaseColor_01.PNG",
+              "1" : "Data/FBX/ShinobiGirlAkane/Textures/T_SHINOBIGIRL_CLOTHES_Normal.PNG"
+            },
+            "Vectors" : {
+
+            }
+          },
+          "ParentPath" : "MI_SHINOBIGIRL_CLOTHES_01",
+          "Type" : "UMaterialInstanceDynamic"
+        }, {
+          "Overrides" : {
+            "Scalars" : {
+
+            },
+            "Textures" : {
+              "0" : "Data/FBX/ShinobiGirlAkane/Textures/T_SHINOBIGIRL_BODY_BaseColor.PNG",
+              "1" : "Data/FBX/ShinobiGirlAkane/Textures/T_SHINOBIGIRL_BODY_Normal.PNG"
+            },
+            "Vectors" : {
+
+            }
+          },
+          "ParentPath" : "MI_SHINOBIGIRL_BODY",
+          "Type" : "UMaterialInstanceDynamic"
+        }, {
+          "Overrides" : {
+            "Scalars" : {
+
+            },
+            "Textures" : {
+              "0" : "Data/FBX/ShinobiGirlAkane/Textures/Hair/T_HAIR_WAVY_BaseColor_Black_Ombre.PNG",
+              "1" : "Data/FBX/ShinobiGirlAkane/Textures/Hair/T_HAIR_WAVY_normal.PNG"
+            },
+            "Vectors" : {
+
+            }
+          },
+          "ParentPath" : "MI_SHINOBIGIRL_Hair_13",
+          "Type" : "UMaterialInstanceDynamic"
+        }, {
+          "Overrides" : {
+            "Scalars" : {
+
+            },
+            "Textures" : {
+              "0" : "Data/FBX/ShinobiGirlAkane/Textures/Hair/T_HAIR_WAVY_BaseColor_Black_Ombre.PNG",
+              "1" : "Data/FBX/ShinobiGirlAkane/Textures/Hair/T_HAIR_WAVY_normal.PNG"
+            },
+            "Vectors" : {
+
+            }
+          },
+          "ParentPath" : "MI_SHINOBIGIRL_Hair_07",
+          "Type" : "UMaterialInstanceDynamic"
+        }],
+      "ObjectName" : "USkeletalMeshComponent_3",
+      "ParentId" : 6694,
+      "PhysicsAssetOverridePath" : "Data/Physics/Shinobi.phys",
+      "RelativeLocation" : [0.000000, 0.000000, -0.900000],
+      "RelativeRotationEuler" : [0.000000, -0.000000, 0.000000],
+      "RelativeScale" : [1.000000, 1.000000, 1.000000],
+      "SkeletalMesh" : "Data/FBX/ShinobiGirlAkane/SK_AKANE_NoMask.FBX",
+      "Type" : "USkeletalMeshComponent",
+      "bBlockComponent" : false,
+      "bCastShadows" : true,
+      "bGenerateOverlapEvents" : true,
+      "bHiddenInGame" : false,
+      "bIsActive" : true,
+      "bIsVisible" : true,
+      "bOverrideCollisionSetting" : false,
+      "bTickEnabled" : true
+    }, {
+      "ObjectName" : "UCharacterMovementComponent_1",
+      "Type" : "UCharacterMovementComponent",
+      "bHiddenInGame" : false,
+      "bIsActive" : true,
+      "bTickEnabled" : true
+    }, {
+      "BoxExtent" : [0.000000, 0.000000, 0.000000],
+      "CollisionEnabled_Internal" : 2,
+      "Id" : 6693,
+      "ObjectName" : "UHitboxComponent_1",
+      "ParentId" : 0,
+      "RelativeLocation" : [0.000000, 0.000000, 0.000000],
+      "RelativeRotationEuler" : [0.000000, 0.000000, 0.000000],
+      "RelativeScale" : [1.000000, 1.000000, 1.000000],
+      "Type" : "UHitboxComponent",
+      "bBlockComponent" : false,
+      "bDrawDebug" : false,
+      "bGenerateOverlapEvents" : true,
+      "bHiddenInGame" : false,
+      "bIsActive" : true,
+      "bIsVisible" : true,
+      "bOverrideCollisionSetting" : false,
+      "bShapeHiddenInGame" : true,
+      "bShapeIsVisible" : true,
+      "bTickEnabled" : true
+    }, {
+      "CapsuleHalfHeight" : 0.900000,
+      "CapsuleRadius" : 0.300000,
+      "CollisionEnabled_Internal" : 2,
+      "Id" : 6694,
+      "ObjectName" : "UCapsuleComponent_1",
+      "ParentId" : 0,
+      "RelativeLocation" : [-3.043594, -3.147613, 6.330420],
+      "RelativeRotationEuler" : [0.000000, -0.004071, 0.000000],
+      "RelativeScale" : [1.000000, 1.000000, 1.000000],
+      "Type" : "UCapsuleComponent",
+      "bBlockComponent" : false,
+      "bGenerateOverlapEvents" : true,
+      "bHiddenInGame" : false,
+      "bIsActive" : true,
+      "bIsVisible" : true,
+      "bOverrideCollisionSetting" : false,
+      "bRegisterToPhysX" : true,
+      "bShapeHiddenInGame" : true,
+      "bShapeIsVisible" : true,
+      "bTickEnabled" : true
+    }],
+  "ParryWindowDuration" : 0.200000,
+  "RootComponentId" : 6694,
+  "RotationSpeed" : 10.000000,
+  "Tag" : "",
+  "Type" : "APlayerCharacter",
+  "WeaponBoneName" : "hand_r",
+  "WeaponOffset" : [0.000000, 0.000000, 0.000000],
+  "WeaponRotationOffset" : [0.000000, 0.000000, 0.000000],
+  "bActorHiddenInGame" : false,
+  "bActorIsActive" : true,
+  "bIsBlocking" : false,
+  "bIsInvincible" : false,
+  "bIsParrying" : false
+}

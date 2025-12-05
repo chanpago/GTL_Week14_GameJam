@@ -33,8 +33,32 @@ public:
 	//APawn에서 정의 됨
 	USkeletalMeshComponent* GetMesh() const { return SkeletalMeshComp; }
 
+	// ========================================================================
+	// 무기 어태치 시스템
+	// ========================================================================
+
+	/** 무기 메시 컴포넌트 (컴포넌트는 별도 직렬화됨) */
+	UStaticMeshComponent* WeaponMeshComp = nullptr;
+
+	/** 무기가 부착될 본 이름 */
+	UPROPERTY(EditAnywhere, Category = "Weapon")
+	FString WeaponBoneName = "hand_r";
+
+	/** 무기 오프셋 (본 기준 로컬) */
+	UPROPERTY(EditAnywhere, Category = "Weapon")
+	FVector WeaponOffset = FVector::Zero();
+
+	/** 무기 회전 오프셋 (본 기준 로컬, 오일러 각도) */
+	UPROPERTY(EditAnywhere, Category = "Weapon")
+	FVector WeaponRotationOffset = FVector::Zero();
+
+	/** 무기 위치를 본에 맞춰 업데이트 */
+	void UpdateWeaponTransform();
+
 protected:
     UCapsuleComponent* CapsuleComponent;
     UCharacterMovementComponent* CharacterMovement;
 
+    /** 초기화 대기 프레임 카운터 */
+    int32 InitFrameCounter = 0;
 };

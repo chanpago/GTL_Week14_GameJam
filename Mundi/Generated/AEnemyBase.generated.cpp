@@ -45,6 +45,7 @@ BEGIN_PROPERTIES(AEnemyBase)
     ADD_PROPERTY(int32, MaxAttackPatterns, "Combat", true)
     ADD_PROPERTY(bool, bIsAttacking, "Combat", true)
     ADD_PROPERTY(bool, bHasSuperArmor, "Combat", true, "슈퍼아머 활성화")
+    ADD_PROPERTY(FString, MeshPrefabPath, "Prefab", true)
 END_PROPERTIES()
 
 // ===== Lua Binding =====

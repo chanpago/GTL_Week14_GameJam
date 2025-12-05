@@ -33,8 +33,8 @@ void UK2Node_Literal_Int::AllocateDefaultPins()
 void UK2Node_Literal_Int::RenderBody()
 {
     ImGui::PushItemWidth(100.0f);
-    ImGui::DragInt("##value", &Value, 0.1f);
-    ImGui::PopItemWidth(); 
+    ImGui::DragInt("##int_value", &Value, 0.1f);
+    ImGui::PopItemWidth();
 }
 
 FBlueprintValue UK2Node_Literal_Int::EvaluatePin(const UEdGraphPin* OutputPin, FBlueprintContext* Context)
@@ -84,9 +84,8 @@ void UK2Node_Literal_Float::AllocateDefaultPins()
 void UK2Node_Literal_Float::RenderBody()
 {
     ImGui::PushItemWidth(100.0f);
-    ImGui::DragFloat("##value", &Value, 0.01f);
+    ImGui::DragFloat("##float_value", &Value, 0.01f);
     ImGui::PopItemWidth();
-
 }
 
 FBlueprintValue UK2Node_Literal_Float::EvaluatePin(const UEdGraphPin* OutputPin, FBlueprintContext* Context)
@@ -135,7 +134,7 @@ void UK2Node_Literal_Bool::AllocateDefaultPins()
 
 void UK2Node_Literal_Bool::RenderBody()
 {
-    ImGui::Checkbox("##value", &Value);
+    ImGui::Checkbox("##bool_value", &Value);
     ImGui::SameLine();
     ImGui::Text(Value ? "True" : "False");
 }

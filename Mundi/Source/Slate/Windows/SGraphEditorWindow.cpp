@@ -252,7 +252,9 @@ void SGraphEditorWindow::RenderNode(UEdGraphNode* Node)
 
     // #3. 중간 영역 (커스텀 UI 콜백)
     Builder->Middle();
+    ImGui::PushID(Node->NodeID);
     Node->RenderBody();
+    ImGui::PopID();
 
     // #4. 출력 핀
     for (UEdGraphPin* Pin : Node->Pins)
@@ -546,7 +548,7 @@ void SGraphEditorWindow::HandleDoubleClick()
 
             // 새 프리뷰 창 생성
             BlendSpacePreview = new BlendSpacePreviewWindow();
-            BlendSpacePreview->Initialize(BlendSpaceNode->BlendSpace, World, Device);
+            BlendSpacePreview->Initialize(BlendSpaceNode->BlendSpace, World, Device, BlendSpaceNode->PreviewMeshPath);
 
             UE_LOG("SGraphEditorWindow: BlendSpace2D 프리뷰 창을 열었습니다.");
         }

@@ -578,8 +578,11 @@ void UWorld::SetLevel(std::unique_ptr<ULevel> InLevel)
 		{
 			Partition->BulkRegister(Level->GetActors());
 		}
-        for (AActor* Actor : Level->GetActors())
+        // 인덱스 기반 순회 (BeginPlay에서 SpawnActor 호출 시 iterator 무효화 방지)
+        const TArray<AActor*>& Actors = Level->GetActors();
+        for (size_t i = 0; i < Actors.Num(); ++i)
         {
+			AActor* Actor = Actors[i];
 			if (Actor)
 			{
 				Actor->SetWorld(this);
