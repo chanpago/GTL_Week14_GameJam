@@ -163,13 +163,13 @@ FQuat USpringArmComponent::CalculateLockOnRotation() const
         return GetWorldRotation();
     }
 
-    // 플레이어 위치와 타겟 위치
+    // Player and target positions
     FVector PlayerPos = Owner->GetActorLocation();
     FVector TargetPos = LockOnTarget->GetActorLocation() + LockOnTargetOffset;
 
-    // 플레이어에서 타겟으로의 방향 (수평)
+    // Horizontal direction to target (for yaw only)
     FVector ToTarget = TargetPos - PlayerPos;
-    ToTarget.Z = 0;  // 수평 방향만 (Yaw 계산용)
+    ToTarget.Z = 0;
 
     if (ToTarget.IsZero())
     {
@@ -178,22 +178,31 @@ FQuat USpringArmComponent::CalculateLockOnRotation() const
 
     ToTarget.Normalize();
 
-    // Yaw 계산 (타겟 방향)
+    // Yaw: rotate horizontally to face target
     float TargetYaw = std::atan2(ToTarget.Y, ToTarget.X) * (180.0f / PI);
 
-    // Pitch 계산 (타겟 높이 고려)
-    FVector FullToTarget = TargetPos - (PlayerPos + FVector(0, 0, TargetOffset.Z));
-    float HorizontalDist = FVector(FullToTarget.X, FullToTarget.Y, 0).Size();
-    float HeightDiff = FullToTarget.Z;
+    // Pitch: Dark Souls style - mostly fixed angle, only slight adjustment for very tall/short enemies
+    // Use LockOnPitchOffset as the base pitch (default: looking slightly down at action)
+    float TargetPitch = LockOnPitchOffset;
 
-    float TargetPitch = 0.0f;
-    if (HorizontalDist > 0.01f)
+    // Optional: subtle pitch adjustment for extreme height differences (e.g., giant bosses)
+    if (bAdjustPitchForTargetHeight)
     {
-        // Left-handed Z-up: positive pitch = looking up (X rotates toward Z)
-        // If target is above (HeightDiff > 0), we want positive pitch to look up
-        TargetPitch = std::atan2(HeightDiff, HorizontalDist) * (180.0f / PI) + LockOnPitchOffset;
-        TargetPitch = FMath::Clamp(TargetPitch, -60.0f, 60.0f);  // Pitch 제한
+        FVector FullToTarget = TargetPos - (PlayerPos + FVector(0, 0, TargetOffset.Z));
+        float HorizontalDist = FVector(FullToTarget.X, FullToTarget.Y, 0).Size();
+        float HeightDiff = FullToTarget.Z;
+
+        if (HorizontalDist > 0.01f)
+        {
+            // Very subtle adjustment - only 20% of the actual angle, clamped tightly
+            float HeightAngle = std::atan2(HeightDiff, HorizontalDist) * (180.0f / PI);
+            float PitchAdjustment = HeightAngle * 0.2f;
+            PitchAdjustment = FMath::Clamp(PitchAdjustment, -15.0f, 15.0f);
+            TargetPitch += PitchAdjustment;
+        }
     }
+
+    TargetPitch = FMath::Clamp(TargetPitch, -45.0f, 30.0f);
 
     return FQuat::MakeFromEulerZYX(FVector(0.0f, TargetPitch, TargetYaw));
 }

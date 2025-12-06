@@ -399,6 +399,8 @@ void AEnemyBase::HandleDeath()
 
 bool AEnemyBase::CanBeTargeted() const
 {
+    // TODO TEMP
+    return true;
     return IsAlive() && AIState != EEnemyAIState::Dead;
 }
 

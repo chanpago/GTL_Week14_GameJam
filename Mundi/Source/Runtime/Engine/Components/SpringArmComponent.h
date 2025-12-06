@@ -69,7 +69,11 @@ public:
 
     /** Lock-on 시 카메라 피치 오프셋 (약간 아래를 바라봄) */
     UPROPERTY(EditAnywhere, Category="LockOn")
-    float LockOnPitchOffset = -10.0f;
+    float LockOnPitchOffset = -5.0f;
+
+    /** Whether to slightly adjust pitch for tall/short enemies (like giant bosses) */
+    UPROPERTY(EditAnywhere, Category="LockOn")
+    bool bAdjustPitchForTargetHeight = false;
 
     // ──────────────────────────────
     // 결과 값 (읽기 전용)

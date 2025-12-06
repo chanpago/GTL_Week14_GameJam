@@ -92,15 +92,45 @@ void APlayerController::ProcessMovementInput(float DeltaTime)
 	{
 		InputDir.Normalize();
 
-		// 카메라(ControlRotation) 기준으로 월드 이동 방향 계산
-		FVector ControlEuler = GetControlRotation().ToEulerZYXDeg();
-		FQuat YawOnlyRotation = FQuat::MakeFromEulerZYX(FVector(0.0f, 0.0f, ControlEuler.Z));
-		FVector WorldDir = YawOnlyRotation.RotateVector(InputDir);
+		// Calculate world movement direction based on camera
+		FVector WorldDir;
+		bool bIsLockedOn = TargetingComponent && TargetingComponent->IsLockedOn();
+
+		if (bIsLockedOn)
+		{
+			// When locked on, use SpringArm rotation (actual camera facing target)
+			// This makes A/D strafe relative to the lock-on camera
+			if (UActorComponent* C = Pawn->GetComponent(USpringArmComponent::StaticClass()))
+			{
+				if (USpringArmComponent* SpringArm = Cast<USpringArmComponent>(C))
+				{
+					FVector SpringArmEuler = SpringArm->GetWorldRotation().ToEulerZYXDeg();
+					FQuat YawOnlyRotation = FQuat::MakeFromEulerZYX(FVector(0.0f, 0.0f, SpringArmEuler.Z));
+					WorldDir = YawOnlyRotation.RotateVector(InputDir);
+				}
+				else
+				{
+					WorldDir = InputDir;
+				}
+			}
+			else
+			{
+				WorldDir = InputDir;
+			}
+		}
+		else
+		{
+			// Normal movement: use ControlRotation
+			FVector ControlEuler = GetControlRotation().ToEulerZYXDeg();
+			FQuat YawOnlyRotation = FQuat::MakeFromEulerZYX(FVector(0.0f, 0.0f, ControlEuler.Z));
+			WorldDir = YawOnlyRotation.RotateVector(InputDir);
+		}
+
 		WorldDir.Z = 0.0f; // 수평 이동만
 		WorldDir.Normalize();
 
 		// Lock-on 상태에 따라 회전 처리
-		if (TargetingComponent && TargetingComponent->IsLockedOn())
+		if (bIsLockedOn)
 		{
 			// Strafing: 타겟을 바라보면서 이동
 			ProcessLockedMovement(DeltaTime, WorldDir);
@@ -140,26 +170,32 @@ void APlayerController::ProcessRotationInput(float DeltaTime)
     if (!bMouseLookEnabled)
         return;
 
-    FVector2D MouseDelta = InputManager.GetMouseDelta();
+    bool bIsLockedOn = TargetingComponent && TargetingComponent->IsLockedOn();
 
-    // 마우스 입력이 있을 때만 ControlRotation 업데이트
-    if (MouseDelta.X != 0.0f || MouseDelta.Y != 0.0f)
+    // Skip mouse input when locked on (Dark Souls style - camera auto-tracks target)
+    if (!bIsLockedOn)
     {
-        const float Sensitivity = 0.1f;
+        FVector2D MouseDelta = InputManager.GetMouseDelta();
 
-        FVector Euler = GetControlRotation().ToEulerZYXDeg();
-        // Yaw (좌우 회전)
-        Euler.Z += MouseDelta.X * Sensitivity;
+        // 마우스 입력이 있을 때만 ControlRotation 업데이트
+        if (MouseDelta.X != 0.0f || MouseDelta.Y != 0.0f)
+        {
+            const float Sensitivity = 0.1f;
 
-        // Pitch (상하 회전)
-        Euler.Y += MouseDelta.Y * Sensitivity;
-        Euler.Y = FMath::Clamp(Euler.Y, -89.0f, 89.0f);
+            FVector Euler = GetControlRotation().ToEulerZYXDeg();
+            // Yaw (좌우 회전)
+            Euler.Z += MouseDelta.X * Sensitivity;
 
-        // Roll 방지
-        Euler.X = 0.0f;
+            // Pitch (상하 회전)
+            Euler.Y += MouseDelta.Y * Sensitivity;
+            Euler.Y = FMath::Clamp(Euler.Y, -89.0f, 89.0f);
 
-        FQuat NewControlRotation = FQuat::MakeFromEulerZYX(Euler);
-        SetControlRotation(NewControlRotation);
+            // Roll 방지
+            Euler.X = 0.0f;
+
+            FQuat NewControlRotation = FQuat::MakeFromEulerZYX(Euler);
+            SetControlRotation(NewControlRotation);
+        }
     }
 
     // SpringArm 처리
@@ -167,7 +203,7 @@ void APlayerController::ProcessRotationInput(float DeltaTime)
     {
         if (USpringArmComponent* SpringArm = Cast<USpringArmComponent>(C))
         {
-            if (TargetingComponent && TargetingComponent->IsLockedOn())
+            if (bIsLockedOn)
             {
                 // Lock-on 상태: SpringArm에 타겟 설정 (자동 추적)
                 SpringArm->SetLockOnTarget(TargetingComponent->GetLockedTarget());
@@ -193,7 +229,25 @@ void APlayerController::ProcessLockOnInput()
     // Ctrl: Lock-on 토글
     if (InputManager.IsKeyPressed(VK_CONTROL))
     {
+        bool bWasLockedOn = TargetingComponent->IsLockedOn();
+
         TargetingComponent->ToggleLockOn();
+
+        bool bIsNowLockedOn = TargetingComponent->IsLockedOn();
+
+        // When unlocking, sync ControlRotation to current camera rotation (prevents snap)
+        if (bWasLockedOn && !bIsNowLockedOn && Pawn)
+        {
+            if (UActorComponent* C = Pawn->GetComponent(USpringArmComponent::StaticClass()))
+            {
+                if (USpringArmComponent* SpringArm = Cast<USpringArmComponent>(C))
+                {
+                    // Get current SpringArm rotation and set it as ControlRotation
+                    FQuat SpringArmRot = SpringArm->GetWorldRotation();
+                    SetControlRotation(SpringArmRot);
+                }
+            }
+        }
     }
 
     // Q/E: 타겟 전환 (여러 타겟이 있을 때)
