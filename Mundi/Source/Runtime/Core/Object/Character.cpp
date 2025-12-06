@@ -9,8 +9,10 @@ ACharacter::ACharacter()
 {
 	CapsuleComponent = CreateDefaultSubobject<UCapsuleComponent>("CapsuleComponent");
 	//CapsuleComponent->SetSize();
-    WeaponMeshComp = CreateDefaultSubobject<UStaticMeshComponent>("StaticMeshComponent");
+    WeaponMeshComp = CreateDefaultSubobject<UStaticMeshComponent>("WeaponMeshComponent");
 	SetRootComponent(CapsuleComponent);
+
+	SubWeaponMeshComp = CreateDefaultSubobject<UStaticMeshComponent>("SubWeaponMeshComponent");
 
 	if (SkeletalMeshComp)
 	{
@@ -23,6 +25,11 @@ ACharacter::ACharacter()
     {
         WeaponMeshComp->SetupAttachment(SkeletalMeshComp);
     }
+
+	if (SubWeaponMeshComp)
+	{
+		SubWeaponMeshComp->SetupAttachment(SkeletalMeshComp);
+	}
 	 
 	CharacterMovement = CreateDefaultSubobject<UCharacterMovementComponent>("CharacterMovement");
 	if (CharacterMovement)
@@ -62,6 +69,7 @@ void ACharacter::Serialize(const bool bInIsLoading, JSON& InOutHandle)
         CapsuleComponent = nullptr;
         CharacterMovement = nullptr;
         WeaponMeshComp = nullptr;
+        SubWeaponMeshComp = nullptr;
         SkeletalMeshComp = nullptr;
 
         for (UActorComponent* Comp : GetOwnedComponents())
@@ -78,9 +86,18 @@ void ACharacter::Serialize(const bool bInIsLoading, JSON& InOutHandle)
             {
                 SkeletalMeshComp = Skel;
             }
-            else if (auto* Weapon = Cast<UStaticMeshComponent>(Comp))
+            else if (auto* StaticMesh = Cast<UStaticMeshComponent>(Comp))
             {
-                WeaponMeshComp = Weapon;
+                // 이름으로 구분
+                FString CompName = StaticMesh->GetName();
+                if (CompName.find("SubWeapon") != FString::npos)
+                {
+                    SubWeaponMeshComp = StaticMesh;
+                }
+                else if (CompName.find("Weapon") != FString::npos)
+                {
+                    WeaponMeshComp = StaticMesh;
+                }
             }
         }
 
@@ -100,6 +117,7 @@ void ACharacter::DuplicateSubObjects()
     CapsuleComponent = nullptr;
     CharacterMovement = nullptr;
     WeaponMeshComp = nullptr;
+    SubWeaponMeshComp = nullptr;
     SkeletalMeshComp = nullptr;
 
     for (UActorComponent* Comp : GetOwnedComponents())
@@ -116,9 +134,18 @@ void ACharacter::DuplicateSubObjects()
         {
             SkeletalMeshComp = Skel;
         }
-        else if (auto* Weapon = Cast<UStaticMeshComponent>(Comp))
+        else if (auto* StaticMesh = Cast<UStaticMeshComponent>(Comp))
         {
-            WeaponMeshComp = Weapon;
+            // 이름으로 구분
+            FString CompName = StaticMesh->GetName();
+            if (CompName.find("SubWeapon") != FString::npos)
+            {
+                SubWeaponMeshComp = StaticMesh;
+            }
+            else if (CompName.find("Weapon") != FString::npos)
+            {
+                WeaponMeshComp = StaticMesh;
+            }
         }
     }
 
@@ -187,4 +214,40 @@ void ACharacter::UpdateWeaponTransform()
 	// 무기 트랜스폼 설정
 	WeaponMeshComp->SetWorldLocation(FinalLocation);
 	WeaponMeshComp->SetWorldRotation(FinalRotation);
+}
+
+void ACharacter::UpdateSubWeaponTransform()
+{
+	if (!SubWeaponMeshComp || !SkeletalMeshComp)
+	{
+		return;
+	}
+
+	// 스켈레탈 메시가 로드되었는지 확인
+	if (!SkeletalMeshComp->GetSkeletalMesh())
+	{
+		return;
+	}
+
+	// 본 인덱스 찾기
+	int32 BoneIndex = SkeletalMeshComp->GetBoneIndexByName(FName(SubWeaponBoneName));
+	if (BoneIndex < 0)
+	{
+		return;
+	}
+
+	// 본의 월드 트랜스폼 가져오기
+	FTransform BoneTransform = SkeletalMeshComp->GetBoneWorldTransform(BoneIndex);
+
+	// 오프셋 적용
+	FVector FinalLocation = BoneTransform.Translation +
+		BoneTransform.Rotation.RotateVector(SubWeaponOffset);
+
+	// 회전 오프셋 적용 (오일러 → 쿼터니언)
+	FQuat RotOffset = FQuat::MakeFromEulerZYX(SubWeaponRotationOffset);
+	FQuat FinalRotation = BoneTransform.Rotation * RotOffset;
+
+	// 무기 트랜스폼 설정
+	SubWeaponMeshComp->SetWorldLocation(FinalLocation);
+	SubWeaponMeshComp->SetWorldRotation(FinalRotation);
 }
