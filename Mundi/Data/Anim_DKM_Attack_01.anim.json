@@ -1,13 +1,22 @@
 {
   "Notifies" : [{
-      "Class" : "UAnimNotify_EnableHitbox",
+      "Class" : "UAnimNotify_EnableWeaponCollision",
       "Data" : {
-
+        "bEnable" : true
       },
       "Duration" : 0.000000,
       "Kind" : "Single",
-      "NotifyName" : "Invalid",
-      "TriggerTime" : 0.598356
+      "NotifyName" : "WeaponCollision: Enable",
+      "TriggerTime" : 0.529315
+    }, {
+      "Class" : "UAnimNotify_EnableWeaponCollision",
+      "Data" : {
+        "bEnable" : false
+      },
+      "Duration" : 0.000000,
+      "Kind" : "Single",
+      "NotifyName" : "WeaponCollision: Disable",
+      "TriggerTime" : 1.193425
     }],
   "Type" : "AnimSequenceMeta",
   "Version" : 1

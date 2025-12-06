@@ -391,6 +391,12 @@ public:
      */
     bool Montage_IsBlendingOut() const;
 
+    /**
+     * @brief 현재 재생 중인 몽타주의 재생 속도를 변경
+     * @param NewPlayRate 새로운 재생 속도 (1.0 = 정상 속도)
+     */
+    void Montage_SetPlayRate(float NewPlayRate);
+
     // ============================================================
     // Getters
     // ============================================================

@@ -6,6 +6,8 @@
 #include "AnimNotify/AnimNotify_PlaySound.h"
 #include "AnimNotify/AnimNotify_PlayCamera.h"
 #include "AnimNotify/AnimNotify_PlayParticle.h"
+#include "AnimNotify/AnimNotify_EnableHitbox.h"
+#include "AnimNotify/AnimNotify_EnableWeaponCollision.h"
 #include "AnimTypes.h"
 #include "JsonSerializer.h"
 #include "Source/Runtime/AssetManagement/ResourceManager.h"
@@ -385,6 +387,20 @@ bool UAnimSequenceBase::SaveMeta(const FString& MetaPathUTF8) const
             Data["LifeTime"] = ParticleNotify->LifeTime;
         }
 
+        else if (Evt.Notify && Evt.Notify->IsA<UAnimNotify_EnableHitbox>())
+        {
+            const UAnimNotify_EnableHitbox* HB = static_cast<const UAnimNotify_EnableHitbox*>(Evt.Notify);
+            Data["Damage"] = HB->Damage;
+            Data["DamageType"] = HB->DamageType.c_str();
+            Data["HitboxExtent"] = FJsonSerializer::VectorToJson(HB->HitboxExtent);
+            Data["HitboxOffset"] = FJsonSerializer::VectorToJson(HB->HitboxOffset);
+            Data["Duration"] = HB->Duration;
+        }
+        else if (Evt.Notify && Evt.Notify->IsA<UAnimNotify_EnableWeaponCollision>())
+        {
+            const UAnimNotify_EnableWeaponCollision* WC = static_cast<const UAnimNotify_EnableWeaponCollision*>(Evt.Notify);
+            Data["bEnable"] = WC->bEnable;
+        }
         else if (Evt.Notify && Evt.Notify->IsA<UAnimNotify_PlayCamera>())
         {
             const UAnimNotify_PlayCamera* CameraNotify = static_cast<const UAnimNotify_PlayCamera*>(Evt.Notify);
@@ -569,6 +585,36 @@ bool UAnimSequenceBase::LoadMeta(const FString& MetaPathUTF8)
             }
 
             Evt.Notify = ParticleNotify;
+            Evt.NotifyState = nullptr;
+        }
+        else if (ClassStr == "UAnimNotify_EnableHitbox" || ClassStr == "EnableHitbox")
+        {
+            UAnimNotify_EnableHitbox* HB = NewObject<UAnimNotify_EnableHitbox>();
+            if (HB && DataPtr)
+            {
+                FJsonSerializer::ReadFloat(*DataPtr, "Damage", HB->Damage, HB->Damage, false);
+                if (DataPtr->hasKey("DamageType"))
+                {
+                    HB->DamageType = DataPtr->at("DamageType").ToString();
+                }
+                FJsonSerializer::ReadVector(*DataPtr, "HitboxExtent", HB->HitboxExtent, HB->HitboxExtent, false);
+                FJsonSerializer::ReadVector(*DataPtr, "HitboxOffset", HB->HitboxOffset, HB->HitboxOffset, false);
+                FJsonSerializer::ReadFloat(*DataPtr, "Duration", HB->Duration, HB->Duration, false);
+            }
+            Evt.Notify = HB;
+            Evt.NotifyState = nullptr;
+        }
+        else if (ClassStr == "UAnimNotify_EnableWeaponCollision" || ClassStr == "EnableWeaponCollision")
+        {
+            UAnimNotify_EnableWeaponCollision* WC = NewObject<UAnimNotify_EnableWeaponCollision>();
+            if (WC && DataPtr)
+            {
+                if (DataPtr->hasKey("bEnable"))
+                {
+                    WC->bEnable = DataPtr->at("bEnable").ToBool();
+                }
+            }
+            Evt.Notify = WC;
             Evt.NotifyState = nullptr;
         }
         else if (ClassStr == "UAnimNotify_PlayCamera" || ClassStr == "PlayCamera")

@@ -40,6 +40,9 @@ public:
 	/** 무기 메시 컴포넌트 (컴포넌트는 별도 직렬화됨) */
 	UStaticMeshComponent* WeaponMeshComp = nullptr;
 
+	/** 무기 충돌 컴포넌트 (칼날 히트박스) */
+	UCapsuleComponent* WeaponCollider = nullptr;
+
 	/** 무기가 부착될 본 이름 */
 	UPROPERTY(EditAnywhere, Category = "Weapon")
 	FString WeaponBoneName = "hand_r";
@@ -55,7 +58,16 @@ public:
 	/** 무기 위치를 본에 맞춰 업데이트 */
 	void UpdateWeaponTransform();
 
+	/** 무기 충돌 활성화/비활성화 */
+	void EnableWeaponCollision(bool bEnable);
+
+	/** 무기 충돌 델리게이트 */
+	DECLARE_DELEGATE(OnWeaponHit, AActor* /*HitActor*/, const FVector& /*HitLocation*/);
+
 protected:
+	/** 무기 충돌 시 호출 */
+	void OnWeaponOverlap(AActor* OtherActor, const FVector& HitLocation);
+
     UCapsuleComponent* CapsuleComponent;
     UCharacterMovementComponent* CharacterMovement;
 

@@ -3,6 +3,7 @@
 #include "World.h"
 #include "RenderSettings.h"
 #include "Source/Runtime/Engine/Physics/PhysScene.h"
+#include "Collision.h"
 #include <PxPhysicsAPI.h>
 
 using namespace physx;
@@ -22,7 +23,11 @@ UCapsuleComponent::UCapsuleComponent()
 
 UCapsuleComponent::~UCapsuleComponent()
 {
-    DestroyPhysXActor();
+    // 복제본은 PhysXActor를 해제하지 않음 (원본이 관리)
+    if (PhysXActor && bOwnsPhysXActor)
+    {
+        DestroyPhysXActor();
+    }
 }
 
 void UCapsuleComponent::OnRegister(UWorld* World)
@@ -75,16 +80,26 @@ void UCapsuleComponent::TickComponent(float DeltaSeconds)
 {
     Super::TickComponent(DeltaSeconds);
 
-    // PhysX Actor 위치 업데이트 - 비활성화
-    // if (PhysXActor)
-    // {
-    //     UpdatePhysXActorTransform();
-    // }
+    // PhysX Actor 위치 업데이트
+    if (PhysXActor)
+    {
+        UpdatePhysXActorTransform();
+    }
+
+    // 트리거 충돌 체크
+    if (bTriggerEnabled)
+    {
+        CheckTriggerOverlaps();
+    }
 }
 
 void UCapsuleComponent::DuplicateSubObjects()
 {
     Super::DuplicateSubObjects();
+
+    // PhysXActor는 얕은 복사 유지 - 복제본은 소유권 없음
+    bOwnsPhysXActor = false;
+    OverlappedActors.Empty();
 }
 
 void UCapsuleComponent::GetShape(FShape& Out) const
@@ -357,4 +372,80 @@ void UCapsuleComponent::UpdatePhysXActorTransform()
 
     // Kinematic Target 설정 (다음 시뮬레이션에서 이 위치로 이동)
     PhysXActor->setKinematicTarget(NewPose);
+}
+
+void UCapsuleComponent::EnableTriggerCollision(bool bEnable)
+{
+    bTriggerEnabled = bEnable;
+
+    if (bEnable)
+    {
+        // PhysX Actor 생성 (없으면)
+        if (!PhysXActor)
+        {
+            CreatePhysXActor();
+        }
+        // 오버랩 목록 초기화
+        OverlappedActors.Empty();
+    }
+    else
+    {
+        // 비활성화 시 오버랩 목록 초기화
+        OverlappedActors.Empty();
+    }
+
+    UE_LOG("[CapsuleComponent] Trigger collision %s", bEnable ? "enabled" : "disabled");
+}
+
+void UCapsuleComponent::CheckTriggerOverlaps()
+{
+    UWorld* World = GetWorld();
+    if (!World)
+        return;
+
+    FPhysScene* PhysScene = World->GetPhysScene();
+    if (!PhysScene)
+        return;
+
+    // 현재 캡슐 위치와 크기
+    const FTransform WorldTransform = GetWorldTransform();
+    const float AbsScaleX = std::fabs(WorldTransform.Scale3D.X);
+    const float AbsScaleY = std::fabs(WorldTransform.Scale3D.Y);
+    const float AbsScaleZ = std::fabs(WorldTransform.Scale3D.Z);
+
+    const float WorldRadius = CapsuleRadius * FMath::Max(AbsScaleX, AbsScaleY);
+    const float WorldHalfHeight = CapsuleHalfHeight * AbsScaleZ;
+
+    // SweepCapsule로 충돌 체크
+    FVector Start = WorldTransform.Translation;
+    FVector End = Start + FVector(0.01f, 0, 0);  // 작은 거리로 sweep
+
+    FHitResult HitResult;
+    bool bHit = PhysScene->SweepCapsule(
+        Start,
+        End,
+        WorldRadius,
+        WorldHalfHeight,
+        HitResult,
+        GetOwner()  // 자기 자신 무시
+    );
+
+    if (bHit && HitResult.HitActor)
+    {
+        // 이미 충돌한 액터인지 확인 (중복 방지)
+        if (!OverlappedActors.Contains(HitResult.HitActor))
+        {
+            OverlappedActors.Add(HitResult.HitActor);
+
+            // 충돌 위치는 캡슐의 현재 위치 사용
+            FVector HitLocation = GetWorldLocation();
+
+            // 델리게이트 브로드캐스트
+            OnTriggerHit.Broadcast(HitResult.HitActor, HitLocation);
+
+            UE_LOG("[CapsuleComponent] Trigger hit: %s at (%.2f, %.2f, %.2f)",
+                   HitResult.HitActor->GetName().c_str(),
+                   HitLocation.X, HitLocation.Y, HitLocation.Z);
+        }
+    }
 }

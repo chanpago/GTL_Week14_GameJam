@@ -385,6 +385,19 @@ FLuaManager::FLuaManager()
             return false;
         });
 
+    // 몽타주 재생 속도 변경 (Lua용)
+    // 사용법: SetMontagePlayRate(Obj, 1.5) -- 1.5배속
+    SharedLib.set_function("SetMontagePlayRate", [](FGameObject& Obj, float NewPlayRate)
+        {
+            if (AActor* Owner = Obj.GetOwner())
+            {
+                if (ABossEnemy* Boss = Cast<ABossEnemy>(Owner))
+                {
+                    Boss->SetMontagePlayRate(NewPlayRate);
+                }
+            }
+        });
+
     // 히트박스 활성화 (Lua용)
     // 사용법: EnableHitbox(Obj, damage, damageType, extentX, extentY, extentZ)
     // damageType: "Light", "Heavy", "Special"

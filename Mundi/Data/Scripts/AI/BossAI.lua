@@ -37,7 +37,9 @@ local ctx = {
     was_attacking = false,          -- 이전 프레임 공격 상태 (몽타주 종료 감지용)
     -- 후퇴 관련
     is_retreating = false,          -- 후퇴 중인지
-    retreat_end_time = 0            -- 후퇴 종료 시간
+    retreat_end_time = 0,           -- 후퇴 종료 시간
+    -- 차지 공격 관련
+    is_charging = false             -- ChargeStart 재생 중인지
 }
 
 -- ============================================================================
@@ -67,7 +69,9 @@ local Config = {
     AttackCooldown = 2.0,       -- 공격 후 다음 공격까지 대기 시간
 
     -- 회전 보간 속도 (도/초)
-    TurnSpeed = 180             -- 초당 회전할 수 있는 최대 각도
+    TurnSpeed = 180,            -- 초당 회전할 수 있는 최대 각도
+
+    -- 차지 공격 설정 (ChargeStart 끝나면 ChargeAttack 재생)
 }
 
 -- ============================================================================
@@ -400,29 +404,29 @@ local function DoAttack(c)
     end
     c.last_pattern = pattern
 
+   -- pattern=2;
     local atk = AttackPatterns[pattern]
     if not atk then
         Log("    -> FAILURE (invalid pattern)")
         return BT_FAILURE
     end
-
-    -- 몽타주 재생
-    local success = PlayMontage(Obj, atk.name)
-    if not success then
-        Log("    -> FAILURE (montage not found: " .. atk.name .. ")")
-        return BT_FAILURE
-    end
-
-    -- ChargeAttack 특수 처리: 전방 돌진
-    if pattern == 2 and c.target then
-        local dir = VecDirection(Obj.Location, c.target.Location)
-        dir.Z = 0
-        Obj.Location = Vector(
-            Obj.Location.X + dir.X * 500,
-            Obj.Location.Y + dir.Y * 500,
-            Obj.Location.Z
-        )
-        Log("    -> ChargeAttack: Charged forward 500 units")
+    -- ChargeAttack (패턴 2) 특수 처리: ChargeStart 먼저 재생
+    if pattern == 2 then
+        -- ChargeStart 몽타주 재생
+        local success = PlayMontage(Obj, "ChargeStart")
+        if not success then
+            Log("    -> FAILURE (montage not found: ChargeStart)")
+            return BT_FAILURE
+        end
+        c.is_charging = true
+        Log("    -> ChargeAttack: Playing ChargeStart animation")
+    else
+        -- 일반 공격: 정상 속도로 몽타주 재생
+        local success = PlayMontage(Obj, atk.name)
+        if not success then
+            Log("    -> FAILURE (montage not found: " .. atk.name .. ")")
+            return BT_FAILURE
+        end
     end
 
     -- 히트박스는 애님 노티파이에서 처리됨
@@ -509,9 +513,22 @@ local function UpdateAttackState(c)
     -- 몽타주 기반 공격 종료 체크
     local bMontagePlayling = IsMontagePlayling(Obj)
 
-    -- 이전에 공격 중이었는데 몽타주가 끝났으면 공격 종료 처리
+    -- 이전에 공격 중이었는데 몽타주가 끝났으면
     if c.was_attacking and not bMontagePlayling then
+        -- 차지 중이었으면 ChargeAttack으로 이어서 재생
+        if c.is_charging then
+            Log("ChargeStart finished -> Playing ChargeAttack")
+            local success = PlayMontage(Obj, "ChargeAttack")
+            if success then
+                c.is_charging = false  -- 차지 완료
+                c.was_attacking = true -- 아직 공격 중
+                return  -- 여기서 리턴해서 공격 종료 처리 안함
+            end
+        end
+
+        -- 일반 공격 종료 처리
         c.was_attacking = false
+        c.is_charging = false
         Log("Attack ended (montage finished)")
 
         -- 히트박스는 애님 노티파이의 Duration으로 자동 비활성화됨
@@ -620,6 +637,7 @@ function BeginPlay()
     ctx.phase = 1
     ctx.time = 0
     ctx.was_attacking = false
+    ctx.is_charging = false
 
     if ctx.stats then
         Log("Stats found: HP=" .. ctx.stats.CurrentHealth .. "/" .. ctx.stats.MaxHealth)

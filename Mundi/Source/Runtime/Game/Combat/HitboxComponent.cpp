@@ -2,19 +2,28 @@
 #include "HitboxComponent.h"
 #include "Actor.h"
 #include "World.h"
+#include "Collision.h"
+#include "Source/Runtime/Engine/Physics/PhysScene.h"
+#include "Source/Runtime/Game/Player/PlayerCharacter.h"
+#include "Renderer.h"
+#include "RenderSettings.h"
+#include "StaticMeshActor.h"
+#include "StaticMeshComponent.h"
 
 
 UHitboxComponent::UHitboxComponent()
 {
     bCanEverTick = true;
     bTickEnabled = true;
-    bGenerateOverlapEvents = true;
+    bGenerateOverlapEvents = false;  // SweepBox 사용하므로 오버랩 이벤트 불필요
 
     // 기본적으로 비활성화 상태로 시작
     bIsActive = false;
 
     // 기본 히트박스 크기
-    BoxExtent = FVector(50.f, 50.f, 50.f);
+    BoxExtent = FVector(0.5f, 0.5f, 0.5f);  // 미터 단위 (50cm)
+
+
 }
 
 void UHitboxComponent::BeginPlay()
@@ -35,6 +44,16 @@ void UHitboxComponent::TickComponent(float DeltaTime)
 {
     Super::TickComponent(DeltaTime);
 
+    // 디버그 히트 표시 타이머 감소 및 만료된 것 제거
+    for (int i = DebugHitInfos.Num() - 1; i >= 0; --i)
+    {
+        DebugHitInfos[i].RemainingTime -= DeltaTime;
+        if (DebugHitInfos[i].RemainingTime <= 0.0f)
+        {
+            DebugHitInfos.RemoveAt(i);
+        }
+    }
+
     if (!bIsActive)
     {
         return;
@@ -51,15 +70,8 @@ void UHitboxComponent::TickComponent(float DeltaTime)
         }
     }
 
-    // 현재 오버랩 중인 액터들 체크
-    //const TArray<FOverlapInfo>& Overlaps = GetOverlapInfos();
-    //for (const FOverlapInfo& Info : Overlaps)
-    //{
-    //    if (Info.OtherActor && Info.OtherActor != OwnerActor)
-    //    {
-    //        OnOverlapDetected(Info.OtherActor);
-    //    }
-    //}
+    // SweepBox로 충돌 감지
+    PerformSweepCheck();
 }
 
 // ============================================================================
@@ -128,10 +140,10 @@ void UHitboxComponent::AddHitActor(AActor* Actor)
 }
 
 // ============================================================================
-// 오버랩 처리
+// 충돌 처리
 // ============================================================================
 
-void UHitboxComponent::OnOverlapDetected(AActor* OtherActor)
+void UHitboxComponent::OnOverlapDetected(AActor* OtherActor, const FVector& HitPosition, const FVector& HitNormal)
 {
     if (!bIsActive || !OtherActor)
     {
@@ -163,8 +175,8 @@ void UHitboxComponent::OnOverlapDetected(AActor* OtherActor)
         return;
     }
 
-    // 히트 처리
-    FCombatHitResult Result = ProcessHit(OtherActor, Target);
+    // 히트 처리 (PhysX에서 받은 정확한 충돌 위치 사용)
+    FCombatHitResult Result = ProcessHit(OtherActor, Target, HitPosition, HitNormal);
 
     // 히트 목록에 추가
     AddHitActor(OtherActor);
@@ -176,22 +188,32 @@ void UHitboxComponent::OnOverlapDetected(AActor* OtherActor)
     }
 }
 
-FCombatHitResult UHitboxComponent::ProcessHit(AActor* TargetActor, IDamageable* Target)
+FCombatHitResult UHitboxComponent::ProcessHit(AActor* TargetActor, IDamageable* Target, const FVector& HitPosition, const FVector& HitNormal)
 {
     FCombatHitResult Result;
     Result.bWasHit = true;
 
-    // 히트 위치/방향 계산
+    // PhysX에서 받은 정확한 충돌 위치 사용
     FDamageInfo DamageToApply = CurrentDamageInfo;
+    FVector HitDirection;
 
     if (TargetActor && OwnerActor)
     {
-        FVector TargetPos = TargetActor->GetActorLocation();
         FVector OwnerPos = OwnerActor->GetActorLocation();
 
-        DamageToApply.HitLocation = TargetPos;
-        DamageToApply.HitDirection = (TargetPos - OwnerPos).GetNormalized();
+        // 충돌 방향 계산 (소유자 → 충돌점)
+        HitDirection = (HitPosition - OwnerPos).GetNormalized();
+
+        DamageToApply.HitLocation = HitPosition;
+        DamageToApply.HitDirection = HitDirection;
+
+        // 결과에 PhysX 충돌 정보 저장
+        Result.HitPosition = HitPosition;
+        Result.HitNormal = HitNormal;
     }
+
+    // 스킬 공격 여부 판단 (Special 타입이면 스킬)
+    bool bIsSkillAttack = (DamageToApply.DamageType == EDamageType::Special);
 
     // 가드/패리 체크
     if (Target->IsParrying() && DamageToApply.bCanBeParried)
@@ -200,6 +222,25 @@ FCombatHitResult UHitboxComponent::ProcessHit(AActor* TargetActor, IDamageable* 
         Result.bWasParried = true;
         Result.ActualDamage = 0.f;
         Result.AppliedReaction = EHitReaction::None;
+
+        // === 패리 이벤트 발생 ===
+        FCombatEvent ParryEvent(ECombatEventType::Parried, OwnerActor, TargetActor);
+        ParryEvent.HitPosition = HitPosition;
+        ParryEvent.HitDirection = HitDirection;
+        ParryEvent.HitNormal = HitNormal;
+        ParryEvent.DamageType = DamageToApply.DamageType;
+        ParryEvent.bIsSkillAttack = bIsSkillAttack;
+        OnCombatEvent.Broadcast(ParryEvent);
+
+        // 스킬 패리면 추가 이벤트
+        if (bIsSkillAttack)
+        {
+            FCombatEvent SkillParryEvent(ECombatEventType::SkillParried, OwnerActor, TargetActor);
+            SkillParryEvent.HitPosition = HitPosition;
+            SkillParryEvent.HitDirection = HitDirection;
+            SkillParryEvent.HitNormal = HitNormal;
+            OnCombatEvent.Broadcast(SkillParryEvent);
+        }
 
         // 공격자에게 패리당함 반응 적용
         if (IDamageable* AttackerDamageable = GetDamageable(OwnerActor))
@@ -223,6 +264,16 @@ FCombatHitResult UHitboxComponent::ProcessHit(AActor* TargetActor, IDamageable* 
         Result.ActualDamage = DamageToApply.Damage * 0.2f; // 가드 시 20% 데미지
         Result.AppliedReaction = EHitReaction::Flinch;
 
+        // === 가드 이벤트 발생 ===
+        FCombatEvent BlockEvent(ECombatEventType::BlockedHit, OwnerActor, TargetActor);
+        BlockEvent.HitPosition = HitPosition;
+        BlockEvent.HitDirection = HitDirection;
+        BlockEvent.HitNormal = HitNormal;
+        BlockEvent.Damage = DamageToApply.Damage;
+        BlockEvent.ActualDamage = Result.ActualDamage;
+        BlockEvent.DamageType = DamageToApply.DamageType;
+        OnCombatEvent.Broadcast(BlockEvent);
+
         // 감소된 데미지 적용
         FDamageInfo BlockedDamage = DamageToApply;
         BlockedDamage.Damage = Result.ActualDamage;
@@ -236,5 +287,200 @@ FCombatHitResult UHitboxComponent::ProcessHit(AActor* TargetActor, IDamageable* 
     Result.ActualDamage = Target->TakeDamage(DamageToApply);
     Result.AppliedReaction = DamageToApply.HitReaction;
 
+    // === 일반 히트 이벤트 발생 ===
+    ECombatEventType HitEventType = bIsSkillAttack ? ECombatEventType::SkillHit : ECombatEventType::NormalHit;
+    FCombatEvent HitEvent(HitEventType, OwnerActor, TargetActor);
+    HitEvent.HitPosition = HitPosition;
+    HitEvent.HitDirection = HitDirection;
+    HitEvent.HitNormal = HitNormal;  // PhysX에서 받은 정확한 법선
+    HitEvent.Damage = DamageToApply.Damage;
+    HitEvent.ActualDamage = Result.ActualDamage;
+    HitEvent.DamageType = DamageToApply.DamageType;
+    HitEvent.bIsSkillAttack = bIsSkillAttack;
+    OnCombatEvent.Broadcast(HitEvent);
+
     return Result;
+}
+
+// ============================================================================
+// SweepBox 충돌 감지
+// ============================================================================
+
+void UHitboxComponent::PerformSweepCheck()
+{
+    if (!OwnerActor)
+    {
+        return;
+    }
+
+    UWorld* World = GetWorld();
+    if (!World)
+    {
+        return;
+    }
+
+    FPhysScene* PhysScene = World->GetPhysScene();
+    if (!PhysScene)
+    {
+        return;
+    }
+
+    // 히트박스 위치와 회전
+    FVector BoxCenter = GetWorldLocation();
+    FQuat BoxRotation = GetWorldRotation();
+
+    // Sweep 방향 (약간 앞으로) - 최소 거리로 현재 위치에서 충돌 체크
+    FVector SweepDirection = OwnerActor->GetActorForward();
+    float SweepDistance = 0.01f;  // 1cm
+    FVector SweepEnd = BoxCenter + SweepDirection * SweepDistance;
+
+    // SweepBox 실행
+    FHitResult HitResult;
+    bool bHit = PhysScene->SweepBox(
+        BoxCenter,
+        SweepEnd,
+        BoxExtent,
+        BoxRotation,
+        HitResult,
+        OwnerActor  // 자기 자신 무시
+    );
+
+    if (bHit && HitResult.HitActor)
+    {
+        // 플레이어만 충돌 처리
+        APlayerCharacter* Player = Cast<APlayerCharacter>(HitResult.HitActor);
+        if (!Player)
+        {
+            return;
+        }
+
+        // 디버그용 - 히트 정보 저장
+
+            FDebugHitInfo HitInfo;
+            HitInfo.Position = HitResult.ImpactPoint;
+            HitInfo.Normal = HitResult.ImpactNormal;
+            HitInfo.RemainingTime = 3.0f;  // 3초 동안 표시
+            DebugHitInfos.Add(HitInfo);
+
+        // 충돌 위치에 StaticMeshActor 스폰
+        // 히트박스(칼) 위치와 피해자(플레이어) 위치 사이, 피해자 몸쪽에 스폰
+        FVector HitboxPos = BoxCenter;  // 히트박스(칼) 위치
+        FVector VictimPos = Player->GetActorLocation();  // 피해자 위치
+
+        // 히트박스에서 피해자 방향으로 피해자 몸쪽에 스폰 (피해자 위치의 80% 지점)
+        FVector SpawnLocation = FVector::Lerp(HitboxPos, VictimPos, 0.8f);
+
+        FTransform SpawnTransform;
+        SpawnTransform.Translation = SpawnLocation;
+        AStaticMeshActor* HitMarker = World->SpawnActor<AStaticMeshActor>(SpawnTransform);
+        if (HitMarker)
+        {
+            HitMarker->GetStaticMeshComponent()->SetStaticMesh(GDataDir + "/Model/Sphere8.obj");
+            HitMarker->SetActorScale(FVector(0.1f, 0.1f, 0.1f));  // 작은 구체로 표시
+        }
+
+        // 정확한 충돌 위치와 법선으로 처리
+        OnOverlapDetected(HitResult.HitActor, HitResult.ImpactPoint, HitResult.ImpactNormal);
+    }
+}
+
+// ============================================================================
+// 디버그 렌더링
+// ============================================================================
+
+void UHitboxComponent::RenderDebugVolume(URenderer* Renderer) const
+{
+    if (!bIsActive)
+    {
+        return;
+    }
+
+    // 활성화 상태일 때만 히트박스 표시
+    if (bIsActive)
+    {
+        const FVector Extent = BoxExtent;
+        const FTransform WorldTransform = GetWorldTransform();
+
+        TArray<FVector> StartPoints;
+        TArray<FVector> EndPoints;
+        TArray<FVector4> Colors;
+
+        // 박스의 8개 꼭짓점 (로컬)
+        FVector local[8] = {
+            {-Extent.X, -Extent.Y, -Extent.Z}, {+Extent.X, -Extent.Y, -Extent.Z},
+            {-Extent.X, +Extent.Y, -Extent.Z}, {+Extent.X, +Extent.Y, -Extent.Z},
+            {-Extent.X, -Extent.Y, +Extent.Z}, {+Extent.X, -Extent.Y, +Extent.Z},
+            {-Extent.X, +Extent.Y, +Extent.Z}, {+Extent.X, +Extent.Y, +Extent.Z},
+        };
+
+        // 월드 좌표로 변환
+        FVector WorldSpace[8];
+        for (int i = 0; i < 8; i++)
+        {
+            WorldSpace[i] = WorldTransform.TransformPosition(local[i]);
+        }
+
+        // 히트박스 색상 - 활성화 시 빨간색
+        FVector4 HitboxColor = FVector4(1.0f, 0.0f, 0.0f, 1.0f);
+
+        // 12개의 엣지
+        static const int Edge[12][2] = {
+            {0,1},{1,3},{3,2},{2,0}, // bottom
+            {4,5},{5,7},{7,6},{6,4}, // top
+            {0,4},{1,5},{2,6},{3,7}  // verticals
+        };
+
+        for (int i = 0; i < 12; ++i)
+        {
+            StartPoints.Add(WorldSpace[Edge[i][0]]);
+            EndPoints.Add(WorldSpace[Edge[i][1]]);
+            Colors.Add(HitboxColor);
+        }
+
+        Renderer->AddLines(StartPoints, EndPoints, Colors);
+    }
+
+    // 모든 히트 포인트 표시
+    if (DebugHitInfos.Num() > 0)
+    {
+        TArray<FVector> HitStartPoints;
+        TArray<FVector> HitEndPoints;
+        TArray<FVector4> HitColors;
+
+        // 히트 포인트에 십자가 표시 (노란색)
+        FVector4 HitPointColor = FVector4(1.0f, 1.0f, 0.0f, 1.0f);
+        float CrossSize = 0.1f;  // 10cm
+
+        // 히트 노말 방향 표시 (초록색)
+        FVector4 NormalColor = FVector4(0.0f, 1.0f, 0.0f, 1.0f);
+        float NormalLength = 0.3f;  // 30cm
+
+        for (const FDebugHitInfo& HitInfo : DebugHitInfos)
+        {
+            const FVector& Pos = HitInfo.Position;
+            const FVector& Normal = HitInfo.Normal;
+
+            // X축 십자
+            HitStartPoints.Add(Pos - FVector(CrossSize, 0, 0));
+            HitEndPoints.Add(Pos + FVector(CrossSize, 0, 0));
+            HitColors.Add(HitPointColor);
+
+            // Y축 십자
+            HitStartPoints.Add(Pos - FVector(0, CrossSize, 0));
+            HitEndPoints.Add(Pos + FVector(0, CrossSize, 0));
+            HitColors.Add(HitPointColor);
+
+            // Z축 십자
+            HitStartPoints.Add(Pos - FVector(0, 0, CrossSize));
+            HitEndPoints.Add(Pos + FVector(0, 0, CrossSize));
+            HitColors.Add(HitPointColor);
+
+            // 노말 방향 표시
+            HitStartPoints.Add(Pos);
+            HitEndPoints.Add(Pos + Normal * NormalLength);
+            HitColors.Add(NormalColor);
+        }
+
+        Renderer->AddLines(HitStartPoints, HitEndPoints, HitColors);
+    }
 }

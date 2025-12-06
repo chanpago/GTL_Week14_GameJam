@@ -59,6 +59,7 @@ void ABossEnemy::BeginPlay()
 
     InitMontage(LightComboMontage, LightComboAnimPath, "LightCombo");
     InitMontage(HeavySlamMontage, HeavySlamAnimPath, "HeavySlam");
+    InitMontage(ChargeStartMontage, ChargeStartAnimPath, "ChargeStart");
     InitMontage(ChargeAttackMontage, ChargeAttackAnimPath, "ChargeAttack");
     InitMontage(SpinAttackMontage, SpinAttackAnimPath, "SpinAttack");
 }
@@ -223,6 +224,8 @@ bool ABossEnemy::PlayMontageByName(const FString& MontageName, float BlendIn, fl
         Montage = LightComboMontage;
     else if (MontageName == "HeavySlam")
         Montage = HeavySlamMontage;
+    else if (MontageName == "ChargeStart")
+        Montage = ChargeStartMontage;
     else if (MontageName == "ChargeAttack")
         Montage = ChargeAttackMontage;
     else if (MontageName == "SpinAttack")
@@ -244,6 +247,17 @@ bool ABossEnemy::PlayMontageByName(const FString& MontageName, float BlendIn, fl
     }
 
     return false;
+}
+
+void ABossEnemy::SetMontagePlayRate(float NewPlayRate)
+{
+    if (GetMesh())
+    {
+        if (UAnimInstance* AnimInst = GetMesh()->GetAnimInstance())
+        {
+            AnimInst->Montage_SetPlayRate(NewPlayRate);
+        }
+    }
 }
 
 // ============================================================================

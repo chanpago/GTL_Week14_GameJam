@@ -720,6 +720,14 @@ bool UAnimInstance::Montage_IsBlendingOut() const
            (MontageState.CurrentTime >= MontageState.BlendOutStartTime);
 }
 
+void UAnimInstance::Montage_SetPlayRate(float NewPlayRate)
+{
+    if (bMontageActive && MontageState.bIsPlaying)
+    {
+        MontageState.PlayRate = NewPlayRate;
+    }
+}
+
 TArray<FTransform> UAnimInstance::ProcessMontage(const TArray<FTransform>& BasePose, float DeltaSeconds)
 {
     TArray<FTransform> Result = BasePose;

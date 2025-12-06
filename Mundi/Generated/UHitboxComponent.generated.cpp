@@ -36,7 +36,6 @@ const bool UHitboxComponent::bPropertiesRegistered = []() {
 BEGIN_PROPERTIES(UHitboxComponent)
     MARK_AS_COMPONENT("UHitboxComponent", "캐릭터간 히트 컴포넌트 ")
     ADD_PROPERTY(bool, bIsActive, "Hitbox", true)
-    ADD_PROPERTY(bool, bDrawDebug, "Debug", true)
 END_PROPERTIES()
 
 // ===== Lua Binding =====

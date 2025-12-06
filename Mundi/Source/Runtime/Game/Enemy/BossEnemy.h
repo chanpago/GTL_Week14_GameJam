@@ -33,6 +33,9 @@ public:
     /** 몽타주 이름으로 재생 (Lua용) */
     bool PlayMontageByName(const FString& MontageName, float BlendIn = 0.1f, float BlendOut = 0.1f, float PlayRate = 1.0f);
 
+    /** 현재 재생 중인 몽타주의 재생 속도 변경 (Lua용) */
+    void SetMontagePlayRate(float NewPlayRate);
+
     /** 페이즈 변경 */
     void SetPhase(int32 NewPhase);
     int32 GetPhase() const { return CurrentPhase; }
@@ -71,6 +74,9 @@ protected:
     FString HeavySlamAnimPath;
 
     UPROPERTY(EditAnywhere, Category = "Animation")
+    FString ChargeStartAnimPath;
+
+    UPROPERTY(EditAnywhere, Category = "Animation")
     FString ChargeAttackAnimPath;
 
     UPROPERTY(EditAnywhere, Category = "Animation")
@@ -79,6 +85,7 @@ protected:
     // ========== 공격 애니메이션 몽타주 ==========
     UAnimMontage* LightComboMontage = nullptr;
     UAnimMontage* HeavySlamMontage = nullptr;
+    UAnimMontage* ChargeStartMontage = nullptr;
     UAnimMontage* ChargeAttackMontage = nullptr;
     UAnimMontage* SpinAttackMontage = nullptr;
 

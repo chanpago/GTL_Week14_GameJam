@@ -111,4 +111,65 @@ struct FCombatHitResult
     bool bWasParried = false;       // 패리했는지
     float ActualDamage = 0.f;       // 실제 적용된 데미지
     EHitReaction AppliedReaction = EHitReaction::None;
+    FVector HitPosition;            // 충돌 위치 (월드)
+    FVector HitNormal;              // 충돌 법선
+};
+
+// ============================================================================
+// 전투 이벤트 타입 (VFX/카메라 효과 트리거용)
+// ============================================================================
+enum class ECombatEventType
+{
+    // 일반 히트
+    NormalHit,              // 일반 공격 적중
+    NormalHitReceived,      // 일반 공격 피격
+
+    // 방어
+    Blocked,                // 가드 성공 (공격자 시점)
+    BlockedHit,             // 가드로 막음 (방어자 시점)
+    Parried,                // 패리 성공 (방어자 시점)
+    GotParried,             // 패리당함 (공격자 시점)
+
+    // 스킬 관련
+    SkillHit,               // 스킬 공격 적중
+    SkillParried,           // 스킬 공격 패리됨
+
+    // 회피
+    DodgeSuccess,           // 회피 성공 (공격 범위 내에서 회피)
+
+    // 특수 상황
+    LastHit,                // 마지막 일격 (적 처치)
+    UltimateHit,            // 궁극기 적중 예정
+};
+
+// ============================================================================
+// 전투 이벤트 정보 (VFX/카메라 시스템으로 전달)
+// ============================================================================
+struct FCombatEvent
+{
+    ECombatEventType EventType = ECombatEventType::NormalHit;
+
+    // 관련 액터
+    AActor* Attacker = nullptr;     // 공격자
+    AActor* Defender = nullptr;     // 방어자/피격자
+
+    // 위치 정보
+    FVector HitPosition;            // 충돌/이벤트 발생 위치
+    FVector HitDirection;           // 공격 방향
+    FVector HitNormal;              // 충돌 법선
+
+    // 추가 정보
+    float Damage = 0.f;             // 데미지 (적용 전)
+    float ActualDamage = 0.f;       // 실제 적용된 데미지
+    EDamageType DamageType = EDamageType::Light;
+    bool bIsSkillAttack = false;    // 스킬 공격 여부
+    bool bIsFatalBlow = false;      // 마지막 일격 여부 (적 처치)
+
+    FCombatEvent() = default;
+
+    FCombatEvent(ECombatEventType InType, AActor* InAttacker, AActor* InDefender)
+        : EventType(InType)
+        , Attacker(InAttacker)
+        , Defender(InDefender)
+    {}
 };

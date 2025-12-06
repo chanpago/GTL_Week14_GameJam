@@ -42,10 +42,23 @@ public:
 	UPROPERTY(EditAnywhere, Category="Physics")
 	bool bRegisterToPhysX = true;
 
-private:
+	// 트리거(오버랩) 충돌 활성화
+	void EnableTriggerCollision(bool bEnable);
+	bool IsTriggerEnabled() const { return bTriggerEnabled; }
+
+	// 충돌 시 호출될 델리게이트
+	DECLARE_DELEGATE(OnTriggerHit, class AActor* /*OtherActor*/, const FVector& /*HitLocation*/);
+
+	// 수동으로 PhysX Actor 생성/파괴 (public)
 	void CreatePhysXActor();
 	void DestroyPhysXActor();
+
+private:
 	void UpdatePhysXActorTransform();
+	void CheckTriggerOverlaps();
 
 	physx::PxRigidDynamic* PhysXActor = nullptr;
+	bool bTriggerEnabled = false;
+	bool bOwnsPhysXActor = true;  // 복제본은 false - PhysXActor 해제 안함
+	TArray<class AActor*> OverlappedActors;  // 중복 충돌 방지
 };

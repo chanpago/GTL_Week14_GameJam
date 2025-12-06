@@ -2,14 +2,17 @@
 #include "Character.h"
 #include "CapsuleComponent.h"
 #include "SkeletalMeshComponent.h"
-#include "CharacterMovementComponent.h" 
-#include"StaticMeshComponent.h"
-#include "ObjectMacros.h" 
+#include "CharacterMovementComponent.h"
+#include "StaticMeshComponent.h"
+#include "ObjectMacros.h"
+#include "StaticMeshActor.h"
+#include "World.h" 
 ACharacter::ACharacter()
 {
 	CapsuleComponent = CreateDefaultSubobject<UCapsuleComponent>("CapsuleComponent");
 	//CapsuleComponent->SetSize();
     WeaponMeshComp = CreateDefaultSubobject<UStaticMeshComponent>("StaticMeshComponent");
+    WeaponCollider = CreateDefaultSubobject<UCapsuleComponent>("WeaponCollider");
 	SetRootComponent(CapsuleComponent);
 
 	if (SkeletalMeshComp)
@@ -22,6 +25,13 @@ ACharacter::ACharacter()
     if (WeaponMeshComp)
     {
         WeaponMeshComp->SetupAttachment(SkeletalMeshComp);
+    }
+    if (WeaponCollider)
+    {
+        WeaponCollider->SetupAttachment(WeaponMeshComp);
+        WeaponCollider->CapsuleRadius = 0.1f;      // 반지름 10cm
+        WeaponCollider->CapsuleHalfHeight = 0.5f;  // 반높이 50cm
+        WeaponCollider->SetGenerateOverlapEvents(false);  // 기본 비활성화
     }
 	 
 	CharacterMovement = CreateDefaultSubobject<UCharacterMovementComponent>("CharacterMovement");
@@ -62,13 +72,22 @@ void ACharacter::Serialize(const bool bInIsLoading, JSON& InOutHandle)
         CapsuleComponent = nullptr;
         CharacterMovement = nullptr;
         WeaponMeshComp = nullptr;
+        WeaponCollider = nullptr;
         SkeletalMeshComp = nullptr;
 
         for (UActorComponent* Comp : GetOwnedComponents())
         {
             if (auto* Cap = Cast<UCapsuleComponent>(Comp))
             {
-                CapsuleComponent = Cap;
+                // WeaponCollider와 CapsuleComponent 구분 (이름으로)
+                if (Cap->GetName().find("WeaponCollider") != FString::npos)
+                {
+                    WeaponCollider = Cap;
+                }
+                else
+                {
+                    CapsuleComponent = Cap;
+                }
             }
             else if (auto* Move = Cast<UCharacterMovementComponent>(Comp))
             {
@@ -100,13 +119,22 @@ void ACharacter::DuplicateSubObjects()
     CapsuleComponent = nullptr;
     CharacterMovement = nullptr;
     WeaponMeshComp = nullptr;
+    WeaponCollider = nullptr;
     SkeletalMeshComp = nullptr;
 
     for (UActorComponent* Comp : GetOwnedComponents())
     {
         if (auto* Cap = Cast<UCapsuleComponent>(Comp))
         {
-            CapsuleComponent = Cap;
+            // WeaponCollider와 CapsuleComponent 구분 (이름으로)
+            if (Cap->GetName().find("WeaponCollider") != FString::npos)
+            {
+                WeaponCollider = Cap;
+            }
+            else
+            {
+                CapsuleComponent = Cap;
+            }
         }
         else if (auto* Move = Cast<UCharacterMovementComponent>(Comp))
         {
@@ -187,4 +215,57 @@ void ACharacter::UpdateWeaponTransform()
 	// 무기 트랜스폼 설정
 	WeaponMeshComp->SetWorldLocation(FinalLocation);
 	WeaponMeshComp->SetWorldRotation(FinalRotation);
+}
+
+// ============================================================================
+// 무기 충돌 시스템
+// ============================================================================
+
+void ACharacter::EnableWeaponCollision(bool bEnable)
+{
+	if (!WeaponCollider)
+	{
+		return;
+	}
+
+	// CapsuleComponent의 PhysX 기반 트리거 충돌 사용
+	WeaponCollider->EnableTriggerCollision(bEnable);
+
+	if (bEnable)
+	{
+		// 델리게이트 바인딩
+		WeaponCollider->OnTriggerHit.Add(
+			[this](AActor* OtherActor, const FVector& HitLocation)
+			{
+				if (OtherActor && OtherActor != this)
+				{
+					OnWeaponOverlap(OtherActor, HitLocation);
+				}
+			});
+	}
+	else
+	{
+		// 델리게이트 해제
+		WeaponCollider->OnTriggerHit.Clear();
+	}
+}
+
+void ACharacter::OnWeaponOverlap(AActor* OtherActor, const FVector& HitLocation)
+{
+	// 충돌 위치에 StaticMeshActor 스폰
+	UWorld* World = GetWorld();
+	if (World)
+	{
+		FTransform SpawnTransform;
+		SpawnTransform.Translation = HitLocation;
+		AStaticMeshActor* HitMarker = World->SpawnActor<AStaticMeshActor>(SpawnTransform);
+		if (HitMarker)
+		{
+			HitMarker->GetStaticMeshComponent()->SetStaticMesh(GDataDir + "/Model/Sphere8.obj");
+			HitMarker->SetActorScale(FVector(0.1f, 0.1f, 0.1f));
+		}
+	}
+
+	// 델리게이트 브로드캐스트
+	OnWeaponHit.Broadcast(OtherActor, HitLocation);
 }
