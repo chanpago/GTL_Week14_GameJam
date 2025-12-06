@@ -1,9 +1,13 @@
 {
+  "AnimationCutEndTime" : 0.000000,
   "AttackCooldown" : 1.000000,
   "AttackRange" : 300.000000,
+  "ChargeAttackAnimPath" : "Data/FBX/SKM_DKM_Full/Animation/Game/Game/Dark_Knight/Animations/Anim_DKM_Attack_03.FBX_Unreal Take",
   "CurrentAttackPattern" : 0,
-  "CurrentPhase" : 2,
+  "CurrentPhase" : 1,
   "DetectionRange" : 2000.000000,
+  "HeavySlamAnimPath" : "Data/FBX/SKM_DKM_Full/Animation/Game/Game/Dark_Knight/Animations/Anim_DKM_Attack_02.FBX_Unreal Take",
+  "LightComboAnimPath" : "Data/FBX/SKM_DKM_Full/Animation/Game/Game/Dark_Knight/Animations/Anim_DKM_Attack_01.FBX_Unreal Take",
   "LoseTargetRange" : 3000.000000,
   "MaxAttackPatterns" : 4,
   "MaxPhase" : 2,
@@ -11,35 +15,6 @@
   "MoveSpeed" : 350.000000,
   "ObjectName" : "보스 에너미_0",
   "OwnedComponents" : [{
-      "AnimGraphPath" : "Data/Graphs/보스 에너미_0.graph",
-      "CollisionEnabled_Internal" : 2,
-      "Id" : 8774,
-      "MaterialSlots" : [{
-          "Type" : "None"
-        }, {
-          "AssetPath" : "M_Monster_Armor_Skin1",
-          "Type" : "UMaterial"
-        }, {
-          "AssetPath" : "M_Monster_Body_Skin1",
-          "Type" : "UMaterial"
-        }],
-      "ObjectName" : "USkeletalMeshComponent_1",
-      "ParentId" : 8769,
-      "PhysicsAssetOverridePath" : "",
-      "RelativeLocation" : [0.000000, 0.000000, -1.804656],
-      "RelativeRotationEuler" : [0.000000, -0.000000, 0.000000],
-      "RelativeScale" : [1.800000, 1.800000, 1.800000],
-      "SkeletalMesh" : "Data/FBX/SKEL_Monster_Skeleton/SK_Monster.FBX",
-      "Type" : "USkeletalMeshComponent",
-      "bBlockComponent" : false,
-      "bCastShadows" : true,
-      "bGenerateOverlapEvents" : true,
-      "bHiddenInGame" : false,
-      "bIsActive" : true,
-      "bIsVisible" : true,
-      "bOverrideCollisionSetting" : false,
-      "bTickEnabled" : true
-    }, {
       "ObjectName" : "ULuaScriptComponent_2",
       "ScriptFilePath" : "Data/Scripts/AI/BossAI.lua",
       "Type" : "ULuaScriptComponent",
@@ -47,30 +22,9 @@
       "bIsActive" : true,
       "bTickEnabled" : true
     }, {
-      "CapsuleHalfHeight" : 1.800000,
-      "CapsuleRadius" : 0.500000,
-      "CollisionEnabled_Internal" : 2,
-      "Id" : 8769,
-      "ObjectName" : "UCapsuleComponent_1",
-      "ParentId" : 0,
-      "RelativeLocation" : [-4.687031, -9.845627, 2.791506],
-      "RelativeRotationEuler" : [0.000000, -0.000000, 130.423706],
-      "RelativeScale" : [1.000000, 1.000000, 1.000000],
-      "Type" : "UCapsuleComponent",
-      "bBlockComponent" : false,
-      "bGenerateOverlapEvents" : true,
-      "bHiddenInGame" : false,
-      "bIsActive" : true,
-      "bIsVisible" : true,
-      "bOverrideCollisionSetting" : false,
-      "bRegisterToPhysX" : true,
-      "bShapeHiddenInGame" : true,
-      "bShapeIsVisible" : true,
-      "bTickEnabled" : true
-    }, {
       "BoxExtent" : [0.000000, 0.000000, 0.000000],
       "CollisionEnabled_Internal" : 2,
-      "Id" : 8770,
+      "Id" : 6972,
       "ObjectName" : "UHitboxComponent_1",
       "ParentId" : 0,
       "RelativeLocation" : [0.000000, 0.000000, 0.000000],
@@ -86,49 +40,6 @@
       "bOverrideCollisionSetting" : false,
       "bShapeHiddenInGame" : true,
       "bShapeIsVisible" : true,
-      "bTickEnabled" : true
-    }, {
-      "AngularDampingOverride" : 0.050000,
-      "BoxExtent" : [0.500000, 0.500000, 0.500000],
-      "CapsuleHalfHeight" : 0.500000,
-      "CapsuleRadius" : 0.250000,
-      "CollisionEnabled_Internal" : 2,
-      "CollisionOffset" : [0.000000, 0.000000, 0.000000],
-      "CollisionRotation" : [0.000000, 0.000000, 0.000000],
-      "CollisionType" : 1,
-      "FrictionCombineModeOverride" : 2,
-      "Id" : 8771,
-      "LinearDampingOverride" : 0.010000,
-      "MassOverride" : 10.000000,
-      "MaterialSlots" : [{
-          "AssetPath" : "texture",
-          "Type" : "UMaterial"
-        }],
-      "ObjectName" : "UStaticMeshComponent_1",
-      "ParentId" : 8774,
-      "PhysMaterialPreset" : 0,
-      "RelativeLocation" : [0.032534, 0.602087, 1.290079],
-      "RelativeRotationEuler" : [-68.721664, 51.815044, -96.392845],
-      "RelativeScale" : [0.200000, 0.200000, 1.500000],
-      "RestitutionCombineModeOverride" : 2,
-      "SphereRadius" : 0.500000,
-      "StaticMesh" : "Data/cube-tex.obj",
-      "Type" : "UStaticMeshComponent",
-      "bBlockComponent" : false,
-      "bCastShadows" : true,
-      "bEnableCollision" : true,
-      "bGenerateOverlapEvents" : true,
-      "bHiddenInGame" : false,
-      "bIsActive" : true,
-      "bIsVisible" : true,
-      "bOverrideCollisionSetting" : false,
-      "bSimulatePhysics" : false,
-      "bTickEnabled" : true
-    }, {
-      "ObjectName" : "UCharacterMovementComponent_1",
-      "Type" : "UCharacterMovementComponent",
-      "bHiddenInGame" : false,
-      "bIsActive" : true,
       "bTickEnabled" : true
     }, {
       "BlockCostPerHit" : 20.000000,
@@ -147,17 +58,138 @@
       "bHiddenInGame" : false,
       "bIsActive" : true,
       "bTickEnabled" : true
+    }, {
+      "AnimGraphPath" : "Data/Graphs/보스 에너미_0.graph",
+      "CollisionEnabled_Internal" : 2,
+      "Id" : 6915,
+      "MaterialSlots" : [{
+          "Type" : "None"
+        }, {
+          "AssetPath" : "MI_DKM_Boots",
+          "Type" : "UMaterial"
+        }, {
+          "AssetPath" : "MI_DKM_Helmet",
+          "Type" : "UMaterial"
+        }, {
+          "AssetPath" : "MI_DKM_Armor",
+          "Type" : "UMaterial"
+        }, {
+          "AssetPath" : "MI_DKM_Gauntlets",
+          "Type" : "UMaterial"
+        }, {
+          "AssetPath" : "MI_DKM_Pants",
+          "Type" : "UMaterial"
+        }, {
+          "AssetPath" : "MI_DKM_Armor_5",
+          "Type" : "UMaterial"
+        }],
+      "ObjectName" : "USkeletalMeshComponent_1",
+      "ParentId" : 6973,
+      "PhysicsAssetOverridePath" : "",
+      "RelativeLocation" : [0.000000, 0.000000, -1.804656],
+      "RelativeRotationEuler" : [0.000000, -0.000000, 0.000000],
+      "RelativeScale" : [3.000000, 3.000000, 3.000000],
+      "SkeletalMesh" : "Data/FBX/SKM_DKM_Full/SKM_DKM_Full.FBX",
+      "Type" : "USkeletalMeshComponent",
+      "bBlockComponent" : false,
+      "bCastShadows" : true,
+      "bGenerateOverlapEvents" : true,
+      "bHiddenInGame" : false,
+      "bIsActive" : true,
+      "bIsVisible" : true,
+      "bOverrideCollisionSetting" : false,
+      "bTickEnabled" : true
+    }, {
+      "ObjectName" : "UCharacterMovementComponent_1",
+      "Type" : "UCharacterMovementComponent",
+      "bHiddenInGame" : false,
+      "bIsActive" : true,
+      "bTickEnabled" : true
+    }, {
+      "AngularDampingOverride" : 0.050000,
+      "BoxExtent" : [0.500000, 0.500000, 0.500000],
+      "CapsuleHalfHeight" : 0.500000,
+      "CapsuleRadius" : 0.250000,
+      "CollisionEnabled_Internal" : 2,
+      "CollisionOffset" : [0.000000, 0.000000, 0.000000],
+      "CollisionRotation" : [0.000000, 0.000000, 0.000000],
+      "CollisionType" : 1,
+      "FrictionCombineModeOverride" : 2,
+      "Id" : 6968,
+      "LinearDampingOverride" : 0.010000,
+      "MassOverride" : 10.000000,
+      "MaterialSlots" : [{
+          "Type" : "None"
+        }, {
+          "Overrides" : {
+            "Scalars" : {
+
+            },
+            "Textures" : {
+              "0" : "Data/FBX/SKM_DKM_Full/M_DKM_Sword_ALB.PNG",
+              "1" : "Data/FBX/SKM_DKM_Full/M_DKM_Sword_NRM.PNG"
+            },
+            "Vectors" : {
+
+            }
+          },
+          "ParentPath" : "M_DKM_Sword",
+          "Type" : "UMaterialInstanceDynamic"
+        }],
+      "ObjectName" : "UStaticMeshComponent_1",
+      "ParentId" : 6915,
+      "PhysMaterialPreset" : 0,
+      "RelativeLocation" : [0.211299, 0.502438, 0.956586],
+      "RelativeRotationEuler" : [176.491577, -26.321396, -20.498112],
+      "RelativeScale" : [0.010000, 0.010000, 0.010000],
+      "RestitutionCombineModeOverride" : 2,
+      "SphereRadius" : 0.500000,
+      "StaticMesh" : "Data/FBX/SKM_DKM_Full/SM_DKM_Sword.FBX",
+      "Type" : "UStaticMeshComponent",
+      "bBlockComponent" : false,
+      "bCastShadows" : true,
+      "bEnableCollision" : true,
+      "bGenerateOverlapEvents" : true,
+      "bHiddenInGame" : false,
+      "bIsActive" : true,
+      "bIsVisible" : true,
+      "bOverrideCollisionSetting" : false,
+      "bSimulatePhysics" : false,
+      "bTickEnabled" : true
+    }, {
+      "CapsuleHalfHeight" : 1.800000,
+      "CapsuleRadius" : 0.500000,
+      "CollisionEnabled_Internal" : 2,
+      "Id" : 6973,
+      "ObjectName" : "UCapsuleComponent_1",
+      "ParentId" : 0,
+      "RelativeLocation" : [-4.687031, -9.845627, 2.791506],
+      "RelativeRotationEuler" : [0.000000, -0.000000, 130.423706],
+      "RelativeScale" : [1.000000, 1.000000, 1.000000],
+      "Type" : "UCapsuleComponent",
+      "bBlockComponent" : false,
+      "bGenerateOverlapEvents" : true,
+      "bHiddenInGame" : false,
+      "bIsActive" : true,
+      "bIsVisible" : true,
+      "bOverrideCollisionSetting" : false,
+      "bRegisterToPhysX" : true,
+      "bShapeHiddenInGame" : true,
+      "bShapeIsVisible" : true,
+      "bTickEnabled" : true
     }],
   "Phase2HealthThreshold" : 0.500000,
-  "RootComponentId" : 8769,
+  "RootComponentId" : 6973,
   "RotationSpeed" : 5.000000,
+  "SpinAttackAnimPath" : "Data/FBX/SKM_DKM_Full/Animation/Game/Game/Dark_Knight/Animations/Anim_DKM_Attack_01.FBX_Unreal Take",
   "Tag" : "",
   "Type" : "ABossEnemy",
   "WeaponBoneName" : "hand_r",
-  "WeaponOffset" : [0.000000, 0.000000, 0.000000],
-  "WeaponRotationOffset" : [0.000000, 0.000000, 0.000000],
+  "WeaponOffset" : [0.100000, 0.300000, 0.000000],
+  "WeaponRotationOffset" : [-118.699997, -110.300003, -16.299999],
   "bActorHiddenInGame" : false,
   "bActorIsActive" : true,
+  "bEnableAttackRootMotion" : true,
   "bHasSuperArmor" : true,
   "bIsAttacking" : false
 }

@@ -99,7 +99,8 @@ protected:
 
 public:
     /** AIController에서 호출하는 공격 실행 */
-    virtual void ExecuteAttackPattern(int32 PatternIndex);
+  
+    virtual void ExecuteAttackPattern(int PatternIndex);
 
     /** 공격 완료 알림 (애니메이션 노티파이에서 호출) */
     virtual void NotifyAttackFinished();

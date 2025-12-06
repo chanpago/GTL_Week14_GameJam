@@ -35,8 +35,9 @@ public:
     /**
      * 히트박스를 활성화합니다.
      * @param InDamageInfo 이 공격에 적용할 데미지 정보
+     * @param InDuration 지속 시간 (0 이하면 수동 비활성화 필요)
      */
-    void EnableHitbox(const FDamageInfo& InDamageInfo);
+    void EnableHitbox(const FDamageInfo& InDamageInfo, float InDuration = 0.0f);
 
     /**
      * 히트박스를 비활성화합니다.
@@ -118,4 +119,8 @@ private:
 
     // 히트 콜백
     FOnHitCallback OnHitCallback;
+
+    // 자동 비활성화 타이머
+    float RemainingDuration = 0.0f;
+    bool bUseAutoDisable = false;
 };

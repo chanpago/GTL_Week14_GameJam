@@ -38,10 +38,12 @@ BEGIN_PROPERTIES(ABossEnemy)
     ADD_PROPERTY(int32, CurrentPhase, "Boss", true)
     ADD_PROPERTY(int32, MaxPhase, "Boss", true)
     ADD_PROPERTY(float, Phase2HealthThreshold, "Boss", true, "페이즈 2 진입 HP 비율")
-    ADD_PROPERTY(UAnimMontage*, LightComboMontage, "Animation", true)
-    ADD_PROPERTY(UAnimMontage*, HeavySlamMontage, "Animation", true)
-    ADD_PROPERTY(UAnimMontage*, ChargeAttackMontage, "Animation", true)
-    ADD_PROPERTY(UAnimMontage*, SpinAttackMontage, "Animation", true)
+    ADD_PROPERTY(FString, LightComboAnimPath, "Animation", true)
+    ADD_PROPERTY(FString, HeavySlamAnimPath, "Animation", true)
+    ADD_PROPERTY(FString, ChargeAttackAnimPath, "Animation", true)
+    ADD_PROPERTY(FString, SpinAttackAnimPath, "Animation", true)
+    ADD_PROPERTY(bool, bEnableAttackRootMotion, "Animation", true)
+    ADD_PROPERTY(float, AnimationCutEndTime, "Animation", true)
 END_PROPERTIES()
 
 // ===== Lua Binding =====
@@ -50,7 +52,7 @@ extern "C" void LuaBind_Anchor_ABossEnemy() {}
 
 LUA_BIND_BEGIN(ABossEnemy)
 {
-    // No functions to bind
+    AddAlias<ABossEnemy, int>(
+        T, "ExecuteAttackPattern", &ABossEnemy::ExecuteAttackPattern);
 }
 LUA_BIND_END()
-

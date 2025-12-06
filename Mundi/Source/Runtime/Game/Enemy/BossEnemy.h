@@ -27,7 +27,11 @@ public:
     // ========================================================================
     // 보스 전용 공격 패턴
     // ========================================================================
-    virtual void ExecuteAttackPattern(int32 PatternIndex) override;
+    UFUNCTION(LuaBind,DisplayName='Attack',Tooltip="Play AttackPattern")
+    void ExecuteAttackPattern(int PatternIndex);
+
+    /** 몽타주 이름으로 재생 (Lua용) */
+    bool PlayMontageByName(const FString& MontageName, float BlendIn = 0.1f, float BlendOut = 0.1f, float PlayRate = 1.0f);
 
     /** 페이즈 변경 */
     void SetPhase(int32 NewPhase);
@@ -59,16 +63,29 @@ protected:
     UPROPERTY(EditAnywhere, Category = "Boss", Tooltip = "페이즈 2 진입 HP 비율")
     float Phase2HealthThreshold = 0.5f;
 
+    // ========== 공격 애니메이션 경로 ==========
+    UPROPERTY(EditAnywhere, Category = "Animation")
+    FString LightComboAnimPath;
+
+    UPROPERTY(EditAnywhere, Category = "Animation")
+    FString HeavySlamAnimPath;
+
+    UPROPERTY(EditAnywhere, Category = "Animation")
+    FString ChargeAttackAnimPath;
+
+    UPROPERTY(EditAnywhere, Category = "Animation")
+    FString SpinAttackAnimPath;
+
     // ========== 공격 애니메이션 몽타주 ==========
-    UPROPERTY(EditAnywhere, Category = "Animation")
     UAnimMontage* LightComboMontage = nullptr;
-
-    UPROPERTY(EditAnywhere, Category = "Animation")
     UAnimMontage* HeavySlamMontage = nullptr;
-
-    UPROPERTY(EditAnywhere, Category = "Animation")
     UAnimMontage* ChargeAttackMontage = nullptr;
+    UAnimMontage* SpinAttackMontage = nullptr;
+
+    // ========== 애니메이션 설정 ==========
+    UPROPERTY(EditAnywhere, Category = "Animation")
+    bool bEnableAttackRootMotion = true;
 
     UPROPERTY(EditAnywhere, Category = "Animation")
-    UAnimMontage* SpinAttackMontage = nullptr;
+    float AnimationCutEndTime = 0.0f;
 };

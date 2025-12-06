@@ -2,6 +2,7 @@
 #include "SphereComponent.h"
 #include "Renderer.h"
 #include "Actor.h"
+#include "RenderSettings.h"
 // IMPLEMENT_CLASS is now auto-generated in .generated.cpp
 USphereComponent::USphereComponent()
 {
@@ -76,10 +77,13 @@ FAABB USphereComponent::GetWorldAABB() const
 
 void USphereComponent::RenderDebugVolume(URenderer* Renderer) const
 {
-    if (!bShapeIsVisible) return;
+    // SF_BoundingBoxes 플래그가 켜져있으면 항상 표시
+    bool bShowFlagEnabled = GWorld->GetRenderSettings().IsShowFlagEnabled(EEngineShowFlags::SF_BoundingBoxes);
+
+    if (!bShapeIsVisible && !bShowFlagEnabled) return;
     if (GWorld->bPie)
     {
-        if (bShapeHiddenInGame)
+        if (bShapeHiddenInGame && !bShowFlagEnabled)
             return;
     }
     // Draw three great circles to visualize the sphere (XY, XZ, YZ planes)

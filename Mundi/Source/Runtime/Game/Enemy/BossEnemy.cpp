@@ -6,6 +6,8 @@
 #include "SkeletalMeshComponent.h"
 #include "AnimInstance.h"
 #include "AnimMontage.h"
+#include "AnimSequence.h"
+#include "ResourceManager.h"
 
 ABossEnemy::ABossEnemy()
 {
@@ -33,6 +35,32 @@ void ABossEnemy::BeginPlay()
 
     // 페이즈 1 시작
     CurrentPhase = 1;
+
+    // ========================================================================
+    // 애니메이션 몽타주 초기화
+    // ========================================================================
+    auto InitMontage = [](UAnimMontage*& OutMontage, const FString& AnimPath, const char* Name)
+    {
+        if (!AnimPath.empty())
+        {
+            UAnimSequence* Anim = UResourceManager::GetInstance().Get<UAnimSequence>(AnimPath);
+            if (Anim)
+            {
+                OutMontage = NewObject<UAnimMontage>();
+                OutMontage->SetSourceSequence(Anim);
+                UE_LOG("[BossEnemy] %s montage initialized: %s", Name, AnimPath.c_str());
+            }
+            else
+            {
+                UE_LOG("[BossEnemy] Failed to find animation: %s", AnimPath.c_str());
+            }
+        }
+    };
+
+    InitMontage(LightComboMontage, LightComboAnimPath, "LightCombo");
+    InitMontage(HeavySlamMontage, HeavySlamAnimPath, "HeavySlam");
+    InitMontage(ChargeAttackMontage, ChargeAttackAnimPath, "ChargeAttack");
+    InitMontage(SpinAttackMontage, SpinAttackAnimPath, "SpinAttack");
 }
 
 void ABossEnemy::Tick(float DeltaSeconds)
@@ -47,7 +75,7 @@ void ABossEnemy::Tick(float DeltaSeconds)
 // 공격 패턴
 // ============================================================================
 
-void ABossEnemy::ExecuteAttackPattern(int32 PatternIndex)
+void ABossEnemy::ExecuteAttackPattern(int PatternIndex)
 {
     // 페이즈에 따라 공격 패턴 변경
     if (CurrentPhase >= 2)
@@ -92,6 +120,8 @@ void ABossEnemy::Attack_LightCombo()
     {
         if (UAnimInstance* AnimInst = GetMesh()->GetAnimInstance())
         {
+            AnimInst->SetRootMotionEnabled(bEnableAttackRootMotion);
+            AnimInst->SetAnimationCutEndTime(AnimationCutEndTime);
             AnimInst->Montage_Play(LightComboMontage, 0.1f, 0.1f, 1.0f);
         }
     }
@@ -115,6 +145,8 @@ void ABossEnemy::Attack_HeavySlam()
     {
         if (UAnimInstance* AnimInst = GetMesh()->GetAnimInstance())
         {
+            AnimInst->SetRootMotionEnabled(bEnableAttackRootMotion);
+            AnimInst->SetAnimationCutEndTime(AnimationCutEndTime);
             AnimInst->Montage_Play(HeavySlamMontage, 0.1f, 0.1f, 1.0f);
         }
     }
@@ -146,6 +178,8 @@ void ABossEnemy::Attack_ChargeAttack()
     {
         if (UAnimInstance* AnimInst = GetMesh()->GetAnimInstance())
         {
+            AnimInst->SetRootMotionEnabled(bEnableAttackRootMotion);
+            AnimInst->SetAnimationCutEndTime(AnimationCutEndTime);
             AnimInst->Montage_Play(ChargeAttackMontage, 0.05f, 0.1f, 1.2f);
         }
     }
@@ -169,9 +203,47 @@ void ABossEnemy::Attack_SpinAttack()
     {
         if (UAnimInstance* AnimInst = GetMesh()->GetAnimInstance())
         {
+            AnimInst->SetRootMotionEnabled(bEnableAttackRootMotion);
+            AnimInst->SetAnimationCutEndTime(AnimationCutEndTime);
             AnimInst->Montage_Play(SpinAttackMontage, 0.1f, 0.1f, 1.0f);
         }
     }
+}
+
+// ============================================================================
+// 몽타주 재생 (Lua용)
+// ============================================================================
+
+bool ABossEnemy::PlayMontageByName(const FString& MontageName, float BlendIn, float BlendOut, float PlayRate)
+{
+    UAnimMontage* Montage = nullptr;
+
+    // 몽타주 이름으로 찾기
+    if (MontageName == "LightCombo")
+        Montage = LightComboMontage;
+    else if (MontageName == "HeavySlam")
+        Montage = HeavySlamMontage;
+    else if (MontageName == "ChargeAttack")
+        Montage = ChargeAttackMontage;
+    else if (MontageName == "SpinAttack")
+        Montage = SpinAttackMontage;
+
+    if (!Montage || !GetMesh())
+    {
+        UE_LOG("[BossEnemy] PlayMontageByName failed: %s not found", MontageName.c_str());
+        return false;
+    }
+
+    if (UAnimInstance* AnimInst = GetMesh()->GetAnimInstance())
+    {
+        AnimInst->SetRootMotionEnabled(bEnableAttackRootMotion);
+        AnimInst->SetAnimationCutEndTime(AnimationCutEndTime);
+        AnimInst->Montage_Play(Montage, BlendIn, BlendOut, PlayRate);
+        UE_LOG("[BossEnemy] Playing montage: %s", MontageName.c_str());
+        return true;
+    }
+
+    return false;
 }
 
 // ============================================================================

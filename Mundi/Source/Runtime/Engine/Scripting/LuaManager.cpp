@@ -10,6 +10,11 @@
 #include "GameModeBase.h"
 #include "PlayerController.h"
 #include"Pawn.h"
+#include "BossEnemy.h"
+#include "HitboxComponent.h"
+#include "CombatTypes.h"
+#include "SkeletalMeshComponent.h"
+#include "AnimInstance.h"
 #include <tuple>
 
 sol::object MakeCompProxy(sol::state_view SolState, void* Instance, UClass* Class) {
@@ -342,12 +347,154 @@ FLuaManager::FLuaManager()
 
     SharedLib.set_function("HitStop", [](float Duration, sol::optional<float> Scale) { GWorld->RequestHitStop(Duration, Scale.value_or(0.0f)); });
     
-    SharedLib.set_function("TargetHitStop", [](FGameObject& Obj, float Duration, sol::optional<float> Scale) 
+    SharedLib.set_function("TargetHitStop", [](FGameObject& Obj, float Duration, sol::optional<float> Scale)
         {
             if (AActor* Owner = Obj.GetOwner())
             {
                 Owner->SetCustomTimeDillation(Duration, Scale.value_or(0.0f));
             }
+        });
+
+    // 보스 공격 패턴 실행
+    SharedLib.set_function("ExecuteAttackPattern", [](FGameObject& Obj, int PatternIndex)
+        {
+            if (AActor* Owner = Obj.GetOwner())
+            {
+                if (ABossEnemy* Boss = Cast<ABossEnemy>(Owner))
+                {
+                    Boss->ExecuteAttackPattern(PatternIndex);
+                }
+            }
+        });
+
+    // 보스 몽타주 재생 (Lua용)
+    // 사용법: PlayMontage(Obj, "LightCombo") 또는 PlayMontage(Obj, "LightCombo", 0.1, 0.1, 1.5)
+    SharedLib.set_function("PlayMontage", [](FGameObject& Obj, const FString& MontageName,
+        sol::optional<float> BlendIn, sol::optional<float> BlendOut, sol::optional<float> PlayRate) -> bool
+        {
+            if (AActor* Owner = Obj.GetOwner())
+            {
+                if (ABossEnemy* Boss = Cast<ABossEnemy>(Owner))
+                {
+                    return Boss->PlayMontageByName(MontageName,
+                        BlendIn.value_or(0.1f),
+                        BlendOut.value_or(0.1f),
+                        PlayRate.value_or(1.0f));
+                }
+            }
+            return false;
+        });
+
+    // 히트박스 활성화 (Lua용)
+    // 사용법: EnableHitbox(Obj, damage, damageType, extentX, extentY, extentZ)
+    // damageType: "Light", "Heavy", "Special"
+    // extent: 히트박스 반 크기 (half extent), 생략 시 기존 크기 유지
+    SharedLib.set_function("EnableHitbox", [](FGameObject& Obj, float Damage, const FString& DamageTypeStr,
+        sol::optional<float> ExtentX, sol::optional<float> ExtentY, sol::optional<float> ExtentZ)
+        {
+            if (AActor* Owner = Obj.GetOwner())
+            {
+                UHitboxComponent* Hitbox = Cast<UHitboxComponent>(
+                    Owner->GetComponent(UHitboxComponent::StaticClass())
+                );
+                if (Hitbox)
+                {
+                    // 크기가 지정되었으면 설정
+                    if (ExtentX.has_value() && ExtentY.has_value() && ExtentZ.has_value())
+                    {
+                        Hitbox->SetBoxExtent(FVector(ExtentX.value(), ExtentY.value(), ExtentZ.value()));
+                    }
+
+                    // 문자열을 EDamageType으로 변환
+                    EDamageType DamageType = EDamageType::Light;
+                    if (DamageTypeStr == "Heavy")
+                        DamageType = EDamageType::Heavy;
+                    else if (DamageTypeStr == "Special")
+                        DamageType = EDamageType::Special;
+                    else if (DamageTypeStr == "Parried")
+                        DamageType = EDamageType::Parried;
+
+                    FDamageInfo DamageInfo(Owner, Damage, DamageType);
+                    Hitbox->EnableHitbox(DamageInfo);
+                }
+            }
+        });
+
+    // 히트박스 크기 설정 (Lua용)
+    // 사용법: SetHitboxExtent(Obj, extentX, extentY, extentZ)
+    SharedLib.set_function("SetHitboxExtent", [](FGameObject& Obj, float ExtentX, float ExtentY, float ExtentZ)
+        {
+            if (AActor* Owner = Obj.GetOwner())
+            {
+                UHitboxComponent* Hitbox = Cast<UHitboxComponent>(
+                    Owner->GetComponent(UHitboxComponent::StaticClass())
+                );
+                if (Hitbox)
+                {
+                    Hitbox->SetBoxExtent(FVector(ExtentX, ExtentY, ExtentZ));
+                }
+            }
+        });
+
+    // 히트박스 로컬 오프셋 설정 (Lua용)
+    // 사용법: SetHitboxOffset(Obj, offsetX, offsetY, offsetZ)
+    // offsetX: 전방(+) / 후방(-), offsetY: 우측(+) / 좌측(-), offsetZ: 위(+) / 아래(-)
+    // 캐릭터의 회전을 고려하여 월드 좌표로 변환
+    SharedLib.set_function("SetHitboxOffset", [](FGameObject& Obj, float OffsetX, float OffsetY, float OffsetZ)
+        {
+            if (AActor* Owner = Obj.GetOwner())
+            {
+                UHitboxComponent* Hitbox = Cast<UHitboxComponent>(
+                    Owner->GetComponent(UHitboxComponent::StaticClass())
+                );
+                if (Hitbox)
+                {
+                    // Forward/Right 벡터를 사용해 로컬 오프셋을 월드 좌표로 변환
+                    FVector Forward = Owner->GetActorForward();
+                    FVector Right = Owner->GetActorRight();
+                    FVector OwnerLocation = Owner->GetActorLocation();
+
+                    // 로컬 오프셋 적용: X=전방, Y=우측, Z=위
+                    FVector WorldPosition = OwnerLocation + Forward * OffsetX - Right * OffsetY + FVector(0, 0, OffsetZ);
+
+                    Hitbox->SetWorldLocation(WorldPosition);
+                    Hitbox->SetWorldRotation(Owner->GetActorRotation());
+                }
+            }
+        });
+
+    // 히트박스 비활성화 (Lua용)
+    SharedLib.set_function("DisableHitbox", [](FGameObject& Obj)
+        {
+            if (AActor* Owner = Obj.GetOwner())
+            {
+                UHitboxComponent* Hitbox = Cast<UHitboxComponent>(
+                    Owner->GetComponent(UHitboxComponent::StaticClass())
+                );
+                if (Hitbox)
+                {
+                    Hitbox->DisableHitbox();
+                }
+            }
+        });
+
+    // 몽타주 재생 중인지 확인 (Lua용)
+    SharedLib.set_function("IsMontagePlayling", [](FGameObject& Obj) -> bool
+        {
+            if (AActor* Owner = Obj.GetOwner())
+            {
+                if (ABossEnemy* Boss = Cast<ABossEnemy>(Owner))
+                {
+                    if (USkeletalMeshComponent* Mesh = Boss->GetMesh())
+                    {
+                        if (UAnimInstance* AnimInst = Mesh->GetAnimInstance())
+                        {
+                            return AnimInst->Montage_IsPlaying();
+                        }
+                    }
+                }
+            }
+            return false;
         });
     
     // FVector usertype 등록 (메서드와 프로퍼티)

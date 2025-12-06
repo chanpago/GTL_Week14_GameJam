@@ -276,7 +276,7 @@ void AEnemyBase::StartAttack()
     CurrentAttackPattern = (CurrentAttackPattern + 1) % MaxAttackPatterns;
 }
 
-void AEnemyBase::ExecuteAttackPattern(int32 PatternIndex)
+void AEnemyBase::ExecuteAttackPattern(int PatternIndex)
 {
     FDamageInfo DamageInfo;
     DamageInfo.Instigator = this;

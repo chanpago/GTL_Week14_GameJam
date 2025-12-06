@@ -14,6 +14,7 @@
 #include "Source/Runtime/Engine/Animation/AnimSequence.h"
 #include "Source/Runtime/Engine/Collision/Picking.h"
 #include "Source/Runtime/Engine/Animation/AnimNotify_PlaySound.h"
+#include "Source/Runtime/Engine/Animation/AnimNotify_EnableHitbox.h"
 #include "Source/Runtime/AssetManagement/ResourceManager.h"
 #include "Source/Editor/PlatformProcess.h"
 #include "Source/Runtime/Core/Misc/PathUtils.h"
@@ -2370,9 +2371,24 @@ void SSkeletalMeshViewerWindow::DrawAnimationPanel(ViewerState* State)
                             UAnimNotify_PlaySound* NewNotify = NewObject<UAnimNotify_PlaySound>();
                             if (NewNotify)
                             {
-                                // 기본 SoundNotify는 sound 없음  
+                                // 기본 SoundNotify는 sound 없음
                                 NewNotify->Sound = nullptr;
-                                State->CurrentAnimation->AddPlaySoundNotify(TimeSec, NewNotify, 0.0f); 
+                                State->CurrentAnimation->AddPlaySoundNotify(TimeSec, NewNotify, 0.0f);
+                            }
+                        }
+                    }
+                    if (ImGui::MenuItem("Hitbox Notify"))
+                    {
+                        if (bHasAnimation && State->CurrentAnimation)
+                        {
+                            float ClickFrame = RightClickFrame;
+                            float TimeSec = ImClamp(ClickFrame * FrameDuration, 0.0f, PlayLength);
+                            // Hitbox Notify 추가
+                            UAnimNotify_EnableHitbox* NewNotify = NewObject<UAnimNotify_EnableHitbox>();
+                            if (NewNotify)
+                            {
+                                // 기본값 설정됨 (Damage=10, Duration=0.2s)
+                                State->CurrentAnimation->AddPlaySoundNotify(TimeSec, NewNotify, 0.0f);
                             }
                         }
                     }
@@ -2478,7 +2494,12 @@ void SSkeletalMeshViewerWindow::DrawAnimationPanel(ViewerState* State)
                         FString Label = Notify.NotifyName.ToString();
                         if (Label.empty())
                         {
-                            Label = Notify.Notify && Notify.Notify->IsA<UAnimNotify_PlaySound>() ? "PlaySound" : "Notify";
+                            if (Notify.Notify && Notify.Notify->IsA<UAnimNotify_PlaySound>())
+                                Label = "PlaySound";
+                            else if (Notify.Notify && Notify.Notify->IsA<UAnimNotify_EnableHitbox>())
+                                Label = "Hitbox";
+                            else
+                                Label = "Notify";
                         }
                         DrawList->AddText(ImVec2(XStart + 2, P.y + 2), IM_COL32_WHITE, Label.c_str());
                         ImGui::PopClipRect();
@@ -2598,6 +2619,44 @@ void SSkeletalMeshViewerWindow::DrawAnimationPanel(ViewerState* State)
                                 }
                             }
                         }
+                    }
+                    else if (Evt.Notify && Evt.Notify->IsA<UAnimNotify_EnableHitbox>())
+                    {
+                        UAnimNotify_EnableHitbox* HB = static_cast<UAnimNotify_EnableHitbox*>(Evt.Notify);
+
+                        ImGui::Text("Hitbox Notify");
+                        ImGui::Separator();
+
+                        // Damage
+                        ImGui::DragFloat("Damage", &HB->Damage, 1.0f, 0.0f, 1000.0f);
+
+                        // Damage Type
+                        const char* DamageTypes[] = { "Light", "Heavy", "Special" };
+                        int CurrentType = 0;
+                        if (HB->DamageType == "Heavy") CurrentType = 1;
+                        else if (HB->DamageType == "Special") CurrentType = 2;
+                        if (ImGui::Combo("Damage Type", &CurrentType, DamageTypes, 3))
+                        {
+                            HB->DamageType = DamageTypes[CurrentType];
+                        }
+
+                        // Duration
+                        ImGui::DragFloat("Duration (s)", &HB->Duration, 0.01f, 0.01f, 2.0f);
+
+                        // Hitbox Extent
+                        float Extent[3] = { HB->HitboxExtent.X, HB->HitboxExtent.Y, HB->HitboxExtent.Z };
+                        if (ImGui::DragFloat3("Extent (m)", Extent, 0.1f, 0.1f, 10.0f))
+                        {
+                            HB->HitboxExtent = FVector(Extent[0], Extent[1], Extent[2]);
+                        }
+
+                        // Hitbox Offset
+                        float Offset[3] = { HB->HitboxOffset.X, HB->HitboxOffset.Y, HB->HitboxOffset.Z };
+                        if (ImGui::DragFloat3("Offset (m)", Offset, 0.1f, -10.0f, 10.0f))
+                        {
+                            HB->HitboxOffset = FVector(Offset[0], Offset[1], Offset[2]);
+                        }
+                        ImGui::TextDisabled("X: Forward, Y: Right, Z: Up");
                     }
                     else
                     {

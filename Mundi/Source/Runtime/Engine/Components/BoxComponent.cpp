@@ -1,5 +1,6 @@
 ﻿#include "pch.h"
 #include "BoxComponent.h"
+#include "RenderSettings.h"
 // IMPLEMENT_CLASS is now auto-generated in .generated.cpp
 //BEGIN_PROPERTIES(UBoxComponent)
 //MARK_AS_COMPONENT("박스 충돌 컴포넌트", "박스 모양의 충돌체를 생성하는 컴포넌트입니다.")
@@ -53,16 +54,19 @@ void UBoxComponent::GetShape(FShape& Out) const
 
 void UBoxComponent::RenderDebugVolume(URenderer* Renderer) const
 {
+	// SF_BoundingBoxes 플래그가 켜져있으면 항상 표시
+	bool bShowFlagEnabled = GWorld->GetRenderSettings().IsShowFlagEnabled(EEngineShowFlags::SF_BoundingBoxes);
+
 	// visible = 에디터용
 	// hiddeningame = 파이용
 	if (!GWorld->bPie)
 	{
-		if (!bShapeIsVisible)
+		if (!bShapeIsVisible && !bShowFlagEnabled)
 			return;
 	}
 	if (GWorld->bPie)
 	{
-		if (bShapeHiddenInGame)
+		if (bShapeHiddenInGame && !bShowFlagEnabled)
 			return;
 	}
 

@@ -1,6 +1,7 @@
 ﻿#include "pch.h"
 #include "CapsuleComponent.h"
 #include "World.h"
+#include "RenderSettings.h"
 #include "Source/Runtime/Engine/Physics/PhysScene.h"
 #include <PxPhysicsAPI.h>
 
@@ -144,10 +145,13 @@ FAABB UCapsuleComponent::GetWorldAABB() const
 
 void UCapsuleComponent::RenderDebugVolume(URenderer* Renderer) const
 {
-    if (!bShapeIsVisible) return;
+    // SF_BoundingBoxes 플래그가 켜져있으면 항상 표시
+    bool bShowFlagEnabled = GWorld->GetRenderSettings().IsShowFlagEnabled(EEngineShowFlags::SF_BoundingBoxes);
+
+    if (!bShapeIsVisible && !bShowFlagEnabled) return;
     if (GWorld->bPie)
     {
-        if (bShapeHiddenInGame)
+        if (bShapeHiddenInGame && !bShowFlagEnabled)
             return;
     }
 

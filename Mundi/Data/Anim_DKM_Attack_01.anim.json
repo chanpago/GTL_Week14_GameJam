@@ -1,0 +1,14 @@
+{
+  "Notifies" : [{
+      "Class" : "UAnimNotify_EnableHitbox",
+      "Data" : {
+
+      },
+      "Duration" : 0.000000,
+      "Kind" : "Single",
+      "NotifyName" : "Invalid",
+      "TriggerTime" : 0.598356
+    }],
+  "Type" : "AnimSequenceMeta",
+  "Version" : 1
+}

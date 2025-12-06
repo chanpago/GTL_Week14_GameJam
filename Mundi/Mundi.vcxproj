@@ -349,6 +349,7 @@
     <ClCompile Include="Source\Runtime\Engine\Animation\AnimNotify.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Animation\AnimNotifyState_Trail.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Animation\AnimNotify_PlaySound.cpp" />
+    <ClCompile Include="Source\Runtime\Engine\Animation\AnimNotify_EnableHitbox.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Animation\AnimSequence.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Animation\AnimSequenceBase.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Animation\AnimNotifyState.cpp" />
@@ -942,6 +943,7 @@
     <ClInclude Include="Source\Runtime\Engine\Animation\AnimNotifyState.h" />
     <ClInclude Include="Source\Runtime\Engine\Animation\AnimNotifyState_Trail.h" />
     <ClInclude Include="Source\Runtime\Engine\Animation\AnimNotify_PlaySound.h" />
+    <ClInclude Include="Source\Runtime\Engine\Animation\AnimNotify_EnableHitbox.h" />
     <ClInclude Include="Source\Runtime\Engine\Animation\AnimSequence.h" />
     <ClInclude Include="Source\Runtime\Engine\Animation\AnimSequenceBase.h" />
     <ClInclude Include="Source\Runtime\Engine\Animation\AnimSingleNodeInstance.h" />

@@ -40,6 +40,17 @@ void UHitboxComponent::TickComponent(float DeltaTime)
         return;
     }
 
+    // 자동 비활성화 타이머 처리
+    if (bUseAutoDisable)
+    {
+        RemainingDuration -= DeltaTime;
+        if (RemainingDuration <= 0.0f)
+        {
+            DisableHitbox();
+            return;
+        }
+    }
+
     // 현재 오버랩 중인 액터들 체크
     //const TArray<FOverlapInfo>& Overlaps = GetOverlapInfos();
     //for (const FOverlapInfo& Info : Overlaps)
@@ -55,7 +66,7 @@ void UHitboxComponent::TickComponent(float DeltaTime)
 // 히트박스 활성화/비활성화
 // ============================================================================
 
-void UHitboxComponent::EnableHitbox(const FDamageInfo& InDamageInfo)
+void UHitboxComponent::EnableHitbox(const FDamageInfo& InDamageInfo, float InDuration)
 {
     CurrentDamageInfo = InDamageInfo;
 
@@ -67,6 +78,18 @@ void UHitboxComponent::EnableHitbox(const FDamageInfo& InDamageInfo)
 
     ClearHitActors();
     bIsActive = true;
+
+    // 자동 비활성화 설정
+    if (InDuration > 0.0f)
+    {
+        bUseAutoDisable = true;
+        RemainingDuration = InDuration;
+    }
+    else
+    {
+        bUseAutoDisable = false;
+        RemainingDuration = 0.0f;
+    }
 
     // 충돌 활성화
     SetActive(true);

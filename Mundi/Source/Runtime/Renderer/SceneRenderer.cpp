@@ -126,7 +126,8 @@ void FSceneRenderer::Render()
 		RenderSceneDepthPath();
 	}
 	
-	if (!World->bPie)
+	// PIE 모드에서도 SF_BoundingBoxes가 켜져있으면 디버그 패스 실행
+	if (!World->bPie || World->GetRenderSettings().IsShowFlagEnabled(EEngineShowFlags::SF_BoundingBoxes))
 	{
 		RenderDebugPass();	//  그리드, 선택한 물체의 경계 출력 (상호작용, 피킹 X)
 	}
@@ -1386,14 +1387,29 @@ void FSceneRenderer::RenderDebugPass()
 	// Start a new batch for debug volumes (lights, shapes, etc.)
 	OwnerRenderer->BeginLineBatch();
 
-	// 선택된 액터의 디버그 볼륨 렌더링
-	for (AActor* SelectedActor : World->GetSelectionManager()->GetSelectedActors())
+	// SF_BoundingBoxes 플래그가 켜져있으면 모든 액터의 ShapeComponent 렌더링
+	if (World->GetRenderSettings().IsShowFlagEnabled(EEngineShowFlags::SF_BoundingBoxes))
 	{
-		for (USceneComponent* Component : SelectedActor->GetSceneComponents())
+		for (AActor* Actor : World->GetActors())
 		{
-			// 모든 컴포넌트에서 RenderDebugVolume 호출
-			// 각 컴포넌트는 필요한 경우 override하여 디버그 시각화 제공
-			Component->RenderDebugVolume(OwnerRenderer);
+			if (!Actor) continue;
+			for (USceneComponent* Component : Actor->GetSceneComponents())
+			{
+				Component->RenderDebugVolume(OwnerRenderer);
+			}
+		}
+	}
+	else
+	{
+		// 선택된 액터의 디버그 볼륨 렌더링
+		for (AActor* SelectedActor : World->GetSelectionManager()->GetSelectedActors())
+		{
+			for (USceneComponent* Component : SelectedActor->GetSceneComponents())
+			{
+				// 모든 컴포넌트에서 RenderDebugVolume 호출
+				// 각 컴포넌트는 필요한 경우 override하여 디버그 시각화 제공
+				Component->RenderDebugVolume(OwnerRenderer);
+			}
 		}
 	}
 
