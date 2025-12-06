@@ -35,6 +35,7 @@
 #include "Source/Runtime/Engine/Particle/Modules/ParticleModuleCollision.h"
 #include "Source/Runtime/Engine/Particle/Modules/ParticleModuleEventReceiverSpawn.h"
 #include "Source/Runtime/Engine/Particle/Modules/ParticleModuleVelocityCone.h"
+#include "Source/Runtime/Engine/Particle/Modules/ParticleModuleSpiral.h"
 
 SParticleViewerWindow::SParticleViewerWindow()
 {
@@ -1174,6 +1175,112 @@ void SParticleViewerWindow::OnRender()
                         ConeModule->Direction.Normalize();
                     }
                     if (ImGui::IsItemHovered()) ImGui::SetTooltip("방향 벡터를 단위 벡터로 정규화\n길이 1로 만들어 일관된 동작 보장");
+                }
+                else if (auto* SpiralModule = Cast<UParticleModuleSpiral>(SelectedModule))
+                {
+                    ImGui::Text("Spiral Motion Settings");
+                    if (ImGui::IsItemHovered())
+                    {
+                        ImGui::SetTooltip("파티클이 나선/원형 궤도를 따라 이동\n마법 효과, 회오리, 궤도 운동 등에 적합");
+                    }
+                    ImGui::Separator();
+
+                    // 1. Radius (반지름)
+                    ImGui::Text("Orbit Radius");
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip("원형 궤도의 반지름 (유닛)");
+                    if (SpiralModule->Radius.bUseRange)
+                    {
+                        ImGui::DragFloat("Min##Radius", &SpiralModule->Radius.MinValue, 1.0f, 0.0f, 1000.0f);
+                        if (ImGui::IsItemHovered()) ImGui::SetTooltip("최소 반지름");
+                        ImGui::DragFloat("Max##Radius", &SpiralModule->Radius.MaxValue, 1.0f, 0.0f, 1000.0f);
+                        if (ImGui::IsItemHovered()) ImGui::SetTooltip("최대 반지름\n파티클마다 Min~Max 사이 랜덤");
+                    }
+                    else
+                    {
+                        ImGui::DragFloat("Radius", &SpiralModule->Radius.MinValue, 1.0f, 0.0f, 1000.0f);
+                        if (ImGui::IsItemHovered()) ImGui::SetTooltip("궤도 반지름");
+                    }
+                    ImGui::Checkbox("Range##Radius", &SpiralModule->Radius.bUseRange);
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip("랜덤 반지름 범위 사용");
+
+                    ImGui::Spacing();
+
+                    // 2. Angular Velocity (각속도)
+                    ImGui::Text("Angular Velocity (deg/s)");
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip("회전 속도 (도/초)\n180 = 2초에 한 바퀴\n360 = 1초에 한 바퀴");
+                    if (SpiralModule->AngularVelocity.bUseRange)
+                    {
+                        ImGui::DragFloat("Min##AngVel", &SpiralModule->AngularVelocity.MinValue, 1.0f, 0.0f, 1000.0f);
+                        if (ImGui::IsItemHovered()) ImGui::SetTooltip("최소 각속도");
+                        ImGui::DragFloat("Max##AngVel", &SpiralModule->AngularVelocity.MaxValue, 1.0f, 0.0f, 1000.0f);
+                        if (ImGui::IsItemHovered()) ImGui::SetTooltip("최대 각속도");
+                    }
+                    else
+                    {
+                        ImGui::DragFloat("Angular Velocity", &SpiralModule->AngularVelocity.MinValue, 1.0f, 0.0f, 1000.0f);
+                        if (ImGui::IsItemHovered()) ImGui::SetTooltip("회전 속도 (도/초)");
+                    }
+                    ImGui::Checkbox("Range##AngVel", &SpiralModule->AngularVelocity.bUseRange);
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip("랜덤 각속도 범위 사용");
+
+                    ImGui::Spacing();
+
+                    // 3. Direction (회전 방향)
+                    ImGui::Text("Rotation Direction");
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip("회전 방향 선택");
+                    const char* directionItems[] = { "Clockwise", "Counter-Clockwise", "Random" };
+                    int currentDir = static_cast<int>(SpiralModule->Direction);
+                    if (ImGui::Combo("Direction", &currentDir, directionItems, IM_ARRAYSIZE(directionItems)))
+                    {
+                        SpiralModule->Direction = static_cast<ESpiralDirection>(currentDir);
+                    }
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Clockwise: 시계 방향\nCounter-Clockwise: 반시계 방향\nRandom: 파티클마다 랜덤");
+
+                    ImGui::Spacing();
+
+                    // 4. Spiral Axis (회전축)
+                    ImGui::Text("Spiral Axis");
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip("회전 축 벡터\n(0,0,1) = Z축 기준 (XY 평면에서 회전)\n(0,1,0) = Y축 기준 (XZ 평면에서 회전)");
+                    float Axis[3] = { SpiralModule->SpiralAxis.X, SpiralModule->SpiralAxis.Y, SpiralModule->SpiralAxis.Z };
+                    if (ImGui::DragFloat3("Axis", Axis, 0.01f, -1.0f, 1.0f))
+                    {
+                        SpiralModule->SpiralAxis = FVector(Axis[0], Axis[1], Axis[2]);
+                    }
+                    if (ImGui::Button("Normalize Axis"))
+                    {
+                        SpiralModule->SpiralAxis.Normalize();
+                    }
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip("축 벡터를 단위 벡터로 정규화");
+
+                    ImGui::Spacing();
+
+                    // 5. Start Angle (시작 각도)
+                    ImGui::Text("Start Angle (deg)");
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip("초기 시작 각도 (도)\n여러 파티클이 다른 위치에서 시작하게 하려면 Range 사용");
+                    if (SpiralModule->StartAngle.bUseRange)
+                    {
+                        ImGui::DragFloat("Min##StartAngle", &SpiralModule->StartAngle.MinValue, 1.0f, 0.0f, 360.0f);
+                        ImGui::DragFloat("Max##StartAngle", &SpiralModule->StartAngle.MaxValue, 1.0f, 0.0f, 360.0f);
+                    }
+                    else
+                    {
+                        ImGui::DragFloat("Start Angle", &SpiralModule->StartAngle.MinValue, 1.0f, 0.0f, 360.0f);
+                    }
+                    ImGui::Checkbox("Range##StartAngle", &SpiralModule->StartAngle.bUseRange);
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip("랜덤 시작 각도 사용\n0~360으로 설정하면 원 전체에 분포");
+
+                    ImGui::Spacing();
+
+                    // 6. Radius Expansion (반지름 확장)
+                    ImGui::Text("Radius Expansion");
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip("수명에 따라 반지름 변화\n바깥으로 퍼지는 나선 효과");
+                    ImGui::Checkbox("Expand Radius Over Life", &SpiralModule->bExpandRadius);
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip("활성화하면 파티클 수명에 따라 반지름이 변화");
+                    if (SpiralModule->bExpandRadius)
+                    {
+                        ImGui::DragFloat("End Multiplier", &SpiralModule->RadiusEndMultiplier, 0.1f, 0.0f, 10.0f);
+                        if (ImGui::IsItemHovered()) ImGui::SetTooltip("수명 끝에서의 반지름 배율\n2.0 = 끝에서 2배 반지름\n0.0 = 중심으로 수렴");
+                    }
                 }
                 else if (auto* ColorModule = Cast<UParticleModuleColor>(SelectedModule))
                 {
@@ -3341,6 +3448,12 @@ void SParticleViewerWindow::RenderEmitterPanel(float Width, float Height)
                                 if (ImGui::MenuItem("VelocityCone"))
                                 {
                                     LOD->AddModule(UParticleModuleVelocityCone::StaticClass());
+                                    CurrentParticleSystem->BuildRuntimeCache();
+                                    PreviewComponent->ResetAndActivate();
+                                }
+                                if (ImGui::MenuItem("Spiral"))
+                                {
+                                    LOD->AddModule(UParticleModuleSpiral::StaticClass());
                                     CurrentParticleSystem->BuildRuntimeCache();
                                     PreviewComponent->ResetAndActivate();
                                 }

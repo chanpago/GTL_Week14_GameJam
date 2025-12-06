@@ -347,6 +347,7 @@
     <ClCompile Include="Source\Runtime\Core\Object\Controller.cpp" />
     <ClCompile Include="Source\Runtime\Core\Object\Pawn.cpp" />
     <ClCompile Include="Source\Runtime\Core\Object\PlayerController.cpp" />
+    <ClCompile Include="Source\Runtime\Engine\Particle\Modules\ParticleModuleSpiral.cpp" />
     <ClCompile Include="Source\Runtime\Game\Combat\ITargetable.cpp" />
     <ClCompile Include="Source\Runtime\Game\Combat\TargetingComponent.cpp" />
     <ClCompile Include="Source\Runtime\Game\Enemy\EnemyAIController.cpp" />
@@ -945,6 +946,7 @@
     <ClInclude Include="Source\Runtime\Engine\Animation\AnimNotify\AnimNotify_PlayParticle.h" />
     <ClInclude Include="Source\Runtime\Engine\Animation\AnimNotify\AnimNotify_PlaySound.h" />
     <ClInclude Include="Source\Runtime\Engine\Components\AnimNotifyParticleComponent.h" />
+    <ClInclude Include="Source\Runtime\Engine\Particle\Modules\ParticleModuleSpiral.h" />
     <ClInclude Include="Source\Runtime\Game\Combat\ITargetable.h" />
     <ClInclude Include="Source\Runtime\Game\Combat\TargetingComponent.h" />
     <ClInclude Include="Source\Runtime\Game\Enemy\EnemyAIController.h" />

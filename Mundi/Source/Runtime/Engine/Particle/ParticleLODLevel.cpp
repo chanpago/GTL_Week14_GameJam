@@ -21,6 +21,7 @@
 #include "Modules/ParticleModuleCollision.h"
 #include "Modules/ParticleModuleEventReceiverSpawn.h"
 #include "Modules/ParticleModuleVelocityCone.h"
+#include "Modules/ParticleModuleSpiral.h"
 
 IMPLEMENT_CLASS(UParticleLODLevel)
 
@@ -713,7 +714,7 @@ void UParticleLODLevel::ParseAndAddModule(JSON& ModuleJson)
             FJsonSerializer::ReadFloat(ModuleJson, "Direction_X", Cone->Direction.X);
             FJsonSerializer::ReadFloat(ModuleJson, "Direction_Y", Cone->Direction.Y);
             FJsonSerializer::ReadFloat(ModuleJson, "Direction_Z", Cone->Direction.Z);
-        
+
             // 로드 후 정규화(Normalize)를 한 번 해주는 것이 안전함
             if (!Cone->Direction.IsZero())
             {
@@ -731,6 +732,42 @@ void UParticleLODLevel::ParseAndAddModule(JSON& ModuleJson)
             FJsonSerializer::ReadBool(ModuleJson, "Velocity_bUseRange", Cone->Velocity.bUseRange);
         }
         NewModule = Cone;
+    }
+    else if (ModuleType == "Spiral")
+    {
+        auto* Spiral = Cast<UParticleModuleSpiral>(AddModule(UParticleModuleSpiral::StaticClass()));
+        if (Spiral)
+        {
+            // Radius
+            FJsonSerializer::ReadFloat(ModuleJson, "Radius_Min", Spiral->Radius.MinValue);
+            FJsonSerializer::ReadFloat(ModuleJson, "Radius_Max", Spiral->Radius.MaxValue);
+            FJsonSerializer::ReadBool(ModuleJson, "Radius_bUseRange", Spiral->Radius.bUseRange);
+
+            // AngularVelocity
+            FJsonSerializer::ReadFloat(ModuleJson, "AngularVelocity_Min", Spiral->AngularVelocity.MinValue);
+            FJsonSerializer::ReadFloat(ModuleJson, "AngularVelocity_Max", Spiral->AngularVelocity.MaxValue);
+            FJsonSerializer::ReadBool(ModuleJson, "AngularVelocity_bUseRange", Spiral->AngularVelocity.bUseRange);
+
+            // Direction
+            int32 DirectionVal = 0;
+            if (FJsonSerializer::ReadInt32(ModuleJson, "Direction", DirectionVal))
+                Spiral->Direction = static_cast<ESpiralDirection>(DirectionVal);
+
+            // SpiralAxis
+            FJsonSerializer::ReadFloat(ModuleJson, "SpiralAxis_X", Spiral->SpiralAxis.X);
+            FJsonSerializer::ReadFloat(ModuleJson, "SpiralAxis_Y", Spiral->SpiralAxis.Y);
+            FJsonSerializer::ReadFloat(ModuleJson, "SpiralAxis_Z", Spiral->SpiralAxis.Z);
+
+            // StartAngle
+            FJsonSerializer::ReadFloat(ModuleJson, "StartAngle_Min", Spiral->StartAngle.MinValue);
+            FJsonSerializer::ReadFloat(ModuleJson, "StartAngle_Max", Spiral->StartAngle.MaxValue);
+            FJsonSerializer::ReadBool(ModuleJson, "StartAngle_bUseRange", Spiral->StartAngle.bUseRange);
+
+            // Radius expansion
+            FJsonSerializer::ReadBool(ModuleJson, "bExpandRadius", Spiral->bExpandRadius);
+            FJsonSerializer::ReadFloat(ModuleJson, "RadiusEndMultiplier", Spiral->RadiusEndMultiplier);
+        }
+        NewModule = Spiral;
     }
 
     if (NewModule)
@@ -911,6 +948,37 @@ JSON UParticleLODLevel::SerializeModule(UParticleModule* Module)
         ModuleJson["Velocity_Min"] = Cone->Velocity.MinValue;
         ModuleJson["Velocity_Max"] = Cone->Velocity.MaxValue;
         ModuleJson["Velocity_bUseRange"] = Cone->Velocity.bUseRange;
+    }
+    else if (auto* Spiral = Cast<UParticleModuleSpiral>(Module))
+    {
+        ModuleJson["Type"] = "Spiral";
+
+        // Radius
+        ModuleJson["Radius_Min"] = Spiral->Radius.MinValue;
+        ModuleJson["Radius_Max"] = Spiral->Radius.MaxValue;
+        ModuleJson["Radius_bUseRange"] = Spiral->Radius.bUseRange;
+
+        // AngularVelocity
+        ModuleJson["AngularVelocity_Min"] = Spiral->AngularVelocity.MinValue;
+        ModuleJson["AngularVelocity_Max"] = Spiral->AngularVelocity.MaxValue;
+        ModuleJson["AngularVelocity_bUseRange"] = Spiral->AngularVelocity.bUseRange;
+
+        // Direction
+        ModuleJson["Direction"] = static_cast<int>(Spiral->Direction);
+
+        // SpiralAxis
+        ModuleJson["SpiralAxis_X"] = Spiral->SpiralAxis.X;
+        ModuleJson["SpiralAxis_Y"] = Spiral->SpiralAxis.Y;
+        ModuleJson["SpiralAxis_Z"] = Spiral->SpiralAxis.Z;
+
+        // StartAngle
+        ModuleJson["StartAngle_Min"] = Spiral->StartAngle.MinValue;
+        ModuleJson["StartAngle_Max"] = Spiral->StartAngle.MaxValue;
+        ModuleJson["StartAngle_bUseRange"] = Spiral->StartAngle.bUseRange;
+
+        // Radius expansion
+        ModuleJson["bExpandRadius"] = Spiral->bExpandRadius;
+        ModuleJson["RadiusEndMultiplier"] = Spiral->RadiusEndMultiplier;
     }
     else
     {
