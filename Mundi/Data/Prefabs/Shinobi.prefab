@@ -3,22 +3,16 @@
   "ComboCount" : 0,
   "LightAttackAnimPath" : "Data/FBX/Combo_Attack_01_01_Seq.fbx_Unreal Take",
   "MaxComboCount" : 3,
-  "MoveSpeed" : 250.000000,
+  "MoveSpeed" : 500.000000,
   "ObjectName" : "플레이어 캐릭터_0",
   "OwnedComponents" : [{
-      "ObjectName" : "UCharacterMovementComponent_1",
-      "Type" : "UCharacterMovementComponent",
-      "bHiddenInGame" : false,
-      "bIsActive" : true,
-      "bTickEnabled" : true
-    }, {
       "CapsuleHalfHeight" : 0.900000,
       "CapsuleRadius" : 0.300000,
       "CollisionEnabled_Internal" : 2,
-      "Id" : 6393,
+      "Id" : 6762,
       "ObjectName" : "UCapsuleComponent_1",
       "ParentId" : 0,
-      "RelativeLocation" : [-2.962979, -4.691790, 6.795575],
+      "RelativeLocation" : [-2.962979, -4.691790, 6.815227],
       "RelativeRotationEuler" : [0.000000, -0.004071, 0.000000],
       "RelativeScale" : [1.000000, 1.000000, 1.000000],
       "Type" : "UCapsuleComponent",
@@ -35,50 +29,169 @@
     }, {
       "AnimGraphPath" : "Data/Graphs/Shinobi.graph",
       "CollisionEnabled_Internal" : 2,
-      "Id" : 6394,
+      "Id" : 6763,
       "MaterialSlots" : [{
           "Type" : "None"
         }, {
-          "AssetPath" : "MI_SHINOBIGIRL_EYES_Brown",
-          "Type" : "UMaterial"
+          "Overrides" : {
+            "Scalars" : {
+
+            },
+            "Textures" : {
+              "0" : "Data/FBX/ShinobiGirlAkane/Textures/Eyes/T_EYES_BASECOLOR_PURPLE_02.PNG",
+              "1" : "Data/FBX/ShinobiGirlAkane/Textures/Eyes/T_EYES_NORMAL.PNG"
+            },
+            "Vectors" : {
+
+            }
+          },
+          "ParentPath" : "MI_SHINOBIGIRL_EYES_Brown",
+          "Type" : "UMaterialInstanceDynamic"
         }, {
-          "AssetPath" : "MI_SHINOBIGIRL_EYES_Brown_1",
-          "Type" : "UMaterial"
+          "Overrides" : {
+            "Scalars" : {
+
+            },
+            "Textures" : {
+              "0" : "Data/FBX/ShinobiGirlAkane/Textures/Eyes/T_EYES_BASECOLOR_PURPLE_02.PNG",
+              "1" : "Data/FBX/ShinobiGirlAkane/Textures/Eyes/T_EYES_NORMAL.PNG"
+            },
+            "Vectors" : {
+
+            }
+          },
+          "ParentPath" : "MI_SHINOBIGIRL_EYES_Brown_1",
+          "Type" : "UMaterialInstanceDynamic"
         }, {
-          "AssetPath" : "M_SHINOBIGIRL_Teeth",
-          "Type" : "UMaterial"
+          "Overrides" : {
+            "Scalars" : {
+
+            },
+            "Textures" : {
+              "0" : "Data/FBX/ShinobiGirlAkane/Textures/T_SHINOBIGIRL_Teeth_BASECOLOR.PNG",
+              "1" : "Data/FBX/ShinobiGirlAkane/Textures/T_SHINOBIGIRL_TEETH_NORMAL.PNG"
+            },
+            "Vectors" : {
+
+            }
+          },
+          "ParentPath" : "M_SHINOBIGIRL_Teeth",
+          "Type" : "UMaterialInstanceDynamic"
         }, {
-          "AssetPath" : "MI_SHINOBIGIRL_HEAD",
-          "Type" : "UMaterial"
+          "Overrides" : {
+            "Scalars" : {
+
+            },
+            "Textures" : {
+              "0" : "Data/FBX/ShinobiGirlAkane/Textures/T_SHINOBIGIRL_HEAD_BaseColor.PNG",
+              "1" : "Data/FBX/ShinobiGirlAkane/Textures/T_SHINOBIGIRL_HEAD_Normal.PNG"
+            },
+            "Vectors" : {
+
+            }
+          },
+          "ParentPath" : "MI_SHINOBIGIRL_HEAD",
+          "Type" : "UMaterialInstanceDynamic"
         }, {
-          "AssetPath" : "M_SHINOBIGIRL_LASHES",
-          "Type" : "UMaterial"
+          "Overrides" : {
+            "Scalars" : {
+
+            },
+            "Textures" : {
+              "0" : "Data/FBX/ShinobiGirlAkane/Textures/T_SHINOBIGIRL_LASHES_BASECOLOR.PNG"
+            },
+            "Vectors" : {
+
+            }
+          },
+          "ParentPath" : "M_SHINOBIGIRL_LASHES",
+          "Type" : "UMaterialInstanceDynamic"
         }, {
           "AssetPath" : "MI_SHINOBIGIRL_CARUNCLE_01",
           "Type" : "UMaterial"
         }, {
-          "AssetPath" : "MI_SHINOBIGIRL_ARMOR_01",
-          "Type" : "UMaterial"
+          "Overrides" : {
+            "Scalars" : {
+
+            },
+            "Textures" : {
+              "0" : "Data/FBX/ShinobiGirlAkane/Textures/T_SHINOBIGIRL_ARMOR_BaseColor_01.PNG",
+              "1" : "Data/FBX/ShinobiGirlAkane/Textures/T_SHINOBIGIRL_ARMOR_Normal.PNG"
+            },
+            "Vectors" : {
+
+            }
+          },
+          "ParentPath" : "MI_SHINOBIGIRL_ARMOR_01",
+          "Type" : "UMaterialInstanceDynamic"
         }, {
-          "AssetPath" : "MI_SHINOBIGIRL_CLOTHES_01",
-          "Type" : "UMaterial"
+          "Overrides" : {
+            "Scalars" : {
+
+            },
+            "Textures" : {
+              "0" : "Data/FBX/ShinobiGirlAkane/Textures/T_SHINOBIGIRL_CLOTHES_BaseColor_01.PNG",
+              "1" : "Data/FBX/ShinobiGirlAkane/Textures/T_SHINOBIGIRL_CLOTHES_Normal.PNG"
+            },
+            "Vectors" : {
+
+            }
+          },
+          "ParentPath" : "MI_SHINOBIGIRL_CLOTHES_01",
+          "Type" : "UMaterialInstanceDynamic"
         }, {
-          "AssetPath" : "MI_SHINOBIGIRL_BODY",
-          "Type" : "UMaterial"
+          "Overrides" : {
+            "Scalars" : {
+
+            },
+            "Textures" : {
+              "0" : "Data/FBX/ShinobiGirlAkane/Textures/T_SHINOBIGIRL_BODY_BaseColor.PNG",
+              "1" : "Data/FBX/ShinobiGirlAkane/Textures/T_SHINOBIGIRL_BODY_Normal.PNG"
+            },
+            "Vectors" : {
+
+            }
+          },
+          "ParentPath" : "MI_SHINOBIGIRL_BODY",
+          "Type" : "UMaterialInstanceDynamic"
         }, {
-          "AssetPath" : "MI_SHINOBIGIRL_Hair_13",
-          "Type" : "UMaterial"
+          "Overrides" : {
+            "Scalars" : {
+
+            },
+            "Textures" : {
+              "0" : "Data/FBX/ShinobiGirlAkane/Textures/Hair/T_HAIR_WAVY_BaseColor_Black_Ombre.PNG",
+              "1" : "Data/FBX/ShinobiGirlAkane/Textures/Hair/T_HAIR_WAVY_normal.PNG"
+            },
+            "Vectors" : {
+
+            }
+          },
+          "ParentPath" : "MI_SHINOBIGIRL_Hair_13",
+          "Type" : "UMaterialInstanceDynamic"
         }, {
-          "AssetPath" : "MI_SHINOBIGIRL_Hair_07",
-          "Type" : "UMaterial"
+          "Overrides" : {
+            "Scalars" : {
+
+            },
+            "Textures" : {
+              "0" : "Data/FBX/ShinobiGirlAkane/Textures/Hair/T_HAIR_WAVY_BaseColor_Black_Ombre.PNG",
+              "1" : "Data/FBX/ShinobiGirlAkane/Textures/Hair/T_HAIR_WAVY_normal.PNG"
+            },
+            "Vectors" : {
+
+            }
+          },
+          "ParentPath" : "MI_SHINOBIGIRL_Hair_07",
+          "Type" : "UMaterialInstanceDynamic"
         }],
       "ObjectName" : "USkeletalMeshComponent_3",
-      "ParentId" : 6393,
+      "ParentId" : 6762,
       "PhysicsAssetOverridePath" : "Data/Physics/Shinobi.phys",
       "RelativeLocation" : [0.000000, 0.000000, -0.900000],
       "RelativeRotationEuler" : [0.000000, -0.000000, 0.000000],
       "RelativeScale" : [1.000000, 1.000000, 1.000000],
-      "SkeletalMesh" : "Data/FBX/SK_AKANE_NoMask.FBX",
+      "SkeletalMesh" : "Data/FBX/ShinobiGirlAkane/SK_AKANE_NoMask.FBX",
       "Type" : "USkeletalMeshComponent",
       "bBlockComponent" : false,
       "bCastShadows" : true,
@@ -106,9 +219,15 @@
       "bIsActive" : true,
       "bTickEnabled" : true
     }, {
+      "ObjectName" : "UCharacterMovementComponent_1",
+      "Type" : "UCharacterMovementComponent",
+      "bHiddenInGame" : false,
+      "bIsActive" : true,
+      "bTickEnabled" : true
+    }, {
       "BoxExtent" : [0.000000, 0.000000, 0.000000],
       "CollisionEnabled_Internal" : 2,
-      "Id" : 6458,
+      "Id" : 6827,
       "ObjectName" : "UHitboxComponent_1",
       "ParentId" : 0,
       "RelativeLocation" : [0.000000, 0.000000, 0.000000],
@@ -127,10 +246,10 @@
       "bTickEnabled" : true
     }],
   "ParryWindowDuration" : 0.200000,
-  "RootComponentId" : 6393,
+  "RootComponentId" : 6762,
   "RotationSpeed" : 10.000000,
   "Tag" : "",
-  "Type" : "ACharacter",
+  "Type" : "APlayerCharacter",
   "WeaponBoneName" : "hand_r",
   "WeaponOffset" : [0.000000, 0.000000, 0.000000],
   "WeaponRotationOffset" : [0.000000, 0.000000, 0.000000],
@@ -138,6 +257,6 @@
   "bActorIsActive" : true,
   "bEnableAttackRootMotion" : true,
   "bIsBlocking" : false,
-  "bIsInvincible" : false,
+  "bIsInvincible" : true,
   "bIsParrying" : false
 }
