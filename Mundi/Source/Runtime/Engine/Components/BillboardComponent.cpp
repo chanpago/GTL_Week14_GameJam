@@ -81,8 +81,9 @@ void UBillboardComponent::DuplicateSubObjects()
 void UBillboardComponent::CollectMeshBatches(TArray<FMeshBatchElement>& OutMeshBatchElements, const FSceneView* View)
 {
 	// 1. 렌더링할 애셋이 유효한지 검사
-	// (IsVisible()는 UPrimitiveComponent 또는 그 부모에 있다고 가정)
-	if (!IsVisible() || !Quad || Quad->GetIndexCount() == 0 || !Texture || !Texture->GetShaderResourceView())
+	// bRenderInPIE가 true이면 PIE 모드에서도 렌더링 가능 (but still respects bHiddenInGame)
+	bool bShouldRender = bRenderInPIE ? (bIsActive && bIsVisible && !bHiddenInGame) : IsVisible();
+	if (!bShouldRender || !Quad || Quad->GetIndexCount() == 0 || !Texture || !Texture->GetShaderResourceView())
 	{
 		return; // 그릴 메시 데이터 없음
 	}

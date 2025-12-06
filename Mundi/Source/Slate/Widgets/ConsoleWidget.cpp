@@ -164,10 +164,10 @@ void UConsoleWidget::RenderLogOutput()
 {
 	std::lock_guard<std::mutex> lock(LogMutex);
 	// 2. 인덱스로 계산해서 지운다.
-	if (Items.Num() > 1000)
-	{
-		Items.erase(Items.begin(), Items.end() - 1000);
-	}
+	// if (Items.Num() > 1000)
+	// {
+	// 	Items.erase(Items.begin(), Items.end() - 1000);
+	// }
 	
 	// Reserve space for input at bottom
 	const float footer_height_to_reserve = ImGui::GetStyle().ItemSpacing.y + ImGui::GetFrameHeightWithSpacing();

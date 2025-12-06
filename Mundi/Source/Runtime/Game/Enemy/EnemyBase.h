@@ -9,6 +9,7 @@
 class UStatsComponent;
 class UHitboxComponent;
 class AEnemyAIController;
+class UBillboardComponent;
 
 // ============================================================================
 // AI 상태
@@ -128,6 +129,7 @@ protected:
     // ========== 컴포넌트 ==========
     UStatsComponent* StatsComponent = nullptr;
     UHitboxComponent* HitboxComponent = nullptr;
+    UBillboardComponent* LockOnIndicator = nullptr;
 
     // ========== AI 컨트롤러 ==========
     AEnemyAIController* AIController = nullptr;
