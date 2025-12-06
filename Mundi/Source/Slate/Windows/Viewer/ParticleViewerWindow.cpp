@@ -2101,6 +2101,25 @@ void SParticleViewerWindow::OnRender()
                         ImGui::NextColumn();
                     }
 
+                    // Beam Width (빔 두께)
+                    {
+                        ImGui::Text("Width");
+                        if (ImGui::IsItemHovered()) ImGui::SetTooltip("빔 두께\n크게 설정할수록 굵게 표현됩니다.");
+                        ImGui::NextColumn();
+
+                        ImGui::SetNextItemWidth(-1);
+                        if (ImGui::DragFloat("##BeamWidth", &BeamModule->BeamWidth, 0.1f, 0.0f, 1000.0f, "%.2f"))
+                        {
+                            if (PreviewComponent && CurrentParticleSystem)
+                            {
+                                CurrentParticleSystem->BuildRuntimeCache();
+                                PreviewComponent->ResetAndActivate();
+                            }
+                        }
+                        if (ImGui::IsItemHovered()) ImGui::SetTooltip("빔 두께 (world units)\n0 값은 자동으로 0.01 이상으로 보정됩니다.");
+                        ImGui::NextColumn();
+                    }
+
                     // Use Random Offset (번개 효과)
                     {
                         ImGui::Text("Use Random Offset");

@@ -26,6 +26,7 @@ public:
     FVector SourceOffset = FVector::Zero();      // 시작점 랜덤 오프셋 범위
     FVector TargetOffset = FVector::Zero();      // 끝점 랜덤 오프셋 범위
     bool bUseRandomOffset = false;               // 랜덤 오프셋 사용 여부
+    float BeamWidth = 1.0f;                      // 빔의 두께
 
     void ApplyToEmitter(UParticleEmitter* OwnerEmitter);
 

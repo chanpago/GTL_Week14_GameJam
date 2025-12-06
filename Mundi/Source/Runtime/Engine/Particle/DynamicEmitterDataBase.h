@@ -257,6 +257,7 @@ struct FDynamicBeamEmitterReplayData : public FDynamicEmitterReplayDataBase
     int32 TessellationFactor = 10;
     float NoiseFrequency = 0.0f;
     float NoiseAmplitude = 0.0f;
+    float BeamWidth = 1.0f;
 };
 
 struct FDynamicBeamEmitterData : public FDynamicEmitterDataBase

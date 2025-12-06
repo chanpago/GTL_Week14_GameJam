@@ -673,6 +673,7 @@ void FParticleEmitterInstance::BuildReplayData(FDynamicEmitterReplayDataBase& Ou
                     BeamOut.TessellationFactor = BeamModule->TessellationFactor;
                     BeamOut.NoiseFrequency = BeamModule->NoiseFrequency;
                     BeamOut.NoiseAmplitude = BeamModule->NoiseAmplitude;
+                    BeamOut.BeamWidth = BeamModule->BeamWidth;
 
                     UE_LOG("[BuildReplayData::Beam] TessellationFactor=%d, NoiseFreq=%.2f, NoiseAmp=%.2f",
                         BeamOut.TessellationFactor, BeamOut.NoiseFrequency, BeamOut.NoiseAmplitude);

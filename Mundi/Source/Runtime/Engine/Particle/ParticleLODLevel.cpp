@@ -636,6 +636,7 @@ void UParticleLODLevel::ParseAndAddModule(JSON& ModuleJson)
             FJsonSerializer::ReadVector(ModuleJson, "SourceOffset", Beam->SourceOffset);
             FJsonSerializer::ReadVector(ModuleJson, "TargetOffset", Beam->TargetOffset);
             FJsonSerializer::ReadBool(ModuleJson, "bUseRandomOffset", Beam->bUseRandomOffset);
+            FJsonSerializer::ReadFloat(ModuleJson, "BeamWidth", Beam->BeamWidth);
         }
         NewModule = Beam;
     }
@@ -853,6 +854,7 @@ JSON UParticleLODLevel::SerializeModule(UParticleModule* Module)
         ModuleJson["SourceOffset"] = FJsonSerializer::VectorToJson(Beam->SourceOffset);
         ModuleJson["TargetOffset"] = FJsonSerializer::VectorToJson(Beam->TargetOffset);
         ModuleJson["bUseRandomOffset"] = Beam->bUseRandomOffset;
+        ModuleJson["BeamWidth"] = Beam->BeamWidth;
     }
     else if (auto* Ribbon = Cast<UParticleModuleRibbon>(Module))
     {

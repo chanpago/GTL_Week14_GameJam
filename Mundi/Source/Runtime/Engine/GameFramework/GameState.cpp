@@ -166,5 +166,31 @@ void AGameState::HandleStateTick(float DeltaTime)
     if (PlayerHealth.Current > PlayerHealth.Max) PlayerHealth.Current = PlayerHealth.Max;
     if (BossHealth.Current < 0.0f) BossHealth.Current = 0.0f;
     if (BossHealth.Current > BossHealth.Max) BossHealth.Current = BossHealth.Max;
+
+    // Debug keys for testing death/victory screens (only during Fighting state)
+    if (GameFlowState == EGameFlowState::Fighting)
+    {
+        UInputManager& Input = UInputManager::GetInstance();
+        if (Input.IsKeyPressed('K'))
+        {
+            EnterDefeat();
+        }
+        if (Input.IsKeyPressed('L'))
+        {
+            EnterVictory();
+        }
+        // Debug key to test boss health bar - M to decrease health by 10%
+        if (Input.IsKeyPressed('M'))
+        {
+            // Register a test boss if none is active
+            if (!bBossActive)
+            {
+                RegisterBoss("Test Boss", 100.0f);
+            }
+            // Decrease health by 10% of max
+            float NewHealth = BossHealth.Current - (BossHealth.Max * 0.1f);
+            OnBossHealthChanged(NewHealth);
+        }
+    }
 }
 
