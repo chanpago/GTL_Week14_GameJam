@@ -3,12 +3,15 @@
 #include "Pawn.h"
 #include "CameraComponent.h"
 #include "SpringArmComponent.h"
+#include "TargetingComponent.h"
 #include <windows.h>
 #include <cmath>
 #include "Character.h"
 
 APlayerController::APlayerController()
 {
+    // Create targeting component
+    TargetingComponent = CreateDefaultSubobject<UTargetingComponent>("TargetingComponent");
 }
 
 APlayerController::~APlayerController()
@@ -47,9 +50,12 @@ void APlayerController::Tick(float DeltaSeconds)
         }
     }
 
+	// 입력 처리 (Lock-on)
+	ProcessLockOnInput();
+
 	// 입력 처리 (Move)
 	ProcessMovementInput(DeltaSeconds);
-	  
+
 	// 입력 처리 (Look/Turn)
 	ProcessRotationInput(DeltaSeconds);
 }
@@ -61,20 +67,7 @@ void APlayerController::SetupInput()
 
 void APlayerController::ProcessMovementInput(float DeltaTime)
 {
-	// InputManager 사용
 	UInputManager& InputManager = UInputManager::GetInstance();
-
-	// Ctrl 키로 Lock-on 토글
-	if (InputManager.IsKeyPressed(VK_CONTROL))
-	{
-		bIsLockOn = !bIsLockOn;
-		if (bIsLockOn)
-		{
-			// 현재 바라보는 방향의 Yaw 저장
-			FVector PawnEuler = Pawn->GetActorRotation().ToEulerZYXDeg();
-			LockedYaw = PawnEuler.Z;
-		}
-	}
 
 	FVector InputDir = FVector::Zero();
 
@@ -107,22 +100,21 @@ void APlayerController::ProcessMovementInput(float DeltaTime)
 		WorldDir.Normalize();
 
 		// Lock-on 상태에 따라 회전 처리
-		if (!bIsLockOn)
+		if (TargetingComponent && TargetingComponent->IsLockedOn())
 		{
-			// 이동 방향으로 캐릭터 회전 (목표 방향까지만)
-			float TargetYaw = std::atan2(WorldDir.Y, WorldDir.X) * (180.0f / PI);
-			FQuat TargetRotation = FQuat::MakeFromEulerZYX(FVector(0.0f, 0.0f, TargetYaw));
-
-			// 부드러운 회전 (보간) - 목표에 도달하면 멈춤
-			FQuat CurrentRotation = Pawn->GetActorRotation();
-			FQuat NewRotation = FQuat::Slerp(CurrentRotation, TargetRotation, FMath::Clamp(DeltaTime * 3.0f, 0.0f, 1.0f));
-			Pawn->SetActorRotation(NewRotation);
+			// Strafing: 타겟을 바라보면서 이동
+			ProcessLockedMovement(DeltaTime, WorldDir);
 		}
 		else
 		{
-			// Lock-on 상태: 고정된 방향 유지
-			FQuat LockedRotation = FQuat::MakeFromEulerZYX(FVector(0.0f, 0.0f, LockedYaw));
-			Pawn->SetActorRotation(LockedRotation);
+			// 일반 이동: 이동 방향으로 캐릭터 회전
+			float TargetYaw = std::atan2(WorldDir.Y, WorldDir.X) * (180.0f / PI);
+			FQuat TargetRotation = FQuat::MakeFromEulerZYX(FVector(0.0f, 0.0f, TargetYaw));
+
+			// 부드러운 회전 (보간)
+			FQuat CurrentRotation = Pawn->GetActorRotation();
+			FQuat NewRotation = FQuat::Slerp(CurrentRotation, TargetRotation, FMath::Clamp(DeltaTime * 3.0f, 0.0f, 1.0f));
+			Pawn->SetActorRotation(NewRotation);
 		}
 
 		// 이동 적용
@@ -130,12 +122,12 @@ void APlayerController::ProcessMovementInput(float DeltaTime)
 	}
 
     // 점프 처리
-    if (InputManager.IsKeyPressed(VK_SPACE)) {          // 눌린 순간 1회
+    if (InputManager.IsKeyPressed(VK_SPACE)) {
         if (auto* Character = Cast<ACharacter>(Pawn)) {
             Character->Jump();
         }
     }
-    if (InputManager.IsKeyReleased(VK_SPACE)) {         // 뗀 순간 1회 (있다면)
+    if (InputManager.IsKeyReleased(VK_SPACE)) {
         if (auto* Character = Cast<ACharacter>(Pawn)) {
             Character->StopJumping();
         }
@@ -170,14 +162,68 @@ void APlayerController::ProcessRotationInput(float DeltaTime)
         SetControlRotation(NewControlRotation);
     }
 
-    // 매 프레임 SpringArm 월드 회전을 ControlRotation으로 동기화 (캐릭터 회전과 독립)
+    // SpringArm 처리
     if (UActorComponent* C = Pawn->GetComponent(USpringArmComponent::StaticClass()))
     {
         if (USpringArmComponent* SpringArm = Cast<USpringArmComponent>(C))
         {
-            FVector Euler = GetControlRotation().ToEulerZYXDeg();
-            FQuat SpringArmRot = FQuat::MakeFromEulerZYX(FVector(0.0f, Euler.Y, Euler.Z));
-            SpringArm->SetWorldRotation(SpringArmRot);
+            if (TargetingComponent && TargetingComponent->IsLockedOn())
+            {
+                // Lock-on 상태: SpringArm에 타겟 설정 (자동 추적)
+                SpringArm->SetLockOnTarget(TargetingComponent->GetLockedTarget());
+            }
+            else
+            {
+                // 일반 상태: 수동으로 SpringArm 회전 설정
+                SpringArm->ClearLockOnTarget();
+                FVector Euler = GetControlRotation().ToEulerZYXDeg();
+                FQuat SpringArmRot = FQuat::MakeFromEulerZYX(FVector(0.0f, Euler.Y, Euler.Z));
+                SpringArm->SetWorldRotation(SpringArmRot);
+            }
         }
     }
+}
+
+void APlayerController::ProcessLockOnInput()
+{
+    if (!TargetingComponent) return;
+
+    UInputManager& InputManager = UInputManager::GetInstance();
+
+    // Ctrl: Lock-on 토글
+    if (InputManager.IsKeyPressed(VK_CONTROL))
+    {
+        TargetingComponent->ToggleLockOn();
+    }
+
+    // Q/E: 타겟 전환 (여러 타겟이 있을 때)
+    if (TargetingComponent->IsLockedOn())
+    {
+        if (InputManager.IsKeyPressed('Q'))
+        {
+            TargetingComponent->SwitchTarget(ETargetSwitchDirection::Left);
+        }
+        if (InputManager.IsKeyPressed('E'))
+        {
+            TargetingComponent->SwitchTarget(ETargetSwitchDirection::Right);
+        }
+    }
+
+    // 애니메이션 그래프용 bIsLockOn 동기화
+    bIsLockOn = TargetingComponent->IsLockedOn();
+}
+
+void APlayerController::ProcessLockedMovement(float DeltaTime, const FVector& WorldMoveDir)
+{
+    if (!Pawn || !TargetingComponent || !TargetingComponent->IsLockedOn()) return;
+
+    // 타겟 방향으로 캐릭터 회전
+    float TargetYaw = TargetingComponent->GetYawToTarget();
+    FQuat TargetRotation = FQuat::MakeFromEulerZYX(FVector(0.0f, 0.0f, TargetYaw));
+
+    // 부드러운 회전 (보간)
+    FQuat CurrentRotation = Pawn->GetActorRotation();
+    FQuat NewRotation = FQuat::Slerp(CurrentRotation, TargetRotation,
+                                     FMath::Clamp(DeltaTime * CharacterRotationSpeed, 0.0f, 1.0f));
+    Pawn->SetActorRotation(NewRotation);
 }

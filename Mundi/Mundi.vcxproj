@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug_StandAlone|x64">
@@ -340,6 +340,8 @@
     <ClCompile Include="Source\Runtime\Core\Object\Controller.cpp" />
     <ClCompile Include="Source\Runtime\Core\Object\Pawn.cpp" />
     <ClCompile Include="Source\Runtime\Core\Object\PlayerController.cpp" />
+    <ClCompile Include="Source\Runtime\Game\Combat\ITargetable.cpp" />
+    <ClCompile Include="Source\Runtime\Game\Combat\TargetingComponent.cpp" />
     <ClCompile Include="Source\Runtime\Game\Enemy\EnemyAIController.cpp" />
     <ClCompile Include="Source\Runtime\Debug\CrashHandler.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Animation\AnimationAsset.cpp" />
@@ -727,7 +729,7 @@
     <ClCompile Include="Generated\AAIController.generated.cpp" />
     <ClCompile Include="Generated\ABossEnemy.generated.cpp" />
     <ClCompile Include="Generated\AEnemyAIController.generated.cpp" />
-  </ItemGroup>
+  <ClCompile Include="Generated\UTargetingComponent.generated.cpp" /></ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shaders\Common\LightingBuffers.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
@@ -929,6 +931,8 @@
     <ClInclude Include="Source\Runtime\Core\Object\MyCar.h" />
     <ClInclude Include="Source\Runtime\Core\Object\Pawn.h" />
     <ClInclude Include="Source\Runtime\Core\Object\PlayerController.h" />
+    <ClInclude Include="Source\Runtime\Game\Combat\ITargetable.h" />
+    <ClInclude Include="Source\Runtime\Game\Combat\TargetingComponent.h" />
     <ClInclude Include="Source\Runtime\Game\Enemy\EnemyAIController.h" />
     <ClInclude Include="Source\Runtime\Core\Object\Property.h" />
     <ClInclude Include="Source\Runtime\Debug\CrashHandler.h" />
@@ -1242,7 +1246,7 @@
     <ClInclude Include="Generated\AAIController.generated.h" />
     <ClInclude Include="Generated\ABossEnemy.generated.h" />
     <ClInclude Include="Generated\AEnemyAIController.generated.h" />
-  </ItemGroup>
+  <ClInclude Include="Generated\UTargetingComponent.generated.h" /></ItemGroup>
   <ItemGroup>
     <None Include="ClassDiagram.cd" />
     <None Include="Tools\CodeGenerator\generate.py" />

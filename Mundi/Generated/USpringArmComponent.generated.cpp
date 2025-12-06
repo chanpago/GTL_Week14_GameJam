@@ -35,6 +35,9 @@ const bool USpringArmComponent::bPropertiesRegistered = []() {
 
 BEGIN_PROPERTIES(USpringArmComponent)
     MARK_AS_COMPONENT("스프링 암 컴포넌트", "카메라 붐/스프링 암 컴포넌트입니다")
+    ADD_PROPERTY(float, LockOnRotationSpeed, "LockOn", true)
+    ADD_PROPERTY(FVector, LockOnTargetOffset, "LockOn", true)
+    ADD_PROPERTY(float, LockOnPitchOffset, "LockOn", true)
     ADD_PROPERTY_RANGE(float, TargetArmLength, "SpringArm", 0.0f, 1000.0f, true)
     ADD_PROPERTY(FVector, TargetOffset, "SpringArm", true)
     ADD_PROPERTY(FVector, SocketOffset, "SpringArm", true)

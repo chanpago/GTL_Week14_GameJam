@@ -1,8 +1,10 @@
 #include "pch.h"
 #include "SpringArmComponent.h"
 #include "World.h"
+#include "Actor.h"
 #include "Source/Runtime/Engine/Collision/Collision.h"
 #include "Source/Runtime/Engine/Physics/PhysScene.h"
+#include <cmath>
 
 USpringArmComponent::USpringArmComponent()
     : TargetArmLength(300.0f)
@@ -32,6 +34,18 @@ void USpringArmComponent::OnRegister(UWorld* InWorld)
 void USpringArmComponent::TickComponent(float DeltaTime)
 {
     Super::TickComponent(DeltaTime);
+
+    // Lock-on 타겟이 있으면 카메라를 타겟 방향으로 회전
+    if (LockOnTarget)
+    {
+        FQuat DesiredRotation = CalculateLockOnRotation();
+        FQuat CurrentRotation = GetWorldRotation();
+
+        // 부드러운 회전 보간
+        FQuat NewRotation = FQuat::Slerp(CurrentRotation, DesiredRotation,
+                                          FMath::Clamp(DeltaTime * LockOnRotationSpeed, 0.0f, 1.0f));
+        SetWorldRotation(NewRotation);
+    }
 
     // 매 프레임 암 위치 업데이트 (보간 포함)
     UpdateDesiredArmLocation(DeltaTime);
@@ -134,6 +148,54 @@ FVector USpringArmComponent::GetSocketLocalLocation() const
     // 로컬 좌표계에서 암 끝 위치 계산
     // -X 방향(뒤쪽)으로 CurrentArmLength만큼 + SocketOffset
     return FVector(-CurrentArmLength, 0, 0) + SocketOffset;
+}
+
+FQuat USpringArmComponent::CalculateLockOnRotation() const
+{
+    if (!LockOnTarget)
+    {
+        return GetWorldRotation();
+    }
+
+    AActor* Owner = GetOwner();
+    if (!Owner)
+    {
+        return GetWorldRotation();
+    }
+
+    // 플레이어 위치와 타겟 위치
+    FVector PlayerPos = Owner->GetActorLocation();
+    FVector TargetPos = LockOnTarget->GetActorLocation() + LockOnTargetOffset;
+
+    // 플레이어에서 타겟으로의 방향 (수평)
+    FVector ToTarget = TargetPos - PlayerPos;
+    ToTarget.Z = 0;  // 수평 방향만 (Yaw 계산용)
+
+    if (ToTarget.IsZero())
+    {
+        return GetWorldRotation();
+    }
+
+    ToTarget.Normalize();
+
+    // Yaw 계산 (타겟 방향)
+    float TargetYaw = std::atan2(ToTarget.Y, ToTarget.X) * (180.0f / PI);
+
+    // Pitch 계산 (타겟 높이 고려)
+    FVector FullToTarget = TargetPos - (PlayerPos + FVector(0, 0, TargetOffset.Z));
+    float HorizontalDist = FVector(FullToTarget.X, FullToTarget.Y, 0).Size();
+    float HeightDiff = FullToTarget.Z;
+
+    float TargetPitch = 0.0f;
+    if (HorizontalDist > 0.01f)
+    {
+        // Left-handed Z-up: positive pitch = looking up (X rotates toward Z)
+        // If target is above (HeightDiff > 0), we want positive pitch to look up
+        TargetPitch = std::atan2(HeightDiff, HorizontalDist) * (180.0f / PI) + LockOnPitchOffset;
+        TargetPitch = FMath::Clamp(TargetPitch, -60.0f, 60.0f);  // Pitch 제한
+    }
+
+    return FQuat::MakeFromEulerZYX(FVector(0.0f, TargetPitch, TargetYaw));
 }
 
 void USpringArmComponent::Serialize(const bool bInIsLoading, JSON& InOutHandle)

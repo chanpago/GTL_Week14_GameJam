@@ -2,6 +2,7 @@
 
 #include "Character.h"
 #include "IDamageable.h"
+#include "ITargetable.h"
 #include "CombatTypes.h"
 #include "AenemyBase.generated.h"
 
@@ -26,7 +27,7 @@ enum class EEnemyAIState
 // AEnemyBase - 적 캐릭터 베이스 클래스
 // ============================================================================
 UCLASS(DisplayName = "AEnemyBase", Description = "적 기본 객체")
-class AEnemyBase : public ACharacter, public IDamageable
+class AEnemyBase : public ACharacter, public IDamageable, public ITargetable
 {
 public:
     GENERATED_REFLECTION_BODY()
@@ -50,6 +51,17 @@ public:
     virtual bool IsParrying() const override { return false; }
     virtual void OnHitReaction(EHitReaction Reaction, const FDamageInfo& DamageInfo) override;
     virtual void OnDeath() override;
+
+    // ========================================================================
+    // ITargetable 구현
+    // ========================================================================
+    virtual bool CanBeTargeted() const override;
+    virtual FVector GetTargetLocation() const override;
+    virtual float GetTargetHeight() const override { return TargetHeight; }
+    virtual float GetTargetPriority() const override { return TargetPriority; }
+    virtual float GetMaxLockOnDistance() const override { return MaxLockOnDistance; }
+    virtual void OnTargetLocked() override;
+    virtual void OnTargetUnlocked() override;
 
     // ========================================================================
     // AI
@@ -161,6 +173,19 @@ public:
 
     UPROPERTY(EditAnywhere, Category = "Combat", Tooltip = "슈퍼아머 활성화")
     bool bHasSuperArmor = false;
+
+    // ========== 타겟팅 설정 ==========
+    UPROPERTY(EditAnywhere, Category = "Targeting", Tooltip = "락온 포인트 높이 오프셋")
+    float TargetHeight = 100.0f;
+
+    UPROPERTY(EditAnywhere, Category = "Targeting", Tooltip = "타겟 우선순위 (높을수록 우선)")
+    float TargetPriority = 1.0f;
+
+    UPROPERTY(EditAnywhere, Category = "Targeting", Tooltip = "최대 락온 거리")
+    float MaxLockOnDistance = 1500.0f;
+
+protected:
+    bool bIsCurrentlyTargeted = false;
 
 public:
     // ========== 프리팹 설정 (에디터에서 지정) ==========

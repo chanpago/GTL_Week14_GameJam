@@ -3,6 +3,8 @@
 #include "SceneComponent.h"
 #include "USpringArmComponent.generated.h"
 
+class AActor;
+
 UCLASS(DisplayName="스프링 암 컴포넌트", Description="카메라 붐/스프링 암 컴포넌트입니다")
 class USpringArmComponent : public USceneComponent
 {
@@ -48,6 +50,28 @@ public:
     bool GetUsePawnControlRotation() const { return bUsePawnControlRotation; }
 
     // ──────────────────────────────
+    // Lock-On 카메라 추적
+    // ──────────────────────────────
+
+    /** Lock-on 타겟 설정 */
+    void SetLockOnTarget(AActor* Target) { LockOnTarget = Target; }
+    AActor* GetLockOnTarget() const { return LockOnTarget; }
+    void ClearLockOnTarget() { LockOnTarget = nullptr; }
+    bool HasLockOnTarget() const { return LockOnTarget != nullptr; }
+
+    /** Lock-on 카메라 회전 속도 */
+    UPROPERTY(EditAnywhere, Category="LockOn")
+    float LockOnRotationSpeed = 5.0f;
+
+    /** Lock-on 타겟 높이 오프셋 (카메라가 바라볼 위치) */
+    UPROPERTY(EditAnywhere, Category="LockOn")
+    FVector LockOnTargetOffset = FVector(0, 0, 100.0f);
+
+    /** Lock-on 시 카메라 피치 오프셋 (약간 아래를 바라봄) */
+    UPROPERTY(EditAnywhere, Category="LockOn")
+    float LockOnPitchOffset = -10.0f;
+
+    // ──────────────────────────────
     // 결과 값 (읽기 전용)
     // ──────────────────────────────
 
@@ -69,7 +93,12 @@ protected:
     /** 충돌 체크 후 암 길이 조정 */
     float CalculateArmLengthWithCollision(const FVector& Origin, const FVector& DesiredEnd);
 
+    /** Lock-on 타겟을 향한 회전 계산 */
+    FQuat CalculateLockOnRotation() const;
+
 private:
+    /** Lock-on 타겟 액터 */
+    AActor* LockOnTarget = nullptr;
     /** 암의 기본 길이 */
     UPROPERTY(EditAnywhere, Category="SpringArm", Range="0.0, 1000.0")
     float TargetArmLength;
