@@ -96,6 +96,16 @@ void AGameState::OnPlayerHealthChanged(float Current, float Max)
     }
 }
 
+void AGameState::OnPlayerStaminaChanged(float Current, float Max)
+{
+    PlayerStamina.Set(Current, Max);
+}
+
+void AGameState::OnPlayerFocusChanged(float Current, float Max)
+{
+    PlayerFocus.Set(Current, Max);
+}
+
 void AGameState::RegisterBoss(const FString& InBossName, float BossMaxHealth)
 {
     BossName = InBossName;
@@ -161,9 +171,13 @@ void AGameState::HandleStateTick(float DeltaTime)
         }
     }
 
-    // Clamp health values for safety
+    // Clamp health/stamina/focus values for safety
     if (PlayerHealth.Current < 0.0f) PlayerHealth.Current = 0.0f;
     if (PlayerHealth.Current > PlayerHealth.Max) PlayerHealth.Current = PlayerHealth.Max;
+    if (PlayerStamina.Current < 0.0f) PlayerStamina.Current = 0.0f;
+    if (PlayerStamina.Current > PlayerStamina.Max) PlayerStamina.Current = PlayerStamina.Max;
+    if (PlayerFocus.Current < 0.0f) PlayerFocus.Current = 0.0f;
+    if (PlayerFocus.Current > PlayerFocus.Max) PlayerFocus.Current = PlayerFocus.Max;
     if (BossHealth.Current < 0.0f) BossHealth.Current = 0.0f;
     if (BossHealth.Current > BossHealth.Max) BossHealth.Current = BossHealth.Max;
 
@@ -190,6 +204,39 @@ void AGameState::HandleStateTick(float DeltaTime)
             // Decrease health by 10% of max
             float NewHealth = BossHealth.Current - (BossHealth.Max * 0.1f);
             OnBossHealthChanged(NewHealth);
+        }
+
+        // Debug keys for player HP/Stamina - H to decrease HP, J to decrease stamina
+        if (Input.IsKeyPressed('H'))
+        {
+            // Initialize player health if not set
+            if (PlayerHealth.Max <= 0.0f)
+            {
+                PlayerHealth.Set(100.0f, 100.0f);
+            }
+            float NewHealth = PlayerHealth.Current - (PlayerHealth.Max * 0.1f);
+            OnPlayerHealthChanged(NewHealth, PlayerHealth.Max);
+        }
+        if (Input.IsKeyPressed('J'))
+        {
+            // Initialize player stamina if not set
+            if (PlayerStamina.Max <= 0.0f)
+            {
+                PlayerStamina.Set(100.0f, 100.0f);
+            }
+            float NewStamina = PlayerStamina.Current - (PlayerStamina.Max * 0.15f);
+            OnPlayerStaminaChanged(NewStamina, PlayerStamina.Max);
+        }
+        // Debug key for focus - N to decrease focus by 20%
+        if (Input.IsKeyPressed('N'))
+        {
+            // Initialize player focus if not set
+            if (PlayerFocus.Max <= 0.0f)
+            {
+                PlayerFocus.Set(100.0f, 100.0f);
+            }
+            float NewFocus = PlayerFocus.Current - (PlayerFocus.Max * 0.2f);
+            OnPlayerFocusChanged(NewFocus, PlayerFocus.Max);
         }
     }
 }

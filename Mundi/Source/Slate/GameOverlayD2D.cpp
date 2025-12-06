@@ -231,10 +231,10 @@ void UGameOverlayD2D::Initialize(ID3D11Device* InDevice, ID3D11DeviceContext* In
         }
     }
 
-    // Load boss health bar fill image
+    // Load boss health bar fill image (red)
     if (WICFactory && D2DContext)
     {
-        FWideString BarPath = UTF8ToWide(GDataDir) + L"/UI/Icons/TX_Gauge_EnemyHP_Bar.PNG";
+        FWideString BarPath = UTF8ToWide(GDataDir) + L"/UI/Icons/TX_Gauge_EnemyHP_Bar1.PNG";
 
         IWICBitmapDecoder* Decoder = nullptr;
         if (SUCCEEDED(WICFactory->CreateDecoderFromFilename(BarPath.c_str(), nullptr, GENERIC_READ, WICDecodeMetadataCacheOnLoad, &Decoder)))
@@ -253,6 +253,172 @@ void UGameOverlayD2D::Initialize(ID3D11Device* InDevice, ID3D11DeviceContext* In
                             BossBarWidth = Size.width;
                             BossBarHeight = Size.height;
                         }
+                    }
+                    SafeRelease(Converter);
+                }
+                SafeRelease(Frame);
+            }
+            SafeRelease(Decoder);
+        }
+    }
+
+    // Load boss health bar delayed damage image (yellow)
+    if (WICFactory && D2DContext)
+    {
+        FWideString BarPath = UTF8ToWide(GDataDir) + L"/UI/Icons/TX_Gauge_EnemyHP_Bar_yellow.png";
+
+        IWICBitmapDecoder* Decoder = nullptr;
+        if (SUCCEEDED(WICFactory->CreateDecoderFromFilename(BarPath.c_str(), nullptr, GENERIC_READ, WICDecodeMetadataCacheOnLoad, &Decoder)))
+        {
+            IWICBitmapFrameDecode* Frame = nullptr;
+            if (SUCCEEDED(Decoder->GetFrame(0, &Frame)))
+            {
+                IWICFormatConverter* Converter = nullptr;
+                if (SUCCEEDED(WICFactory->CreateFormatConverter(&Converter)))
+                {
+                    if (SUCCEEDED(Converter->Initialize(Frame, GUID_WICPixelFormat32bppPBGRA, WICBitmapDitherTypeNone, nullptr, 0.0f, WICBitmapPaletteTypeMedianCut)))
+                    {
+                        D2DContext->CreateBitmapFromWicBitmap(Converter, nullptr, &BossBarYellowBitmap);
+                    }
+                    SafeRelease(Converter);
+                }
+                SafeRelease(Frame);
+            }
+            SafeRelease(Decoder);
+        }
+    }
+
+    // Load player bar frame image
+    if (WICFactory && D2DContext)
+    {
+        FWideString FramePath = UTF8ToWide(GDataDir) + L"/UI/Icons/TX_Bar_Frame_M.png";
+
+        IWICBitmapDecoder* Decoder = nullptr;
+        if (SUCCEEDED(WICFactory->CreateDecoderFromFilename(FramePath.c_str(), nullptr, GENERIC_READ, WICDecodeMetadataCacheOnLoad, &Decoder)))
+        {
+            IWICBitmapFrameDecode* Frame = nullptr;
+            if (SUCCEEDED(Decoder->GetFrame(0, &Frame)))
+            {
+                IWICFormatConverter* Converter = nullptr;
+                if (SUCCEEDED(WICFactory->CreateFormatConverter(&Converter)))
+                {
+                    if (SUCCEEDED(Converter->Initialize(Frame, GUID_WICPixelFormat32bppPBGRA, WICBitmapDitherTypeNone, nullptr, 0.0f, WICBitmapPaletteTypeMedianCut)))
+                    {
+                        if (SUCCEEDED(D2DContext->CreateBitmapFromWicBitmap(Converter, nullptr, &PlayerFrameBitmap)))
+                        {
+                            D2D1_SIZE_F Size = PlayerFrameBitmap->GetSize();
+                            PlayerFrameWidth = Size.width;
+                            PlayerFrameHeight = Size.height;
+                        }
+                    }
+                    SafeRelease(Converter);
+                }
+                SafeRelease(Frame);
+            }
+            SafeRelease(Decoder);
+        }
+    }
+
+    // Load player HP bar (red)
+    if (WICFactory && D2DContext)
+    {
+        FWideString BarPath = UTF8ToWide(GDataDir) + L"/UI/Icons/TX_Gauge_HP_Bar_red.png";
+
+        IWICBitmapDecoder* Decoder = nullptr;
+        if (SUCCEEDED(WICFactory->CreateDecoderFromFilename(BarPath.c_str(), nullptr, GENERIC_READ, WICDecodeMetadataCacheOnLoad, &Decoder)))
+        {
+            IWICBitmapFrameDecode* Frame = nullptr;
+            if (SUCCEEDED(Decoder->GetFrame(0, &Frame)))
+            {
+                IWICFormatConverter* Converter = nullptr;
+                if (SUCCEEDED(WICFactory->CreateFormatConverter(&Converter)))
+                {
+                    if (SUCCEEDED(Converter->Initialize(Frame, GUID_WICPixelFormat32bppPBGRA, WICBitmapDitherTypeNone, nullptr, 0.0f, WICBitmapPaletteTypeMedianCut)))
+                    {
+                        if (SUCCEEDED(D2DContext->CreateBitmapFromWicBitmap(Converter, nullptr, &PlayerHPBarBitmap)))
+                        {
+                            D2D1_SIZE_F Size = PlayerHPBarBitmap->GetSize();
+                            PlayerBarWidth = Size.width;
+                            PlayerBarHeight = Size.height;
+                        }
+                    }
+                    SafeRelease(Converter);
+                }
+                SafeRelease(Frame);
+            }
+            SafeRelease(Decoder);
+        }
+    }
+
+    // Load player Focus bar
+    if (WICFactory && D2DContext)
+    {
+        FWideString BarPath = UTF8ToWide(GDataDir) + L"/UI/Icons/TX_Gauge_Focus_Bar.png";
+
+        IWICBitmapDecoder* Decoder = nullptr;
+        if (SUCCEEDED(WICFactory->CreateDecoderFromFilename(BarPath.c_str(), nullptr, GENERIC_READ, WICDecodeMetadataCacheOnLoad, &Decoder)))
+        {
+            IWICBitmapFrameDecode* Frame = nullptr;
+            if (SUCCEEDED(Decoder->GetFrame(0, &Frame)))
+            {
+                IWICFormatConverter* Converter = nullptr;
+                if (SUCCEEDED(WICFactory->CreateFormatConverter(&Converter)))
+                {
+                    if (SUCCEEDED(Converter->Initialize(Frame, GUID_WICPixelFormat32bppPBGRA, WICBitmapDitherTypeNone, nullptr, 0.0f, WICBitmapPaletteTypeMedianCut)))
+                    {
+                        D2DContext->CreateBitmapFromWicBitmap(Converter, nullptr, &PlayerFocusBarBitmap);
+                    }
+                    SafeRelease(Converter);
+                }
+                SafeRelease(Frame);
+            }
+            SafeRelease(Decoder);
+        }
+    }
+
+    // Load player Stamina bar
+    if (WICFactory && D2DContext)
+    {
+        FWideString BarPath = UTF8ToWide(GDataDir) + L"/UI/Icons/TX_Gauge_Stamina_Bar.png";
+
+        IWICBitmapDecoder* Decoder = nullptr;
+        if (SUCCEEDED(WICFactory->CreateDecoderFromFilename(BarPath.c_str(), nullptr, GENERIC_READ, WICDecodeMetadataCacheOnLoad, &Decoder)))
+        {
+            IWICBitmapFrameDecode* Frame = nullptr;
+            if (SUCCEEDED(Decoder->GetFrame(0, &Frame)))
+            {
+                IWICFormatConverter* Converter = nullptr;
+                if (SUCCEEDED(WICFactory->CreateFormatConverter(&Converter)))
+                {
+                    if (SUCCEEDED(Converter->Initialize(Frame, GUID_WICPixelFormat32bppPBGRA, WICBitmapDitherTypeNone, nullptr, 0.0f, WICBitmapPaletteTypeMedianCut)))
+                    {
+                        D2DContext->CreateBitmapFromWicBitmap(Converter, nullptr, &PlayerStaminaBarBitmap);
+                    }
+                    SafeRelease(Converter);
+                }
+                SafeRelease(Frame);
+            }
+            SafeRelease(Decoder);
+        }
+    }
+
+    // Load player bar yellow (delayed damage indicator)
+    if (WICFactory && D2DContext)
+    {
+        FWideString BarPath = UTF8ToWide(GDataDir) + L"/UI/Icons/TX_Gauge_Bar_yellow.png";
+
+        IWICBitmapDecoder* Decoder = nullptr;
+        if (SUCCEEDED(WICFactory->CreateDecoderFromFilename(BarPath.c_str(), nullptr, GENERIC_READ, WICDecodeMetadataCacheOnLoad, &Decoder)))
+        {
+            IWICBitmapFrameDecode* Frame = nullptr;
+            if (SUCCEEDED(Decoder->GetFrame(0, &Frame)))
+            {
+                IWICFormatConverter* Converter = nullptr;
+                if (SUCCEEDED(WICFactory->CreateFormatConverter(&Converter)))
+                {
+                    if (SUCCEEDED(Converter->Initialize(Frame, GUID_WICPixelFormat32bppPBGRA, WICBitmapDitherTypeNone, nullptr, 0.0f, WICBitmapPaletteTypeMedianCut)))
+                    {
+                        D2DContext->CreateBitmapFromWicBitmap(Converter, nullptr, &PlayerBarYellowBitmap);
                     }
                     SafeRelease(Converter);
                 }
@@ -313,6 +479,12 @@ void UGameOverlayD2D::ReleaseD2DResources()
     SafeRelease(LogoBitmap);
     SafeRelease(BossFrameBitmap);
     SafeRelease(BossBarBitmap);
+    SafeRelease(BossBarYellowBitmap);
+    SafeRelease(PlayerFrameBitmap);
+    SafeRelease(PlayerHPBarBitmap);
+    SafeRelease(PlayerFocusBarBitmap);
+    SafeRelease(PlayerStaminaBarBitmap);
+    SafeRelease(PlayerBarYellowBitmap);
     SafeRelease(TextBrush);
     SafeRelease(SubtitleBrush);
     SafeRelease(DeathTextBrush);
@@ -524,20 +696,59 @@ void UGameOverlayD2D::DrawBossHealthBar(float ScreenW, float ScreenH, float Delt
     // Get target health - default to 100% if no boss registered
     float TargetHealth = GS->HasActiveBoss() ? GS->GetBossHealth().GetPercent() : 1.0f;
 
-    // Smooth lerp animation
-    if (DisplayedBossHealth != TargetHealth)
+    // ========== Fade-in Animation ==========
+    if (!bBossBarFadingIn && BossBarOpacity < 1.0f)
     {
-        float LerpAmount = HealthLerpSpeed * DeltaTime;
-        if (DisplayedBossHealth > TargetHealth)
+        bBossBarFadingIn = true;
+        BossBarFadeTimer = 0.0f;
+    }
+
+    if (bBossBarFadingIn)
+    {
+        BossBarFadeTimer += DeltaTime;
+        BossBarOpacity = BossBarFadeTimer / BossBarFadeDuration;
+        if (BossBarOpacity >= 1.0f)
         {
-            DisplayedBossHealth = (DisplayedBossHealth - LerpAmount < TargetHealth)
-                ? TargetHealth : DisplayedBossHealth - LerpAmount;
+            BossBarOpacity = 1.0f;
+            bBossBarFadingIn = false;
         }
-        else
+    }
+
+    // Dark Souls style health bar animation:
+    // - Red bar (CurrentBossHealth) snaps immediately to actual health
+    // - Yellow bar (DelayedBossHealth) waits, then slowly catches up
+
+    // Detect if damage was taken (health decreased)
+    if (TargetHealth < CurrentBossHealth)
+    {
+        // Reset the delay timer when new damage is taken
+        DelayedHealthTimer = 0.0f;
+    }
+
+    // Red bar snaps immediately
+    CurrentBossHealth = TargetHealth;
+
+    // Yellow bar logic: wait for delay, then lerp
+    if (DelayedBossHealth > CurrentBossHealth)
+    {
+        DelayedHealthTimer += DeltaTime;
+
+        // After delay, start lerping the yellow bar down
+        if (DelayedHealthTimer >= DelayedHealthDelay)
         {
-            DisplayedBossHealth = (DisplayedBossHealth + LerpAmount > TargetHealth)
-                ? TargetHealth : DisplayedBossHealth + LerpAmount;
+            float LerpAmount = DelayedHealthLerpSpeed * DeltaTime;
+            DelayedBossHealth -= LerpAmount;
+            if (DelayedBossHealth < CurrentBossHealth)
+            {
+                DelayedBossHealth = CurrentBossHealth;
+            }
         }
+    }
+    else
+    {
+        // If healing or initialization, sync yellow bar immediately
+        DelayedBossHealth = CurrentBossHealth;
+        DelayedHealthTimer = 0.0f;
     }
 
     // Calculate bar position (bottom center, 50% of viewport width)
@@ -549,34 +760,217 @@ void UGameOverlayD2D::DrawBossHealthBar(float ScreenW, float ScreenH, float Delt
 
     // 1. Draw frame first (background)
     D2D1_RECT_F FrameRect = D2D1::RectF(BarX, BarY, BarX + BarW, BarY + BarH);
-    D2DContext->DrawBitmap(BossFrameBitmap, FrameRect, 1.0f);
+    D2DContext->DrawBitmap(BossFrameBitmap, FrameRect, BossBarOpacity);
 
-    // 2. Draw fill bar on top (scaled by health percentage)
-    // Use additive blending to make it brighter
-    if (DisplayedBossHealth > 0.0f)
+    // 2. Draw yellow bar (delayed damage indicator) - behind red bar
+    if (BossBarYellowBitmap && DelayedBossHealth > 0.0f && DelayedBossHealth > CurrentBossHealth)
     {
-        float FillW = BossBarWidth * BarScale * DisplayedBossHealth;
-        D2D1_RECT_F FillDestRect = D2D1::RectF(BarX, BarY, BarX + FillW, BarY + BarH);
-        D2D1_RECT_F FillSrcRect = D2D1::RectF(0, 0, BossBarWidth * DisplayedBossHealth, BossBarHeight);
+        float YellowFillW = BossBarWidth * BarScale * DelayedBossHealth;
+        D2D1_RECT_F YellowDestRect = D2D1::RectF(BarX, BarY, BarX + YellowFillW, BarY + BarH);
+        D2D1_RECT_F YellowSrcRect = D2D1::RectF(0, 0, BossBarWidth * DelayedBossHealth, BossBarHeight);
 
-        // Switch to additive blending for brighter appearance
-        D2DContext->SetPrimitiveBlend(D2D1_PRIMITIVE_BLEND_ADD);
-
-        D2DContext->DrawBitmap(BossBarBitmap, FillDestRect, 1.0f,
-            D2D1_BITMAP_INTERPOLATION_MODE_LINEAR, &FillSrcRect);
-
-        // Restore normal blending
-        D2DContext->SetPrimitiveBlend(D2D1_PRIMITIVE_BLEND_SOURCE_OVER);
+        D2DContext->DrawBitmap(BossBarYellowBitmap, YellowDestRect, BossBarOpacity,
+            D2D1_BITMAP_INTERPOLATION_MODE_LINEAR, &YellowSrcRect);
     }
 
-    // 3. Draw boss name above bar (only if boss is registered)
+    // 3. Draw red bar on top (current health - snaps immediately)
+    if (CurrentBossHealth > 0.0f)
+    {
+        float FillW = BossBarWidth * BarScale * CurrentBossHealth;
+        D2D1_RECT_F FillDestRect = D2D1::RectF(BarX, BarY, BarX + FillW, BarY + BarH);
+        D2D1_RECT_F FillSrcRect = D2D1::RectF(0, 0, BossBarWidth * CurrentBossHealth, BossBarHeight);
+
+        D2DContext->DrawBitmap(BossBarBitmap, FillDestRect, BossBarOpacity,
+            D2D1_BITMAP_INTERPOLATION_MODE_LINEAR, &FillSrcRect);
+    }
+
+    // 4. Draw boss name above bar (only if boss is registered)
     if (GS->HasActiveBoss())
     {
+        SubtitleBrush->SetOpacity(BossBarOpacity);
         FWideString BossName = UTF8ToWide(GS->GetBossName());
         D2D1_RECT_F NameRect = D2D1::RectF(BarX, BarY - 40.0f, BarX + BarW, BarY);
         D2DContext->DrawTextW(BossName.c_str(), static_cast<UINT32>(BossName.length()),
-            BossNameFormat, NameRect, SubtitleBrush);  // Use white subtitle brush for boss name
+            BossNameFormat, NameRect, SubtitleBrush);
+        SubtitleBrush->SetOpacity(1.0f);  // Reset opacity
     }
+}
+
+void UGameOverlayD2D::DrawPlayerBars(float ScreenW, float ScreenH, float DeltaTime)
+{
+    // Check if we have valid player bar resources
+    if (!PlayerFrameBitmap || !PlayerHPBarBitmap || PlayerFrameWidth <= 0.f)
+    {
+        return;
+    }
+
+    // Get player stats from GameState
+    if (!GWorld)
+    {
+        return;
+    }
+
+    AGameModeBase* GM = GWorld->GetGameMode();
+    if (!GM)
+    {
+        return;
+    }
+
+    AGameState* GS = Cast<AGameState>(GM->GetGameState());
+    if (!GS)
+    {
+        return;
+    }
+
+    // Get target values from GameState
+    float TargetHP = GS->GetPlayerHealth().GetPercent();
+    float TargetFocus = GS->GetPlayerFocus().GetPercent();
+    float TargetStamina = GS->GetPlayerStamina().GetPercent();
+
+    // Default to full if not initialized
+    if (GS->GetPlayerHealth().Max <= 0.0f) TargetHP = 1.0f;
+    if (GS->GetPlayerFocus().Max <= 0.0f) TargetFocus = 1.0f;
+    if (GS->GetPlayerStamina().Max <= 0.0f) TargetStamina = 1.0f;
+
+    // ========== Fade-in Animation ==========
+    // Start fade-in when bars first appear
+    if (!bPlayerBarsFadingIn && PlayerBarOpacity < 1.0f)
+    {
+        bPlayerBarsFadingIn = true;
+        PlayerBarFadeTimer = 0.0f;
+    }
+
+    if (bPlayerBarsFadingIn)
+    {
+        PlayerBarFadeTimer += DeltaTime;
+        PlayerBarOpacity = PlayerBarFadeTimer / PlayerBarFadeDuration;
+        if (PlayerBarOpacity >= 1.0f)
+        {
+            PlayerBarOpacity = 1.0f;
+            bPlayerBarsFadingIn = false;
+        }
+    }
+
+    // ========== HP Bar Animation ==========
+    if (TargetHP < CurrentPlayerHP)
+    {
+        DelayedPlayerHPTimer = 0.0f;
+    }
+    CurrentPlayerHP = TargetHP;
+
+    if (DelayedPlayerHP > CurrentPlayerHP)
+    {
+        DelayedPlayerHPTimer += DeltaTime;
+        if (DelayedPlayerHPTimer >= PlayerBarDelayTime)
+        {
+            DelayedPlayerHP -= PlayerBarLerpSpeed * DeltaTime;
+            if (DelayedPlayerHP < CurrentPlayerHP)
+            {
+                DelayedPlayerHP = CurrentPlayerHP;
+            }
+        }
+    }
+    else
+    {
+        DelayedPlayerHP = CurrentPlayerHP;
+        DelayedPlayerHPTimer = 0.0f;
+    }
+
+    // ========== Focus Bar Animation ==========
+    if (TargetFocus < CurrentPlayerFocus)
+    {
+        DelayedPlayerFocusTimer = 0.0f;
+    }
+    CurrentPlayerFocus = TargetFocus;
+
+    if (DelayedPlayerFocus > CurrentPlayerFocus)
+    {
+        DelayedPlayerFocusTimer += DeltaTime;
+        if (DelayedPlayerFocusTimer >= PlayerBarDelayTime)
+        {
+            DelayedPlayerFocus -= PlayerBarLerpSpeed * DeltaTime;
+            if (DelayedPlayerFocus < CurrentPlayerFocus)
+            {
+                DelayedPlayerFocus = CurrentPlayerFocus;
+            }
+        }
+    }
+    else
+    {
+        DelayedPlayerFocus = CurrentPlayerFocus;
+        DelayedPlayerFocusTimer = 0.0f;
+    }
+
+    // ========== Stamina Bar Animation ==========
+    if (TargetStamina < CurrentPlayerStamina)
+    {
+        DelayedPlayerStaminaTimer = 0.0f;
+    }
+    CurrentPlayerStamina = TargetStamina;
+
+    if (DelayedPlayerStamina > CurrentPlayerStamina)
+    {
+        DelayedPlayerStaminaTimer += DeltaTime;
+        if (DelayedPlayerStaminaTimer >= PlayerBarDelayTime)
+        {
+            DelayedPlayerStamina -= PlayerBarLerpSpeed * DeltaTime;
+            if (DelayedPlayerStamina < CurrentPlayerStamina)
+            {
+                DelayedPlayerStamina = CurrentPlayerStamina;
+            }
+        }
+    }
+    else
+    {
+        DelayedPlayerStamina = CurrentPlayerStamina;
+        DelayedPlayerStaminaTimer = 0.0f;
+    }
+
+    // ========== Calculate bar dimensions ==========
+    // Position at top-left with some padding
+    float Padding = 30.0f;
+    float BarScale = 1.2f;  // Scale up the bars
+    float BarW = PlayerFrameWidth * BarScale;
+    float BarH = PlayerFrameHeight * BarScale;
+    float BarSpacing = BarH * 1.0f;  // Vertical spacing between bars
+
+    float BarX = Padding;
+    float HPBarY = Padding + 50.0f;  // Move down a bit
+    float FocusBarY = HPBarY + BarSpacing;
+    float StaminaBarY = FocusBarY + BarSpacing;
+
+    // Helper lambda to draw a single bar with Dark Souls style animation
+    auto DrawSingleBar = [&](float BarY, float CurrentValue, float DelayedValue, ID2D1Bitmap* BarBitmap)
+    {
+        // 1. Draw frame
+        D2D1_RECT_F FrameRect = D2D1::RectF(BarX, BarY, BarX + BarW, BarY + BarH);
+        D2DContext->DrawBitmap(PlayerFrameBitmap, FrameRect, PlayerBarOpacity);
+
+        // 2. Draw yellow bar (delayed) - behind colored bar
+        if (PlayerBarYellowBitmap && DelayedValue > 0.0f && DelayedValue > CurrentValue)
+        {
+            float YellowFillW = PlayerBarWidth * BarScale * DelayedValue;
+            D2D1_RECT_F YellowDestRect = D2D1::RectF(BarX, BarY, BarX + YellowFillW, BarY + BarH);
+            D2D1_RECT_F YellowSrcRect = D2D1::RectF(0, 0, PlayerBarWidth * DelayedValue, PlayerBarHeight);
+            D2DContext->DrawBitmap(PlayerBarYellowBitmap, YellowDestRect, PlayerBarOpacity,
+                D2D1_BITMAP_INTERPOLATION_MODE_LINEAR, &YellowSrcRect);
+        }
+
+        // 3. Draw colored bar on top
+        if (BarBitmap && CurrentValue > 0.0f)
+        {
+            float FillW = PlayerBarWidth * BarScale * CurrentValue;
+            D2D1_RECT_F FillDestRect = D2D1::RectF(BarX, BarY, BarX + FillW, BarY + BarH);
+            D2D1_RECT_F FillSrcRect = D2D1::RectF(0, 0, PlayerBarWidth * CurrentValue, PlayerBarHeight);
+            D2DContext->DrawBitmap(BarBitmap, FillDestRect, PlayerBarOpacity,
+                D2D1_BITMAP_INTERPOLATION_MODE_LINEAR, &FillSrcRect);
+        }
+    };
+
+    // Draw the three bars: HP, Focus, Stamina
+    DrawSingleBar(HPBarY, CurrentPlayerHP, DelayedPlayerHP, PlayerHPBarBitmap);
+    DrawSingleBar(FocusBarY, CurrentPlayerFocus, DelayedPlayerFocus, PlayerFocusBarBitmap);
+    DrawSingleBar(StaminaBarY, CurrentPlayerStamina, DelayedPlayerStamina, PlayerStaminaBarBitmap);
 }
 
 void UGameOverlayD2D::Draw()
@@ -678,6 +1072,15 @@ void UGameOverlayD2D::Draw()
     // Get delta time for animations
     float DeltaTime = UUIManager::GetInstance().GetDeltaTime();
 
+    // Reset bar fade when not fighting
+    if (FlowState != EGameFlowState::Fighting)
+    {
+        PlayerBarOpacity = 0.0f;
+        bPlayerBarsFadingIn = false;
+        BossBarOpacity = 0.0f;
+        bBossBarFadingIn = false;
+    }
+
     // Draw based on current state
     switch (FlowState)
     {
@@ -686,6 +1089,7 @@ void UGameOverlayD2D::Draw()
         break;
 
     case EGameFlowState::Fighting:
+        DrawPlayerBars(ScreenW, ScreenH, DeltaTime);
         DrawBossHealthBar(ScreenW, ScreenH, DeltaTime);
         break;
 
