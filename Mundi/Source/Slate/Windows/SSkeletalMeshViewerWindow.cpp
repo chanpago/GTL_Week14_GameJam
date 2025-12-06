@@ -13,7 +13,8 @@
 #include "SkinningStats.h"
 #include "Source/Runtime/Engine/Animation/AnimSequence.h"
 #include "Source/Runtime/Engine/Collision/Picking.h"
-#include "Source/Runtime/Engine/Animation/AnimNotify_PlaySound.h"
+#include "Source/Runtime/Engine/Animation/AnimNotify/AnimNotify_PlaySound.h"
+#include "Source/Runtime/Engine/Animation/AnimNotify/AnimNotify_PlayParticle.h"
 #include "Source/Runtime/AssetManagement/ResourceManager.h"
 #include "Source/Editor/PlatformProcess.h"
 #include "Source/Runtime/Core/Misc/PathUtils.h"
@@ -2473,10 +2474,22 @@ void SSkeletalMeshViewerWindow::DrawAnimationPanel(ViewerState* State)
                             LineCol
                         );
                         
-                        ImGui::PushClipRect(ImVec2(ViewXStart, P.y), ImVec2(ViewXEnd, P.y + Size.y), true);
-                        // Label: use NotifyName if set, otherwise fallback based on type
                         FString Label = Notify.NotifyName.ToString();
                         if (Label.empty())
+                        {
+                            if (Notify.Notify && Notify.Notify->IsA<UAnimNotify_PlaySound>())
+                            {
+                                Label = "PlaySound";
+                            }
+                            else if (Notify.Notify && Notify.Notify->IsA<UAnimNotify_PlayParticle>())
+                            {
+                                Label = "PlayParticle";
+                            }
+                            else
+                            {
+                                Label = "Notify";
+                            }
+                        }
                         {
                             Label = Notify.Notify && Notify.Notify->IsA<UAnimNotify_PlaySound>() ? "PlaySound" : "Notify";
                         }

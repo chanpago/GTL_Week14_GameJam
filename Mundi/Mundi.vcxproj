@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug_StandAlone|x64">
@@ -290,6 +290,13 @@
     </ClCompile>
     <ClCompile Include="Source\Runtime\Core\Object\MyCar.cpp" />
     <ClCompile Include="Source\Editor\FBX\BlendSpace\BlendSpace2D.cpp" />
+    <ClCompile Include="Source\Runtime\Engine\Animation\AnimNotify\AnimNotify.cpp" />
+    <ClCompile Include="Source\Runtime\Engine\Animation\AnimNotify\AnimNotifyState.cpp" />
+    <ClCompile Include="Source\Runtime\Engine\Animation\AnimNotify\AnimNotifyState_Trail.cpp" />
+    <ClCompile Include="Source\Runtime\Engine\Animation\AnimNotify\AnimNotify_PlayCamera.cpp" />
+    <ClCompile Include="Source\Runtime\Engine\Animation\AnimNotify\AnimNotify_PlayParticle.cpp" />
+    <ClCompile Include="Source\Runtime\Engine\Animation\AnimNotify\AnimNotify_PlaySound.cpp" />
+    <ClCompile Include="Source\Runtime\Engine\Components\AnimNotifyParticleComponent.cpp" />
     <ClCompile Include="Source\Runtime\Engine\GameFramework\Camera\CamMod_Bloom.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Animation\AnimMontage.cpp" />
     <ClCompile Include="Source\Runtime\Engine\GameFramework\Camera\CamMod_DOF.cpp" />
@@ -346,12 +353,8 @@
     <ClCompile Include="Source\Runtime\Engine\Animation\AnimationRuntime.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Animation\AnimationStateMachine.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Animation\AnimDataModel.cpp" />
-    <ClCompile Include="Source\Runtime\Engine\Animation\AnimNotify.cpp" />
-    <ClCompile Include="Source\Runtime\Engine\Animation\AnimNotifyState_Trail.cpp" />
-    <ClCompile Include="Source\Runtime\Engine\Animation\AnimNotify_PlaySound.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Animation\AnimSequence.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Animation\AnimSequenceBase.cpp" />
-    <ClCompile Include="Source\Runtime\Engine\Animation\AnimNotifyState.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Animation\AnimSingleNodeInstance.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Animation\Team2AnimInstance.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Components\PawnMovementComponent.cpp" />
@@ -929,6 +932,13 @@
     <ClInclude Include="Source\Runtime\Core\Object\MyCar.h" />
     <ClInclude Include="Source\Runtime\Core\Object\Pawn.h" />
     <ClInclude Include="Source\Runtime\Core\Object\PlayerController.h" />
+    <ClInclude Include="Source\Runtime\Engine\Animation\AnimNotify\AnimNotify.h" />
+    <ClInclude Include="Source\Runtime\Engine\Animation\AnimNotify\AnimNotifyState.h" />
+    <ClInclude Include="Source\Runtime\Engine\Animation\AnimNotify\AnimNotifyState_Trail.h" />
+    <ClInclude Include="Source\Runtime\Engine\Animation\AnimNotify\AnimNotify_PlayCamera.h" />
+    <ClInclude Include="Source\Runtime\Engine\Animation\AnimNotify\AnimNotify_PlayParticle.h" />
+    <ClInclude Include="Source\Runtime\Engine\Animation\AnimNotify\AnimNotify_PlaySound.h" />
+    <ClInclude Include="Source\Runtime\Engine\Components\AnimNotifyParticleComponent.h" />
     <ClInclude Include="Source\Runtime\Game\Enemy\EnemyAIController.h" />
     <ClInclude Include="Source\Runtime\Core\Object\Property.h" />
     <ClInclude Include="Source\Runtime\Debug\CrashHandler.h" />
@@ -938,10 +948,6 @@
     <ClInclude Include="Source\Runtime\Engine\Animation\AnimDateModel.h" />
     <ClInclude Include="Source\Runtime\Engine\Animation\AnimInstance.h" />
     <ClInclude Include="Source\Runtime\Engine\Animation\AnimMontage.h" />
-    <ClInclude Include="Source\Runtime\Engine\Animation\AnimNotify.h" />
-    <ClInclude Include="Source\Runtime\Engine\Animation\AnimNotifyState.h" />
-    <ClInclude Include="Source\Runtime\Engine\Animation\AnimNotifyState_Trail.h" />
-    <ClInclude Include="Source\Runtime\Engine\Animation\AnimNotify_PlaySound.h" />
     <ClInclude Include="Source\Runtime\Engine\Animation\AnimSequence.h" />
     <ClInclude Include="Source\Runtime\Engine\Animation\AnimSequenceBase.h" />
     <ClInclude Include="Source\Runtime\Engine\Animation\AnimSingleNodeInstance.h" />

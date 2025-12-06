@@ -1,8 +1,8 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include "AnimMontage.h"
 #include "AnimSequence.h"
-#include "AnimNotify.h"
-#include "AnimNotifyState.h"
+#include "AnimNotify/AnimNotify.h"
+#include "AnimNotify/AnimNotifyState.h"
 
 IMPLEMENT_CLASS(UAnimMontage)
 

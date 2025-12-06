@@ -3,15 +3,14 @@
 #include "ObjectFactory.h"
 #include "AnimSequence.h"
 #include "AnimationRuntime.h"
-#include "AnimNotify_PlaySound.h"
-
+#include "AnimNotify/AnimNotify_PlaySound.h"
+#include "AnimNotify/AnimNotify_PlayParticle.h"
 #include "AnimTypes.h"
 #include "JsonSerializer.h"
-#include "ObjectFactory.h"
 #include "Source/Runtime/AssetManagement/ResourceManager.h"
 #include "Source/Runtime/Engine/Audio/Sound.h"
+#include "Source/Runtime/Engine/Particle/ParticleSystem.h"
 #include "Source/Runtime/Core/Misc/PathUtils.h"
-#include "AnimNotify_PlaySound.h"
 #include <filesystem>
 
 
@@ -335,6 +334,18 @@ bool UAnimSequenceBase::SaveMeta(const FString& MetaPathUTF8) const
             FString Path = (PS && PS->Sound) ? PS->Sound->GetFilePath() : "";
             Data["SoundPath"] = Path.c_str();
         }
+        else if (Evt.Notify && Evt.Notify->IsA<UAnimNotify_PlayParticle>())
+        {
+            const UAnimNotify_PlayParticle* ParticleNotify = static_cast<const UAnimNotify_PlayParticle*>(Evt.Notify);
+            FString ParticlePath = (ParticleNotify && ParticleNotify->ParticleSystem) ? ParticleNotify->ParticleSystem->GetFilePath() : "";
+            Data["ParticlePath"] = ParticlePath.c_str();
+            Data["LocationOffset"] = FJsonSerializer::VectorToJson(ParticleNotify->LocationOffset);
+            Data["RotationOffset"] = FJsonSerializer::VectorToJson(ParticleNotify->RotationOffset);
+            Data["ScaleOffset"] = FJsonSerializer::VectorToJson(ParticleNotify->ScaleOffset);
+            Data["AttachBone"] = ParticleNotify->AttachBoneName.ToString().c_str();
+            Data["AttachToOwner"] = ParticleNotify->bAttachToOwner;
+            Data["LifeTime"] = ParticleNotify->LifeTime;
+        }
         Item["Data"] = Data;
 
         NotifyArray.append(Item);
@@ -425,6 +436,45 @@ bool UAnimSequenceBase::LoadMeta(const FString& MetaPathUTF8)
                 }
             }
             Evt.Notify = PS;
+            Evt.NotifyState = nullptr;
+        }
+        else if (ClassStr == "UAnimNotify_PlayParticle" || ClassStr == "PlayParticle")
+        {
+            UAnimNotify_PlayParticle* ParticleNotify = NewObject<UAnimNotify_PlayParticle>();
+            if (ParticleNotify && DataPtr)
+            {
+                if (DataPtr->hasKey("ParticlePath"))
+                {
+                    FString ParticlePath = DataPtr->at("ParticlePath").ToString();
+                    if (!ParticlePath.empty())
+                    {
+                        UParticleSystem* LoadedSystem = UResourceManager::GetInstance().Load<UParticleSystem>(ParticlePath);
+                        ParticleNotify->ParticleSystem = LoadedSystem;
+                    }
+                }
+
+                FJsonSerializer::ReadVector(*DataPtr, "LocationOffset", ParticleNotify->LocationOffset, ParticleNotify->LocationOffset, false);
+                FJsonSerializer::ReadVector(*DataPtr, "RotationOffset", ParticleNotify->RotationOffset, ParticleNotify->RotationOffset, false);
+                FJsonSerializer::ReadVector(*DataPtr, "ScaleOffset", ParticleNotify->ScaleOffset, ParticleNotify->ScaleOffset, false);
+                FJsonSerializer::ReadBool(*DataPtr, "AttachToOwner", ParticleNotify->bAttachToOwner, ParticleNotify->bAttachToOwner, false);
+                FJsonSerializer::ReadFloat(*DataPtr, "LifeTime", ParticleNotify->LifeTime, ParticleNotify->LifeTime, false);
+
+                if (DataPtr->hasKey("AttachBone"))
+                {
+                    FString BoneName = DataPtr->at("AttachBone").ToString();
+                    if (!BoneName.empty())
+                    {
+                        ParticleNotify->AttachBoneName = FName(BoneName);
+                    }
+                }
+            }
+
+            if (ParticleNotify)
+            {
+                ParticleNotify->SetEventDuration(Duration);
+            }
+
+            Evt.Notify = ParticleNotify;
             Evt.NotifyState = nullptr;
         }
         else

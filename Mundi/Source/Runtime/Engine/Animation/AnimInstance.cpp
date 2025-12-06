@@ -6,7 +6,7 @@
 #include "AnimSequence.h"
 #include "AnimMontage.h"
 // For notify dispatching
-#include "Source/Runtime/Engine/Animation/AnimNotify.h"
+#include "Source/Runtime/Engine/Animation/AnimNotify/AnimNotify.h"
 
 IMPLEMENT_CLASS(UAnimInstance)
 

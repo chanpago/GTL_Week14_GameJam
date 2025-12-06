@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include "pch.h"
-#include "AnimNotify.h"
-#include "AnimNotifyState.h"
+#include "AnimNotify/AnimNotify.h"
+#include "AnimNotify/AnimNotifyState.h"
 
 
 enum class EAnimationMode : uint8

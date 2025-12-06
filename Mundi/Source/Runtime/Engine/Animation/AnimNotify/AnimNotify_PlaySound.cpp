@@ -14,7 +14,7 @@ void UAnimNotify_PlaySound::Notify(USkeletalMeshComponent* MeshComp, UAnimSequen
 	if (Sound && MeshComp)
 	{
 		// Sound 재생 
-			AActor* Owner = MeshComp->GetOwner();
+		AActor* Owner = MeshComp->GetOwner();
 
 		FVector SoundPos = MeshComp->GetWorldLocation();
 

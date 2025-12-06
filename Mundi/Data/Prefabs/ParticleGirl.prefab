@@ -1,0 +1,137 @@
+{
+  "ObjectName" : "캐릭터_0",
+  "OwnedComponents" : [{
+      "AnimGraphPath" : "Data/Graphs/ParticleGirl.graph",
+      "CollisionEnabled_Internal" : 2,
+      "Id" : 6841,
+      "MaterialSlots" : [{
+          "Type" : "None"
+        }, {
+          "AssetPath" : "MI_SHINOBIGIRL_EYES_Brown",
+          "Type" : "UMaterial"
+        }, {
+          "AssetPath" : "MI_SHINOBIGIRL_EYES_Brown_1",
+          "Type" : "UMaterial"
+        }, {
+          "AssetPath" : "M_SHINOBIGIRL_Teeth",
+          "Type" : "UMaterial"
+        }, {
+          "AssetPath" : "MI_SHINOBIGIRL_HEAD",
+          "Type" : "UMaterial"
+        }, {
+          "AssetPath" : "M_SHINOBIGIRL_LASHES",
+          "Type" : "UMaterial"
+        }, {
+          "AssetPath" : "MI_SHINOBIGIRL_CARUNCLE_01",
+          "Type" : "UMaterial"
+        }, {
+          "AssetPath" : "MI_SHINOBIGIRL_ARMOR_01",
+          "Type" : "UMaterial"
+        }, {
+          "AssetPath" : "MI_SHINOBIGIRL_CLOTHES_01",
+          "Type" : "UMaterial"
+        }, {
+          "AssetPath" : "MI_SHINOBIGIRL_BODY",
+          "Type" : "UMaterial"
+        }, {
+          "AssetPath" : "MI_SHINOBIGIRL_Hair_13",
+          "Type" : "UMaterial"
+        }, {
+          "AssetPath" : "MI_SHINOBIGIRL_Hair_07",
+          "Type" : "UMaterial"
+        }],
+      "ObjectName" : "USkeletalMeshComponent_1",
+      "ParentId" : 6914,
+      "PhysicsAssetOverridePath" : "Data/Physics/sss1.phys",
+      "RelativeLocation" : [0.000000, 0.000000, -1.000000],
+      "RelativeRotationEuler" : [0.000000, -0.000000, 0.000000],
+      "RelativeScale" : [1.000000, 1.000000, 1.000000],
+      "SkeletalMesh" : "Data/FBX/SK_AKANE_NoMask.FBX",
+      "Type" : "USkeletalMeshComponent",
+      "bBlockComponent" : false,
+      "bCastShadows" : true,
+      "bGenerateOverlapEvents" : true,
+      "bHiddenInGame" : false,
+      "bIsActive" : true,
+      "bIsVisible" : true,
+      "bOverrideCollisionSetting" : false,
+      "bTickEnabled" : true
+    }, {
+      "ObjectName" : "UCharacterMovementComponent_1",
+      "Type" : "UCharacterMovementComponent",
+      "bHiddenInGame" : false,
+      "bIsActive" : true,
+      "bTickEnabled" : true
+    }, {
+      "CapsuleHalfHeight" : 1.000000,
+      "CapsuleRadius" : 0.300000,
+      "CollisionEnabled_Internal" : 0,
+      "Id" : 6914,
+      "ObjectName" : "UCapsuleComponent_1",
+      "ParentId" : 0,
+      "RelativeLocation" : [2.940687, 0.010009, 1.331819],
+      "RelativeRotationEuler" : [0.000000, -0.000000, 0.000000],
+      "RelativeScale" : [1.000000, 1.000000, 1.000000],
+      "Type" : "UCapsuleComponent",
+      "bBlockComponent" : false,
+      "bGenerateOverlapEvents" : true,
+      "bHiddenInGame" : false,
+      "bIsActive" : true,
+      "bIsVisible" : true,
+      "bOverrideCollisionSetting" : false,
+      "bRegisterToPhysX" : false,
+      "bShapeHiddenInGame" : false,
+      "bShapeIsVisible" : true,
+      "bTickEnabled" : true
+    }, {
+      "CollisionEnabled_Internal" : 2,
+      "Id" : 6915,
+      "ObjectName" : "UParticleSystemComponent_4",
+      "ParentId" : 6841,
+      "RelativeLocation" : [0.000000, 0.000000, 1.383443],
+      "RelativeRotationEuler" : [0.000000, -0.000000, 0.000000],
+      "RelativeScale" : [1.000000, 1.000000, 1.000000],
+      "Template" : "Data/Particle/G_SwordRibbon.particle",
+      "Type" : "UParticleSystemComponent",
+      "bAutoActivate" : true,
+      "bAutoDestroy" : false,
+      "bBlockComponent" : false,
+      "bGenerateOverlapEvents" : true,
+      "bHiddenInGame" : false,
+      "bIsActive" : true,
+      "bIsVisible" : true,
+      "bOverrideCollisionSetting" : false,
+      "bTickEnabled" : true,
+      "bUseAsyncSimulation" : true,
+      "bUseGpuInstancing" : false
+    }, {
+      "CollisionEnabled_Internal" : 2,
+      "Id" : 6916,
+      "ObjectName" : "UParticleSystemComponent_5",
+      "ParentId" : 6841,
+      "RelativeLocation" : [0.000000, 0.418406, 1.383000],
+      "RelativeRotationEuler" : [0.000000, -0.000000, 0.000000],
+      "RelativeScale" : [1.000000, 1.000000, 1.000000],
+      "Template" : "Data/Particle/G_SwordRibbon2.particle",
+      "Type" : "UParticleSystemComponent",
+      "bAutoActivate" : true,
+      "bAutoDestroy" : false,
+      "bBlockComponent" : false,
+      "bGenerateOverlapEvents" : true,
+      "bHiddenInGame" : false,
+      "bIsActive" : true,
+      "bIsVisible" : true,
+      "bOverrideCollisionSetting" : false,
+      "bTickEnabled" : true,
+      "bUseAsyncSimulation" : true,
+      "bUseGpuInstancing" : false
+    }],
+  "RootComponentId" : 6914,
+  "Tag" : "",
+  "Type" : "ACharacter",
+  "WeaponBoneName" : "hand_r",
+  "WeaponOffset" : [0.000000, 0.000000, 0.000000],
+  "WeaponRotationOffset" : [0.000000, 0.000000, 0.000000],
+  "bActorHiddenInGame" : false,
+  "bActorIsActive" : true
+}
