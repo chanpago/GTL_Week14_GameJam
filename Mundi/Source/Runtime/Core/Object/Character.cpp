@@ -7,6 +7,8 @@
 #include "ObjectMacros.h"
 #include "StaticMeshActor.h"
 #include "World.h" 
+#include "ParticleSystemComponent.h"
+
 ACharacter::ACharacter()
 {
 	CapsuleComponent = CreateDefaultSubobject<UCapsuleComponent>("CapsuleComponent");
@@ -34,6 +36,15 @@ ACharacter::ACharacter()
         WeaponCollider->CapsuleRadius = 0.1f;      // 반지름 10cm
         WeaponCollider->CapsuleHalfHeight = 0.5f;  // 반높이 50cm
         WeaponCollider->SetGenerateOverlapEvents(false);  // 기본 비활성화
+    }
+
+    WeaponRibbonComponent = CreateDefaultSubobject<UParticleSystemComponent>("WeaponRibbonComponent");
+    if (WeaponRibbonComponent)
+    {
+        WeaponRibbonComponent->SetupAttachment(WeaponMeshComp ? WeaponMeshComp : SkeletalMeshComp);
+        WeaponRibbonComponent->bAutoActivate = false;
+        WeaponRibbonComponent->DeactivateSystem();
+        WeaponRibbonComponent->SetActive(false);
     }
 	 
 
@@ -83,6 +94,7 @@ void ACharacter::Serialize(const bool bInIsLoading, JSON& InOutHandle)
         WeaponCollider = nullptr;
         SubWeaponMeshComp = nullptr;
         SkeletalMeshComp = nullptr;
+        WeaponRibbonComponent = nullptr;
 
         for (UActorComponent* Comp : GetOwnedComponents())
         {
@@ -119,6 +131,14 @@ void ACharacter::Serialize(const bool bInIsLoading, JSON& InOutHandle)
                     WeaponMeshComp = StaticMesh;
                 }
             }
+            else if (auto* ParticleComp = Cast<UParticleSystemComponent>(Comp))
+            {
+                FString CompName = ParticleComp->GetName();
+                if (CompName.find("WeaponRibbon") != FString::npos)
+                {
+                    WeaponRibbonComponent = ParticleComp;
+                }
+            }
         }
 
         if (CharacterMovement)
@@ -126,6 +146,18 @@ void ACharacter::Serialize(const bool bInIsLoading, JSON& InOutHandle)
             USceneComponent* Updated = CapsuleComponent ? reinterpret_cast<USceneComponent*>(CapsuleComponent)
                                                         : GetRootComponent();
             CharacterMovement->SetUpdatedComponent(Updated);
+        }
+
+        if (WeaponRibbonComponent)
+        {
+            if (WeaponMeshComp)
+            {
+                WeaponRibbonComponent->SetupAttachment(WeaponMeshComp);
+            }
+            else if (SkeletalMeshComp)
+            {
+                WeaponRibbonComponent->SetupAttachment(SkeletalMeshComp);
+            }
         }
     }
 }
@@ -140,6 +172,7 @@ void ACharacter::DuplicateSubObjects()
     WeaponCollider = nullptr;
     SubWeaponMeshComp = nullptr;
     SkeletalMeshComp = nullptr;
+    WeaponRibbonComponent = nullptr;
 
     for (UActorComponent* Comp : GetOwnedComponents())
     {
@@ -176,6 +209,14 @@ void ACharacter::DuplicateSubObjects()
                 WeaponMeshComp = StaticMesh;
             }
         }
+        else if (auto* ParticleComp = Cast<UParticleSystemComponent>(Comp))
+        {
+            FString CompName = ParticleComp->GetName();
+            if (CompName.find("WeaponRibbon") != FString::npos)
+            {
+                WeaponRibbonComponent = ParticleComp;
+            }
+        }
     }
 
     // Ensure movement component tracks the correct updated component
@@ -185,7 +226,56 @@ void ACharacter::DuplicateSubObjects()
                                                     : GetRootComponent();
         CharacterMovement->SetUpdatedComponent(Updated);
     }
+
+    if (WeaponRibbonComponent)
+    {
+        if (WeaponMeshComp)
+        {
+            WeaponRibbonComponent->SetupAttachment(WeaponMeshComp);
+        }
+        else if (SkeletalMeshComp)
+        {
+            WeaponRibbonComponent->SetupAttachment(SkeletalMeshComp);
+        }
+    }
 }
+
+
+void ACharacter::SetWeaponRibbonTemplate(UParticleSystem* Template)
+{
+    if (!WeaponRibbonComponent)
+    {
+        return;
+    }
+
+    WeaponRibbonComponent->SetTemplate(Template);
+
+    if (!Template)
+    {
+        WeaponRibbonComponent->DeactivateSystem();
+        WeaponRibbonComponent->SetActive(false);
+    }
+}
+
+void ACharacter::SetWeaponRibbonActive(bool bActive)
+{
+    if (!WeaponRibbonComponent)
+    {
+        return;
+    }
+
+    if (bActive)
+    {
+        WeaponRibbonComponent->ActivateSystem();
+        WeaponRibbonComponent->SetActive(true);
+    }
+    else
+    {
+        WeaponRibbonComponent->DeactivateSystem();
+        WeaponRibbonComponent->SetActive(false);
+    }
+}
+
 
 void ACharacter::Jump()
 {

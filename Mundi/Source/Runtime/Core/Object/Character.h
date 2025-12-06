@@ -5,6 +5,8 @@
 class UCapsuleComponent;
 class USkeletalMeshComponent;
 class UCharacterMovementComponent;
+class UParticleSystemComponent;
+class UParticleSystem;
  
 UCLASS(DisplayName = "캐릭터", Description = "캐릭터 액터")
 class ACharacter : public APawn
@@ -43,7 +45,16 @@ public:
 	/** 무기 충돌 컴포넌트 (칼날 히트박스) */
 	UCapsuleComponent* WeaponCollider = nullptr;
 
-	
+	/** 무기 리본 파티클 (무기 메시에 부착되는 상시 컴포넌트) */
+	UParticleSystemComponent* WeaponRibbonComponent = nullptr;
+
+	/** 리본 컴포넌트를 가져오기 위한 헬퍼 */
+	UParticleSystemComponent* GetWeaponRibbonComponent() const { return WeaponRibbonComponent; }
+
+	/** 파티클 템플릿 및 활성화 상태를 제어하는 베이스 함수 */
+	void SetWeaponRibbonTemplate(UParticleSystem* Template);
+	void SetWeaponRibbonActive(bool bActive);
+
 	/** 무기가 부착될 본 이름 */
 	UPROPERTY(EditAnywhere, Category = "Weapon")
 	FString WeaponBoneName = "hand_r";

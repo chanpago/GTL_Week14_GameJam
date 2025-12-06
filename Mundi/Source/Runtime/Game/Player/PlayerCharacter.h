@@ -9,6 +9,7 @@ class UHitboxComponent;
 class USpringArmComponent;
 class UCameraComponent;
 class UAnimMontage;
+class UParticleSystem;
 
 // ============================================================================
 // APlayerCharacter - 플레이어 캐릭터 예시
@@ -200,4 +201,41 @@ protected:
 
     UPROPERTY(EditAnywhere, Category = "Movement")
     float RotationSpeed = 10.f;
+
+    // ========== Weapon Ribbon Effect ==========
+    UPROPERTY(EditAnywhere, Category = "Weapon|Effects", Tooltip = "무기 리본 파티클 시스템을 사용할지 여부")
+    bool bEnableWeaponRibbonEffect = false;
+
+    UPROPERTY(EditAnywhere, Category = "Weapon|Effects", Tooltip = "ResourceManager에 등록된 파티클 자산 경로")
+    FString WeaponRibbonParticlePath;
+
+    UPROPERTY(EditAnywhere, Category = "Weapon|Effects")
+    bool bRibbonActiveInIdle = false;
+
+    UPROPERTY(EditAnywhere, Category = "Weapon|Effects")
+    bool bRibbonActiveInAttacking = true;
+
+    UPROPERTY(EditAnywhere, Category = "Weapon|Effects")
+    bool bRibbonActiveInDodging = false;
+
+    UPROPERTY(EditAnywhere, Category = "Weapon|Effects")
+    bool bRibbonActiveInBlocking = false;
+
+    UPROPERTY(EditAnywhere, Category = "Weapon|Effects")
+    bool bRibbonActiveInParrying = false;
+
+    UPROPERTY(EditAnywhere, Category = "Weapon|Effects")
+    bool bRibbonActiveInStaggered = false;
+
+    UPROPERTY(EditAnywhere, Category = "Weapon|Effects")
+    bool bRibbonActiveInKnockback = false;
+
+    UPROPERTY(EditAnywhere, Category = "Weapon|Effects")
+    bool bRibbonActiveInDead = false;
+
+    UParticleSystem* WeaponRibbonTemplate = nullptr;
+
+    void InitializeWeaponRibbonEffect();
+    void UpdateWeaponRibbonActivation();
+    bool ShouldWeaponRibbonBeActive(ECombatState State) const;
 };

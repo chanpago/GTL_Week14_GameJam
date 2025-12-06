@@ -14,6 +14,8 @@
 #include "Source/Runtime/Engine/Animation/AnimInstance.h"
 #include "Source/Runtime/Engine/Animation/AnimSequence.h"
 #include "Source/Runtime/AssetManagement/ResourceManager.h"
+#include "ParticleSystemComponent.h"
+#include "Source/Runtime/Engine/Particle/ParticleSystem.h"
 
 
 
@@ -90,6 +92,7 @@ void APlayerCharacter::BeginPlay()
             }
         }
     }
+    InitializeWeaponRibbonEffect();
 }
 
 void APlayerCharacter::Tick(float DeltaSeconds)
@@ -493,6 +496,8 @@ void APlayerCharacter::SetCombatState(ECombatState NewState)
         //HitboxComponent->DisableHitbox();
         //HitboxComponent->ClearHitActors();
     }
+
+    UpdateWeaponRibbonActivation();
 }
 
 void APlayerCharacter::UpdateParryWindow(float DeltaTime)
@@ -626,5 +631,86 @@ void APlayerCharacter::UpdateDodgeState(float DeltaTime)
                 UE_LOG("[PlayerCharacter] Dodge finished, returning to Idle");
             }
         }
+    }
+}
+
+
+void APlayerCharacter::InitializeWeaponRibbonEffect()
+{
+    if (!WeaponRibbonComponent)
+    {
+        return;
+    }
+
+    if (!bEnableWeaponRibbonEffect)
+    {
+        WeaponRibbonComponent->DeactivateSystem();
+        WeaponRibbonComponent->SetActive(false);
+        return;
+    }
+
+    WeaponRibbonTemplate = nullptr;
+    if (!WeaponRibbonParticlePath.empty())
+    {
+        WeaponRibbonTemplate = UResourceManager::GetInstance().Get<UParticleSystem>(WeaponRibbonParticlePath);
+        if (!WeaponRibbonTemplate)
+        {
+            UE_LOG("[PlayerCharacter] Failed to load weapon ribbon particle: %s", WeaponRibbonParticlePath.c_str());
+        }
+    }
+
+    WeaponRibbonComponent->SetTemplate(WeaponRibbonTemplate);
+    WeaponRibbonComponent->DeactivateSystem();
+    WeaponRibbonComponent->SetActive(false);
+
+    UpdateWeaponRibbonActivation();
+}
+
+void APlayerCharacter::UpdateWeaponRibbonActivation()
+{
+    if (!WeaponRibbonComponent)
+    {
+        return;
+    }
+
+    const bool bHasTemplate = (WeaponRibbonComponent->GetTemplate() != nullptr);
+    if (!bEnableWeaponRibbonEffect || !bHasTemplate)
+    {
+        WeaponRibbonComponent->DeactivateSystem();
+        WeaponRibbonComponent->SetActive(false);
+        return;
+    }
+
+    const bool bShouldEnable = ShouldWeaponRibbonBeActive(CombatState);
+    if (bShouldEnable)
+    {
+        WeaponRibbonComponent->ActivateSystem();
+        WeaponRibbonComponent->SetActive(true);
+    }
+    else
+    {
+        WeaponRibbonComponent->DeactivateSystem();
+        WeaponRibbonComponent->SetActive(false);
+    }
+}
+
+bool APlayerCharacter::ShouldWeaponRibbonBeActive(ECombatState State) const
+{
+    if (!bEnableWeaponRibbonEffect)
+    {
+        return false;
+    }
+
+    switch (State)
+    {
+    case ECombatState::Idle: return bRibbonActiveInIdle;
+    case ECombatState::Attacking: return bRibbonActiveInAttacking;
+    case ECombatState::Dodging: return bRibbonActiveInDodging;
+    case ECombatState::Blocking: return bRibbonActiveInBlocking;
+    case ECombatState::Parrying: return bRibbonActiveInParrying;
+    case ECombatState::Staggered: return bRibbonActiveInStaggered;
+    case ECombatState::Knockback: return bRibbonActiveInKnockback;
+    case ECombatState::Dead: return bRibbonActiveInDead;
+    default: return false;
     }
 }
