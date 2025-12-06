@@ -3,6 +3,11 @@
 
 IMPLEMENT_CLASS(UCamMod_Bloom);
 
+void UCamMod_Bloom::Serialize(const bool bIsLoading, JSON& InOutHandle)
+{
+	Super::Serialize(bIsLoading, InOutHandle);
+}
+
 void UCamMod_Bloom::CollectPostProcess(TArray<FPostProcessModifier>& Out)
 {
     if (!bEnabled)

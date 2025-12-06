@@ -51,7 +51,6 @@ private:
     // viewer를 닫을 때 자동으로 Notifies 정보 저장
     void SaveAllNotifiesOnClose();
 
-
 private:
 
     // Per-tab state
@@ -138,6 +137,9 @@ private:
     void DrawAnimationPanel(ViewerState* State);
 
     void DrawAssetBrowserPanel(ViewerState* State);
+
+    void PreviewParticleNotify(ViewerState* State, int32 NotifyIndex);
+    void StopParticlePreview(ViewerState* State);
 
     static constexpr float IconSize = 20.0f;
 

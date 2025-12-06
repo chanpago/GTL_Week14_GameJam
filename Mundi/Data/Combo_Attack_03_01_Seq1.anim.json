@@ -1,0 +1,20 @@
+{
+  "Notifies" : [{
+      "Class" : "UAnimNotify_PlayParticle",
+      "Data" : {
+        "AttachBone" : "Invalid",
+        "AttachToOwner" : true,
+        "LifeTime" : 1.000000,
+        "LocationOffset" : [0.000000, 0.200000, 0.200000],
+        "ParticlePath" : "Data/Particle/G_Spark1.particle",
+        "RotationOffset" : [0.000000, 0.000000, 0.000000],
+        "ScaleOffset" : [1.000000, 1.000000, 1.000000]
+      },
+      "Duration" : 0.000000,
+      "Kind" : "Single",
+      "NotifyName" : "PlayParticle: G_Spark1.particle",
+      "TriggerTime" : 0.107204
+    }],
+  "Type" : "AnimSequenceMeta",
+  "Version" : 1
+}

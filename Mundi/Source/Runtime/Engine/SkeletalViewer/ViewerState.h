@@ -13,6 +13,7 @@ class UAnimSequence;
 class USkeletalMesh;
 class UWorld;
 class UPhysicsAsset;
+class UParticleSystemComponent;
 
 class ViewerState
 {
@@ -87,6 +88,9 @@ public:
 	bool bShowConstraintLines = true;
 	bool bShowConstraintLimits = true;
 
+	// Particle preview state
+	UParticleSystemComponent* PreviewParticleComponent = nullptr;
+	int32 PreviewParticleNotifyIndex = -1;
 	// ======== 래그돌 시뮬레이션 관련 ==========
 	bool bSimulatePhysics = false;  // 물리 시뮬레이션 활성화 여부 (래그돌 토글)
 };
