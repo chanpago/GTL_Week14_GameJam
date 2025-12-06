@@ -38,6 +38,10 @@ BEGIN_PROPERTIES(ABossEnemy)
     ADD_PROPERTY(int32, CurrentPhase, "Boss", true)
     ADD_PROPERTY(int32, MaxPhase, "Boss", true)
     ADD_PROPERTY(float, Phase2HealthThreshold, "Boss", true, "페이즈 2 진입 HP 비율")
+    ADD_PROPERTY(UAnimMontage*, LightComboMontage, "Animation", true)
+    ADD_PROPERTY(UAnimMontage*, HeavySlamMontage, "Animation", true)
+    ADD_PROPERTY(UAnimMontage*, ChargeAttackMontage, "Animation", true)
+    ADD_PROPERTY(UAnimMontage*, SpinAttackMontage, "Animation", true)
 END_PROPERTIES()
 
 // ===== Lua Binding =====
