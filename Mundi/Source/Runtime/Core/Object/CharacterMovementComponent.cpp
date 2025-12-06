@@ -10,12 +10,17 @@
 UCharacterMovementComponent::UCharacterMovementComponent()
 {
 	// 캐릭터 전용 설정 값
- 	MaxWalkSpeed = 3.0f;
+	DefaultWalkSpeed = 3.0f;
+	SprintWalkSpeed = 6.0f;
+	MaxWalkSpeed = DefaultWalkSpeed;
+	TargetWalkSpeed = DefaultWalkSpeed;
+	SpeedInterpRate = 10.0f; // 보간 속도 (초당)
+
 	MaxAcceleration = 20.0f;
 	JumpZVelocity = 4.0;
 
 	BrackingDeceleration = 20.0f; // 입력이 없을 때 감속도
-	GroundFriction = 8.0f; //바닥 마찰 계수 
+	GroundFriction = 8.0f; //바닥 마찰 계수
 }
 
 UCharacterMovementComponent::~UCharacterMovementComponent()
@@ -34,6 +39,20 @@ void UCharacterMovementComponent::TickComponent(float DeltaSeconds)
 	//Super::TickComponent(DeltaSeconds);
 
 	if (!UpdatedComponent || !CharacterOwner) return;
+
+	// 속도 보간 (Linear Interpolation)
+	if (MaxWalkSpeed != TargetWalkSpeed)
+	{
+		float InterpAmount = SpeedInterpRate * DeltaSeconds;
+		if (MaxWalkSpeed < TargetWalkSpeed)
+		{
+			MaxWalkSpeed = FMath::Min(MaxWalkSpeed + InterpAmount, TargetWalkSpeed);
+		}
+		else
+		{
+			MaxWalkSpeed = FMath::Max(MaxWalkSpeed - InterpAmount, TargetWalkSpeed);
+		}
+	}
 
 	// 입력 소비 및 정규화
 	FVector FrameInputVector = CharacterOwner->ConsumeMovementInputVector();
@@ -72,6 +91,11 @@ void UCharacterMovementComponent::StopJump()
 	//{
 	//	Velocity.Z *= 0.5f;
 	//}
+}
+
+void UCharacterMovementComponent::SetSprinting(bool bSprint)
+{
+	TargetWalkSpeed = bSprint ? SprintWalkSpeed : DefaultWalkSpeed;
 }
 
 void UCharacterMovementComponent::PhysWalking(float DeltaSecond, const FVector& InputVector)

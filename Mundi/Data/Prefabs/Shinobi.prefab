@@ -9,7 +9,7 @@
       "CapsuleHalfHeight" : 0.900000,
       "CapsuleRadius" : 0.300000,
       "CollisionEnabled_Internal" : 2,
-      "Id" : 6762,
+      "Id" : 6813,
       "ObjectName" : "UCapsuleComponent_1",
       "ParentId" : 0,
       "RelativeLocation" : [-2.962979, -4.691790, 6.815227],
@@ -27,9 +27,29 @@
       "bShapeIsVisible" : true,
       "bTickEnabled" : true
     }, {
+      "BoxExtent" : [0.000000, 0.000000, 0.000000],
+      "CollisionEnabled_Internal" : 2,
+      "Id" : 6878,
+      "ObjectName" : "UHitboxComponent_1",
+      "ParentId" : 0,
+      "RelativeLocation" : [0.000000, 0.000000, 0.000000],
+      "RelativeRotationEuler" : [0.000000, 0.000000, 0.000000],
+      "RelativeScale" : [1.000000, 1.000000, 1.000000],
+      "Type" : "UHitboxComponent",
+      "bBlockComponent" : false,
+      "bDrawDebug" : false,
+      "bGenerateOverlapEvents" : true,
+      "bHiddenInGame" : false,
+      "bIsActive" : true,
+      "bIsVisible" : true,
+      "bOverrideCollisionSetting" : false,
+      "bShapeHiddenInGame" : true,
+      "bShapeIsVisible" : true,
+      "bTickEnabled" : true
+    }, {
       "AnimGraphPath" : "Data/Graphs/Shinobi.graph",
       "CollisionEnabled_Internal" : 2,
-      "Id" : 6763,
+      "Id" : 6814,
       "MaterialSlots" : [{
           "Type" : "None"
         }, {
@@ -186,7 +206,7 @@
           "Type" : "UMaterialInstanceDynamic"
         }],
       "ObjectName" : "USkeletalMeshComponent_3",
-      "ParentId" : 6762,
+      "ParentId" : 6813,
       "PhysicsAssetOverridePath" : "Data/Physics/Shinobi.phys",
       "RelativeLocation" : [0.000000, 0.000000, -0.900000],
       "RelativeRotationEuler" : [0.000000, -0.000000, 0.000000],
@@ -224,29 +244,9 @@
       "bHiddenInGame" : false,
       "bIsActive" : true,
       "bTickEnabled" : true
-    }, {
-      "BoxExtent" : [0.000000, 0.000000, 0.000000],
-      "CollisionEnabled_Internal" : 2,
-      "Id" : 6827,
-      "ObjectName" : "UHitboxComponent_1",
-      "ParentId" : 0,
-      "RelativeLocation" : [0.000000, 0.000000, 0.000000],
-      "RelativeRotationEuler" : [0.000000, 0.000000, 0.000000],
-      "RelativeScale" : [1.000000, 1.000000, 1.000000],
-      "Type" : "UHitboxComponent",
-      "bBlockComponent" : false,
-      "bDrawDebug" : false,
-      "bGenerateOverlapEvents" : true,
-      "bHiddenInGame" : false,
-      "bIsActive" : false,
-      "bIsVisible" : true,
-      "bOverrideCollisionSetting" : false,
-      "bShapeHiddenInGame" : true,
-      "bShapeIsVisible" : true,
-      "bTickEnabled" : true
     }],
   "ParryWindowDuration" : 0.200000,
-  "RootComponentId" : 6762,
+  "RootComponentId" : 6813,
   "RotationSpeed" : 10.000000,
   "Tag" : "",
   "Type" : "APlayerCharacter",
@@ -257,6 +257,6 @@
   "bActorIsActive" : true,
   "bEnableAttackRootMotion" : true,
   "bIsBlocking" : false,
-  "bIsInvincible" : true,
+  "bIsInvincible" : false,
   "bIsParrying" : false
 }

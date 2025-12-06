@@ -6,6 +6,7 @@
 #include <windows.h>
 #include <cmath>
 #include "Character.h"
+#include "CharacterMovementComponent.h"
 
 APlayerController::APlayerController()
 {
@@ -64,8 +65,8 @@ void APlayerController::ProcessMovementInput(float DeltaTime)
 	// InputManager 사용
 	UInputManager& InputManager = UInputManager::GetInstance();
 
-	// Ctrl 키로 Lock-on 토글
-	if (InputManager.IsKeyPressed(VK_CONTROL))
+	// 마우스 휠 버튼으로 Lock-on 토글
+	if (InputManager.IsMouseButtonPressed(MiddleButton))
 	{
 		bIsLockOn = !bIsLockOn;
 		if (bIsLockOn)
@@ -138,6 +139,13 @@ void APlayerController::ProcessMovementInput(float DeltaTime)
     if (InputManager.IsKeyReleased(VK_SPACE)) {         // 뗀 순간 1회 (있다면)
         if (auto* Character = Cast<ACharacter>(Pawn)) {
             Character->StopJumping();
+        }
+    }
+
+    // Shift 키로 달리기 (속도 변경)
+    if (auto* Character = Cast<ACharacter>(Pawn)) {
+        if (UCharacterMovementComponent* Movement = Character->GetCharacterMovement()) {
+            Movement->SetSprinting(InputManager.IsKeyDown(VK_SHIFT));
         }
     }
 }

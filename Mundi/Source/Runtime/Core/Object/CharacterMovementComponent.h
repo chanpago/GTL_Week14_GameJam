@@ -20,20 +20,29 @@ public:
 	// 캐릭터 전용 설정 값
 	float MaxWalkSpeed;
 	float MaxAcceleration;
-	float JumpZVelocity; 
+	float JumpZVelocity;
 
 	float BrackingDeceleration; // 입력이 없을 때 감속도
-	float GroundFriction; //바닥 마찰 계수 
+	float GroundFriction; //바닥 마찰 계수
+
+	// 속도 보간 관련
+	float TargetWalkSpeed;      // 목표 속도
+	float DefaultWalkSpeed;     // 기본 속도 (3.0f)
+	float SprintWalkSpeed;      // 달리기 속도 (6.0f)
+	float SpeedInterpRate;      // 보간 속도 (초당) 
 
 	//TODO
 	//float MaxWalkSpeedCrouched = 6.0f;
 	//float MaxSwimSpeed;
 	//float MaxFlySpeed;
 
-	// 상태 제어 
+	// 상태 제어
 	void DoJump();
 	void StopJump();
 	bool IsFalling() const { return bIsFalling; }
+
+	// 달리기 상태 설정
+	void SetSprinting(bool bSprint);
 
 protected:
 	void PhysWalking(float DeltaSecond, const FVector& InputVector);
