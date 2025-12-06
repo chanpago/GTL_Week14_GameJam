@@ -23,8 +23,8 @@ APlayerCharacter::APlayerCharacter()
     StatsComponent = CreateDefaultSubobject<UStatsComponent>("StatsComponent");
 
     // 히트박스 컴포넌트 (무기에 붙일 수도 있음)
-    HitboxComponent = CreateDefaultSubobject<UHitboxComponent>("HitboxComponent");
-    HitboxComponent->SetBoxExtent(FVector(50.f, 50.f, 50.f));
+    //HitboxComponent = CreateDefaultSubobject<UHitboxComponent>("HitboxComponent");
+    //HitboxComponent->SetBoxExtent(FVector(50.f, 50.f, 50.f));
 
     // 스프링암 + 카메라 (필요시)
     // SpringArm = CreateDefaultSubobject<USpringArmComponent>("SpringArm");
@@ -175,6 +175,7 @@ void APlayerCharacter::ProcessCombatInput()
     // 마우스 좌클릭 - 약공격
     if (INPUT.IsMouseButtonPressed(LeftButton))
     {
+        UE_LOG("[PlayerCharacter] ProcessCombatInput - Left click detected, calling LightAttack()");
         LightAttack();
     }
 
@@ -188,11 +189,7 @@ void APlayerCharacter::ProcessCombatInput()
         StopBlock();
     }
 
-    // 스페이스 - 회피
-    if (INPUT.IsKeyPressed(VK_SPACE))
-    {
-        Dodge();
-    }
+    // 스페이스 - 회피는 PlayerController에서 처리
 
     // Shift + 좌클릭 - 강공격
     if (INPUT.IsKeyDown(VK_SHIFT) && INPUT.IsMouseButtonPressed(LeftButton))
@@ -207,21 +204,29 @@ void APlayerCharacter::ProcessCombatInput()
 
 void APlayerCharacter::LightAttack()
 {
+    UE_LOG("[PlayerCharacter] LightAttack() called - CombatState: %d, bCanCombo: %s",
+           static_cast<int>(CombatState), bCanCombo ? "true" : "false");
+
     // 상태 체크
     if (CombatState == ECombatState::Attacking && !bCanCombo)
     {
+        UE_LOG("[PlayerCharacter] LightAttack() blocked - already attacking, no combo");
         return;
     }
     if (CombatState == ECombatState::Staggered || CombatState == ECombatState::Dead)
     {
+        UE_LOG("[PlayerCharacter] LightAttack() blocked - staggered or dead");
         return;
     }
 
     // 스태미나 체크
     if (!StatsComponent->ConsumeStamina(StatsComponent->LightAttackCost))
     {
+        UE_LOG("[PlayerCharacter] LightAttack() blocked - not enough stamina");
         return; // 스태미나 부족
     }
+
+    UE_LOG("[PlayerCharacter] LightAttack() executing - playing montage");
 
     // 가드 해제
     StopBlock();
@@ -238,9 +243,9 @@ void APlayerCharacter::LightAttack()
         ComboCount = 0;
     }
 
-    // 히트박스 활성화
-    FDamageInfo DamageInfo(this, 10.f + ComboCount * 5.f, EDamageType::Light);
-    HitboxComponent->EnableHitbox(DamageInfo);
+    // 히트박스 활성화 (임시 주석처리)
+    // FDamageInfo DamageInfo(this, 10.f + ComboCount * 5.f, EDamageType::Light);
+    // HitboxComponent->EnableHitbox(DamageInfo);
 
     // 공격 애니메이션 재생 (몽타주)
     if (LightAttackMontage)
@@ -284,7 +289,7 @@ void APlayerCharacter::HeavyAttack()
     FDamageInfo DamageInfo(this, 30.f, EDamageType::Heavy);
     DamageInfo.HitReaction = EHitReaction::Stagger;
     DamageInfo.StaggerDuration = 0.5f;
-    HitboxComponent->EnableHitbox(DamageInfo);
+    //HitboxComponent->EnableHitbox(DamageInfo);
 
     // TODO: 강공격 애니메이션 재생
 }
@@ -445,7 +450,7 @@ void APlayerCharacter::OnHitReaction(EHitReaction Reaction, const FDamageInfo& D
     }
 
     // 현재 공격/회피 중단
-    HitboxComponent->DisableHitbox();
+    //HitboxComponent->DisableHitbox();
     bIsInvincible = false;
 
     SetCombatState(ECombatState::Staggered);
@@ -465,7 +470,7 @@ void APlayerCharacter::OnHitReaction(EHitReaction Reaction, const FDamageInfo& D
 void APlayerCharacter::OnDeath()
 {
     SetCombatState(ECombatState::Dead);
-    HitboxComponent->DisableHitbox();
+    //HitboxComponent->DisableHitbox();
 
     // TODO: 사망 애니메이션/래그돌
 }
@@ -482,8 +487,8 @@ void APlayerCharacter::SetCombatState(ECombatState NewState)
     // 상태 변경 시 처리
     if (OldState == ECombatState::Attacking && NewState != ECombatState::Attacking)
     {
-        HitboxComponent->DisableHitbox();
-        HitboxComponent->ClearHitActors();
+        //HitboxComponent->DisableHitbox();
+        //HitboxComponent->ClearHitActors();
     }
 }
 

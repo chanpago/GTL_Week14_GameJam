@@ -89,10 +89,10 @@ public:
     // 스태미나 비용 (밸런싱용)
     // ========================================================================
     UPROPERTY(EditAnywhere, Category = "Stamina Cost")
-    float DodgeCost = 25.f;
+    float DodgeCost = 0.0f;
 
     UPROPERTY(EditAnywhere, Category = "Stamina Cost")
-    float LightAttackCost = 15.f;
+    float LightAttackCost = 0.0f;
 
     UPROPERTY(EditAnywhere, Category = "Stamina Cost")
     float HeavyAttackCost = 30.f;

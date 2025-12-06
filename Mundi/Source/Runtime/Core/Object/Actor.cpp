@@ -67,7 +67,11 @@ void AActor::BeginPlay()
 void AActor::Tick(float DeltaSeconds)
 {
 	bool bIsEditor = World->bPie == false;
-	for (UActorComponent* Comp : OwnedComponents)
+
+	// 복사본으로 순회 (Tick 중 컴포넌트 추가/삭제 시 이터레이터 무효화 방지)
+	TArray<UActorComponent*> ComponentsCopy(OwnedComponents.begin(), OwnedComponents.end());
+
+	for (UActorComponent* Comp : ComponentsCopy)
 	{
 		if (!Comp || !Comp->IsComponentTickEnabled()) continue;
 
@@ -76,7 +80,7 @@ void AActor::Tick(float DeltaSeconds)
 			// 컴포넌트 에디터 틱 껐으면 스킵
 			if (!Comp->bTickInEditor)
 			{
-				continue; 
+				continue;
 			}
 		}
 

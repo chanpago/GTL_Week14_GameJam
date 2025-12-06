@@ -1,6 +1,6 @@
 {
   "Actors" : {
-    "6332" : {
+    "6852" : {
       "ObjectName" : "스태틱 메시_0",
       "OwnedComponents" : [{
           "AngularDampingOverride" : 0.050000,
@@ -12,7 +12,7 @@
           "CollisionRotation" : [0.000000, 0.000000, 0.000000],
           "CollisionType" : 1,
           "FrictionCombineModeOverride" : 2,
-          "Id" : 6334,
+          "Id" : 6854,
           "LinearDampingOverride" : 0.010000,
           "MassOverride" : 10.000000,
           "MaterialSlots" : [{
@@ -40,13 +40,13 @@
           "bSimulatePhysics" : false,
           "bTickEnabled" : true
         }],
-      "RootComponentId" : 6334,
+      "RootComponentId" : 6854,
       "Tag" : "",
       "Type" : "AStaticMeshActor",
       "bActorHiddenInGame" : false,
       "bActorIsActive" : true
     },
-    "6337" : {
+    "6857" : {
       "ObjectName" : "ADirectionalLightActor_1",
       "OwnedComponents" : [{
           "CascadedAreaColorDebugValue" : 0.000000,
@@ -54,7 +54,7 @@
           "CascadedCount" : 8,
           "CascadedLinearBlendingValue" : 0.000000,
           "CascadedOverlapValue" : 0.000000,
-          "Id" : 6339,
+          "Id" : 6859,
           "Intensity" : 1.000000,
           "LightColor" : [1.000000, 1.000000, 1.000000, 1.000000],
           "ObjectName" : "UDirectionalLightComponent_1",
@@ -75,16 +75,16 @@
           "bIsVisible" : true,
           "bTickEnabled" : true
         }],
-      "RootComponentId" : 6339,
+      "RootComponentId" : 6859,
       "Tag" : "",
       "Type" : "ADirectionalLightActor",
       "bActorHiddenInGame" : false,
       "bActorIsActive" : true
     },
-    "6340" : {
+    "6860" : {
       "ObjectName" : "AAmbientLightActor_1",
       "OwnedComponents" : [{
-          "Id" : 6342,
+          "Id" : 6862,
           "Intensity" : 0.100000,
           "LightColor" : [1.000000, 1.000000, 1.000000, 1.000000],
           "ObjectName" : "UAmbientLightComponent_1",
@@ -104,16 +104,16 @@
           "bIsVisible" : true,
           "bTickEnabled" : true
         }],
-      "RootComponentId" : 6342,
+      "RootComponentId" : 6862,
       "Tag" : "",
       "Type" : "AAmbientLightActor",
       "bActorHiddenInGame" : false,
       "bActorIsActive" : true
     },
-    "6343" : {
+    "6863" : {
       "ObjectName" : "APlayerCameraManager_1",
       "OwnedComponents" : [{
-          "Id" : 6344,
+          "Id" : 6864,
           "ObjectName" : "USceneComponent_1",
           "ParentId" : 0,
           "RelativeLocation" : [0.000000, 0.000000, 0.000000],
@@ -125,18 +125,18 @@
           "bIsVisible" : true,
           "bTickEnabled" : true
         }],
-      "RootComponentId" : 6344,
+      "RootComponentId" : 6864,
       "Tag" : "",
       "Type" : "APlayerCameraManager",
       "bActorHiddenInGame" : false,
       "bActorIsActive" : true
     },
-    "6345" : {
+    "6865" : {
       "ObjectName" : "포인트 라이트_0",
       "OwnedComponents" : [{
           "AttenuationRadius" : 10.900000,
           "FalloffExponent" : 2.000000,
-          "Id" : 6347,
+          "Id" : 6867,
           "Intensity" : 1.000000,
           "LightColor" : [1.000000, 1.000000, 1.000000, 1.000000],
           "ObjectName" : "UPointLightComponent_2",
@@ -159,13 +159,13 @@
           "bTickEnabled" : true,
           "bUseInverseSquareFalloff" : true
         }],
-      "RootComponentId" : 6347,
+      "RootComponentId" : 6867,
       "Tag" : "",
       "Type" : "APointLightActor",
       "bActorHiddenInGame" : false,
       "bActorIsActive" : true
     },
-    "6348" : {
+    "6868" : {
       "ObjectName" : "스태틱 메시_0",
       "OwnedComponents" : [{
           "AngularDampingOverride" : 0.050000,
@@ -177,7 +177,7 @@
           "CollisionRotation" : [0.000000, 0.000000, 0.000000],
           "CollisionType" : 1,
           "FrictionCombineModeOverride" : 2,
-          "Id" : 6350,
+          "Id" : 6870,
           "LinearDampingOverride" : 0.010000,
           "MassOverride" : 10.000000,
           "MaterialSlots" : [{
@@ -205,18 +205,18 @@
           "bSimulatePhysics" : true,
           "bTickEnabled" : true
         }],
-      "RootComponentId" : 6350,
+      "RootComponentId" : 6870,
       "Tag" : "",
       "Type" : "AStaticMeshActor",
       "bActorHiddenInGame" : false,
       "bActorIsActive" : true
     },
-    "6353" : {
+    "6873" : {
       "ObjectName" : "스켈레탈 메시_0",
       "OwnedComponents" : [{
           "AnimGraphPath" : "",
           "CollisionEnabled_Internal" : 2,
-          "Id" : 6355,
+          "Id" : 6875,
           "MaterialSlots" : [{
               "Type" : "None"
             }, {
@@ -246,13 +246,13 @@
           "bOverrideCollisionSetting" : false,
           "bTickEnabled" : true
         }],
-      "RootComponentId" : 6355,
+      "RootComponentId" : 6875,
       "Tag" : "",
       "Type" : "ASkeletalMeshActor",
       "bActorHiddenInGame" : false,
       "bActorIsActive" : true
     },
-    "6356" : {
+    "6876" : {
       "ObjectName" : "AStaticMeshActor_1",
       "OwnedComponents" : [{
           "AngularDampingOverride" : 0.050000,
@@ -264,7 +264,7 @@
           "CollisionRotation" : [0.000000, 0.000000, 0.000000],
           "CollisionType" : 1,
           "FrictionCombineModeOverride" : 2,
-          "Id" : 6358,
+          "Id" : 6878,
           "LinearDampingOverride" : 0.010000,
           "MassOverride" : 1.000000,
           "MaterialSlots" : [{
@@ -292,13 +292,13 @@
           "bSimulatePhysics" : false,
           "bTickEnabled" : true
         }],
-      "RootComponentId" : 6358,
+      "RootComponentId" : 6878,
       "Tag" : "",
       "Type" : "AStaticMeshActor",
       "bActorHiddenInGame" : false,
       "bActorIsActive" : true
     },
-    "6361" : {
+    "6881" : {
       "ObjectName" : "AStaticMeshActor_2",
       "OwnedComponents" : [{
           "AngularDampingOverride" : 0.050000,
@@ -310,7 +310,7 @@
           "CollisionRotation" : [0.000000, 0.000000, 0.000000],
           "CollisionType" : 1,
           "FrictionCombineModeOverride" : 2,
-          "Id" : 6363,
+          "Id" : 6883,
           "LinearDampingOverride" : 0.010000,
           "MassOverride" : 10.000000,
           "MaterialSlots" : [{
@@ -338,13 +338,13 @@
           "bSimulatePhysics" : true,
           "bTickEnabled" : true
         }],
-      "RootComponentId" : 6363,
+      "RootComponentId" : 6883,
       "Tag" : "",
       "Type" : "AStaticMeshActor",
       "bActorHiddenInGame" : false,
       "bActorIsActive" : true
     },
-    "6366" : {
+    "6886" : {
       "ObjectName" : "AStaticMeshActor_3",
       "OwnedComponents" : [{
           "AngularDampingOverride" : 0.050000,
@@ -356,7 +356,7 @@
           "CollisionRotation" : [0.000000, 0.000000, 0.000000],
           "CollisionType" : 1,
           "FrictionCombineModeOverride" : 2,
-          "Id" : 6368,
+          "Id" : 6888,
           "LinearDampingOverride" : 0.010000,
           "MassOverride" : 10.000000,
           "MaterialSlots" : [{
@@ -384,13 +384,13 @@
           "bSimulatePhysics" : false,
           "bTickEnabled" : true
         }],
-      "RootComponentId" : 6368,
+      "RootComponentId" : 6888,
       "Tag" : "",
       "Type" : "AStaticMeshActor",
       "bActorHiddenInGame" : false,
       "bActorIsActive" : true
     },
-    "6371" : {
+    "6891" : {
       "ObjectName" : "AStaticMeshActor_4",
       "OwnedComponents" : [{
           "AngularDampingOverride" : 0.050000,
@@ -402,7 +402,7 @@
           "CollisionRotation" : [0.000000, 0.000000, 0.000000],
           "CollisionType" : 1,
           "FrictionCombineModeOverride" : 2,
-          "Id" : 6373,
+          "Id" : 6893,
           "LinearDampingOverride" : 0.010000,
           "MassOverride" : 10.000000,
           "MaterialSlots" : [{
@@ -430,13 +430,13 @@
           "bSimulatePhysics" : true,
           "bTickEnabled" : true
         }],
-      "RootComponentId" : 6373,
+      "RootComponentId" : 6893,
       "Tag" : "",
       "Type" : "AStaticMeshActor",
       "bActorHiddenInGame" : false,
       "bActorIsActive" : true
     },
-    "6376" : {
+    "6896" : {
       "ObjectName" : "AStaticMeshActor_5",
       "OwnedComponents" : [{
           "AngularDampingOverride" : 0.050000,
@@ -448,7 +448,7 @@
           "CollisionRotation" : [0.000000, 0.000000, 0.000000],
           "CollisionType" : 1,
           "FrictionCombineModeOverride" : 2,
-          "Id" : 6378,
+          "Id" : 6898,
           "LinearDampingOverride" : 0.010000,
           "MassOverride" : 10.000000,
           "MaterialSlots" : [{
@@ -476,13 +476,13 @@
           "bSimulatePhysics" : true,
           "bTickEnabled" : true
         }],
-      "RootComponentId" : 6378,
+      "RootComponentId" : 6898,
       "Tag" : "",
       "Type" : "AStaticMeshActor",
       "bActorHiddenInGame" : false,
       "bActorIsActive" : true
     },
-    "6381" : {
+    "6901" : {
       "ObjectName" : "스태틱 메시_0",
       "OwnedComponents" : [{
           "AngularDampingOverride" : 0.050000,
@@ -494,7 +494,7 @@
           "CollisionRotation" : [0.000000, 0.000000, 0.000000],
           "CollisionType" : 1,
           "FrictionCombineModeOverride" : 2,
-          "Id" : 6383,
+          "Id" : 6903,
           "LinearDampingOverride" : 0.010000,
           "MassOverride" : 10.000000,
           "MaterialSlots" : [{
@@ -522,275 +522,13 @@
           "bSimulatePhysics" : false,
           "bTickEnabled" : true
         }],
-      "RootComponentId" : 6383,
+      "RootComponentId" : 6903,
       "Tag" : "",
       "Type" : "AStaticMeshActor",
       "bActorHiddenInGame" : false,
       "bActorIsActive" : true
     },
-    "6386" : {
-      "AnimationCutEndTime" : 0.010000,
-      "ComboCount" : 0,
-      "LightAttackAnimPath" : "Data/FBX/Combo_Attack_01_01_Seq.fbx_Unreal Take",
-      "MaxComboCount" : 3,
-      "MoveSpeed" : 500.000000,
-      "ObjectName" : "플레이어 캐릭터_0",
-      "OwnedComponents" : [{
-          "CapsuleHalfHeight" : 0.900000,
-          "CapsuleRadius" : 0.300000,
-          "CollisionEnabled_Internal" : 2,
-          "Id" : 6393,
-          "ObjectName" : "UCapsuleComponent_1",
-          "ParentId" : 0,
-          "RelativeLocation" : [-2.962979, -4.691790, 6.815227],
-          "RelativeRotationEuler" : [0.000000, -0.004071, 0.000000],
-          "RelativeScale" : [1.000000, 1.000000, 1.000000],
-          "Type" : "UCapsuleComponent",
-          "bBlockComponent" : false,
-          "bGenerateOverlapEvents" : true,
-          "bHiddenInGame" : false,
-          "bIsActive" : true,
-          "bIsVisible" : true,
-          "bOverrideCollisionSetting" : false,
-          "bRegisterToPhysX" : true,
-          "bShapeHiddenInGame" : true,
-          "bShapeIsVisible" : true,
-          "bTickEnabled" : true
-        }, {
-          "AnimGraphPath" : "Data/Graphs/Shinobi.graph",
-          "CollisionEnabled_Internal" : 2,
-          "Id" : 6394,
-          "MaterialSlots" : [{
-              "Type" : "None"
-            }, {
-              "Overrides" : {
-                "Scalars" : {
-
-                },
-                "Textures" : {
-                  "0" : "Data/FBX/ShinobiGirlAkane/Textures/Eyes/T_EYES_BASECOLOR_PURPLE_02.PNG",
-                  "1" : "Data/FBX/ShinobiGirlAkane/Textures/Eyes/T_EYES_NORMAL.PNG"
-                },
-                "Vectors" : {
-
-                }
-              },
-              "ParentPath" : "MI_SHINOBIGIRL_EYES_Brown",
-              "Type" : "UMaterialInstanceDynamic"
-            }, {
-              "Overrides" : {
-                "Scalars" : {
-
-                },
-                "Textures" : {
-                  "0" : "Data/FBX/ShinobiGirlAkane/Textures/Eyes/T_EYES_BASECOLOR_PURPLE_02.PNG",
-                  "1" : "Data/FBX/ShinobiGirlAkane/Textures/Eyes/T_EYES_NORMAL.PNG"
-                },
-                "Vectors" : {
-
-                }
-              },
-              "ParentPath" : "MI_SHINOBIGIRL_EYES_Brown_1",
-              "Type" : "UMaterialInstanceDynamic"
-            }, {
-              "Overrides" : {
-                "Scalars" : {
-
-                },
-                "Textures" : {
-                  "0" : "Data/FBX/ShinobiGirlAkane/Textures/T_SHINOBIGIRL_Teeth_BASECOLOR.PNG",
-                  "1" : "Data/FBX/ShinobiGirlAkane/Textures/T_SHINOBIGIRL_TEETH_NORMAL.PNG"
-                },
-                "Vectors" : {
-
-                }
-              },
-              "ParentPath" : "M_SHINOBIGIRL_Teeth",
-              "Type" : "UMaterialInstanceDynamic"
-            }, {
-              "Overrides" : {
-                "Scalars" : {
-
-                },
-                "Textures" : {
-                  "0" : "Data/FBX/ShinobiGirlAkane/Textures/T_SHINOBIGIRL_HEAD_BaseColor.PNG",
-                  "1" : "Data/FBX/ShinobiGirlAkane/Textures/T_SHINOBIGIRL_HEAD_Normal.PNG"
-                },
-                "Vectors" : {
-
-                }
-              },
-              "ParentPath" : "MI_SHINOBIGIRL_HEAD",
-              "Type" : "UMaterialInstanceDynamic"
-            }, {
-              "Overrides" : {
-                "Scalars" : {
-
-                },
-                "Textures" : {
-                  "0" : "Data/FBX/ShinobiGirlAkane/Textures/T_SHINOBIGIRL_LASHES_BASECOLOR.PNG"
-                },
-                "Vectors" : {
-
-                }
-              },
-              "ParentPath" : "M_SHINOBIGIRL_LASHES",
-              "Type" : "UMaterialInstanceDynamic"
-            }, {
-              "AssetPath" : "MI_SHINOBIGIRL_CARUNCLE_01",
-              "Type" : "UMaterial"
-            }, {
-              "Overrides" : {
-                "Scalars" : {
-
-                },
-                "Textures" : {
-                  "0" : "Data/FBX/ShinobiGirlAkane/Textures/T_SHINOBIGIRL_ARMOR_BaseColor_01.PNG",
-                  "1" : "Data/FBX/ShinobiGirlAkane/Textures/T_SHINOBIGIRL_ARMOR_Normal.PNG"
-                },
-                "Vectors" : {
-
-                }
-              },
-              "ParentPath" : "MI_SHINOBIGIRL_ARMOR_01",
-              "Type" : "UMaterialInstanceDynamic"
-            }, {
-              "Overrides" : {
-                "Scalars" : {
-
-                },
-                "Textures" : {
-                  "0" : "Data/FBX/ShinobiGirlAkane/Textures/T_SHINOBIGIRL_CLOTHES_BaseColor_01.PNG",
-                  "1" : "Data/FBX/ShinobiGirlAkane/Textures/T_SHINOBIGIRL_CLOTHES_Normal.PNG"
-                },
-                "Vectors" : {
-
-                }
-              },
-              "ParentPath" : "MI_SHINOBIGIRL_CLOTHES_01",
-              "Type" : "UMaterialInstanceDynamic"
-            }, {
-              "Overrides" : {
-                "Scalars" : {
-
-                },
-                "Textures" : {
-                  "0" : "Data/FBX/ShinobiGirlAkane/Textures/T_SHINOBIGIRL_BODY_BaseColor.PNG",
-                  "1" : "Data/FBX/ShinobiGirlAkane/Textures/T_SHINOBIGIRL_BODY_Normal.PNG"
-                },
-                "Vectors" : {
-
-                }
-              },
-              "ParentPath" : "MI_SHINOBIGIRL_BODY",
-              "Type" : "UMaterialInstanceDynamic"
-            }, {
-              "Overrides" : {
-                "Scalars" : {
-
-                },
-                "Textures" : {
-                  "0" : "Data/FBX/ShinobiGirlAkane/Textures/Hair/T_HAIR_WAVY_BaseColor_Black_Ombre.PNG",
-                  "1" : "Data/FBX/ShinobiGirlAkane/Textures/Hair/T_HAIR_WAVY_normal.PNG"
-                },
-                "Vectors" : {
-
-                }
-              },
-              "ParentPath" : "MI_SHINOBIGIRL_Hair_13",
-              "Type" : "UMaterialInstanceDynamic"
-            }, {
-              "Overrides" : {
-                "Scalars" : {
-
-                },
-                "Textures" : {
-                  "0" : "Data/FBX/ShinobiGirlAkane/Textures/Hair/T_HAIR_WAVY_BaseColor_Black_Ombre.PNG",
-                  "1" : "Data/FBX/ShinobiGirlAkane/Textures/Hair/T_HAIR_WAVY_normal.PNG"
-                },
-                "Vectors" : {
-
-                }
-              },
-              "ParentPath" : "MI_SHINOBIGIRL_Hair_07",
-              "Type" : "UMaterialInstanceDynamic"
-            }],
-          "ObjectName" : "USkeletalMeshComponent_3",
-          "ParentId" : 6393,
-          "PhysicsAssetOverridePath" : "Data/Physics/Shinobi.phys",
-          "RelativeLocation" : [0.000000, 0.000000, -0.900000],
-          "RelativeRotationEuler" : [0.000000, -0.000000, 0.000000],
-          "RelativeScale" : [1.000000, 1.000000, 1.000000],
-          "SkeletalMesh" : "Data/FBX/ShinobiGirlAkane/SK_AKANE_NoMask.FBX",
-          "Type" : "USkeletalMeshComponent",
-          "bBlockComponent" : false,
-          "bCastShadows" : true,
-          "bGenerateOverlapEvents" : true,
-          "bHiddenInGame" : false,
-          "bIsActive" : true,
-          "bIsVisible" : true,
-          "bOverrideCollisionSetting" : false,
-          "bTickEnabled" : true
-        }, {
-          "BlockCostPerHit" : 20.000000,
-          "CurrentHealth" : 100.000000,
-          "CurrentStamina" : 100.000000,
-          "DodgeCost" : 25.000000,
-          "HeavyAttackCost" : 30.000000,
-          "LightAttackCost" : 15.000000,
-          "MaxHealth" : 100.000000,
-          "MaxStamina" : 100.000000,
-          "ObjectName" : "UStatsComponent_1",
-          "ParryCost" : 10.000000,
-          "StaminaRegenDelay" : 1.000000,
-          "StaminaRegenRate" : 20.000000,
-          "Type" : "UStatsComponent",
-          "bHiddenInGame" : false,
-          "bIsActive" : true,
-          "bTickEnabled" : true
-        }, {
-          "BoxExtent" : [0.000000, 0.000000, 0.000000],
-          "CollisionEnabled_Internal" : 2,
-          "Id" : 6458,
-          "ObjectName" : "UHitboxComponent_1",
-          "ParentId" : 0,
-          "RelativeLocation" : [0.000000, 0.000000, 0.000000],
-          "RelativeRotationEuler" : [0.000000, 0.000000, 0.000000],
-          "RelativeScale" : [1.000000, 1.000000, 1.000000],
-          "Type" : "UHitboxComponent",
-          "bBlockComponent" : false,
-          "bDrawDebug" : false,
-          "bGenerateOverlapEvents" : true,
-          "bHiddenInGame" : false,
-          "bIsActive" : false,
-          "bIsVisible" : true,
-          "bOverrideCollisionSetting" : false,
-          "bShapeHiddenInGame" : true,
-          "bShapeIsVisible" : true,
-          "bTickEnabled" : true
-        }, {
-          "ObjectName" : "UCharacterMovementComponent_1",
-          "Type" : "UCharacterMovementComponent",
-          "bHiddenInGame" : false,
-          "bIsActive" : true,
-          "bTickEnabled" : true
-        }],
-      "ParryWindowDuration" : 0.200000,
-      "RootComponentId" : 6393,
-      "RotationSpeed" : 10.000000,
-      "Tag" : "",
-      "Type" : "APlayerCharacter",
-      "WeaponBoneName" : "hand_r",
-      "WeaponOffset" : [0.000000, 0.000000, 0.000000],
-      "WeaponRotationOffset" : [0.000000, 0.000000, 0.000000],
-      "bActorHiddenInGame" : false,
-      "bActorIsActive" : true,
-      "bEnableAttackRootMotion" : true,
-      "bIsBlocking" : false,
-      "bIsInvincible" : false,
-      "bIsParrying" : false
-    },
-    "7172" : {
+    "6979" : {
       "ObjectName" : "AStaticMeshActor_0",
       "OwnedComponents" : [{
           "AngularDampingOverride" : 0.050000,
@@ -802,7 +540,7 @@
           "CollisionRotation" : [0.000000, 0.000000, 0.000000],
           "CollisionType" : 1,
           "FrictionCombineModeOverride" : 2,
-          "Id" : 7173,
+          "Id" : 6981,
           "LinearDampingOverride" : 0.010000,
           "MassOverride" : 10.000000,
           "MaterialSlots" : [{
@@ -830,13 +568,13 @@
           "bSimulatePhysics" : true,
           "bTickEnabled" : true
         }],
-      "RootComponentId" : 7173,
+      "RootComponentId" : 6981,
       "Tag" : "",
       "Type" : "AStaticMeshActor",
       "bActorHiddenInGame" : false,
       "bActorIsActive" : true
     },
-    "7174" : {
+    "6984" : {
       "ObjectName" : "AStaticMeshActor_1",
       "OwnedComponents" : [{
           "AngularDampingOverride" : 0.050000,
@@ -848,7 +586,7 @@
           "CollisionRotation" : [0.000000, 0.000000, 0.000000],
           "CollisionType" : 1,
           "FrictionCombineModeOverride" : 2,
-          "Id" : 7175,
+          "Id" : 6986,
           "LinearDampingOverride" : 0.010000,
           "MassOverride" : 10.000000,
           "MaterialSlots" : [{
@@ -876,13 +614,13 @@
           "bSimulatePhysics" : true,
           "bTickEnabled" : true
         }],
-      "RootComponentId" : 7175,
+      "RootComponentId" : 6986,
       "Tag" : "",
       "Type" : "AStaticMeshActor",
       "bActorHiddenInGame" : false,
       "bActorIsActive" : true
     },
-    "7176" : {
+    "6989" : {
       "ObjectName" : "AStaticMeshActor_2",
       "OwnedComponents" : [{
           "AngularDampingOverride" : 0.050000,
@@ -894,7 +632,7 @@
           "CollisionRotation" : [0.000000, 0.000000, 0.000000],
           "CollisionType" : 1,
           "FrictionCombineModeOverride" : 2,
-          "Id" : 7177,
+          "Id" : 6991,
           "LinearDampingOverride" : 0.010000,
           "MassOverride" : 10.000000,
           "MaterialSlots" : [{
@@ -922,13 +660,13 @@
           "bSimulatePhysics" : true,
           "bTickEnabled" : true
         }],
-      "RootComponentId" : 7177,
+      "RootComponentId" : 6991,
       "Tag" : "",
       "Type" : "AStaticMeshActor",
       "bActorHiddenInGame" : false,
       "bActorIsActive" : true
     },
-    "7178" : {
+    "6994" : {
       "ObjectName" : "AStaticMeshActor_3",
       "OwnedComponents" : [{
           "AngularDampingOverride" : 0.050000,
@@ -940,7 +678,7 @@
           "CollisionRotation" : [0.000000, 0.000000, 0.000000],
           "CollisionType" : 1,
           "FrictionCombineModeOverride" : 2,
-          "Id" : 7179,
+          "Id" : 6996,
           "LinearDampingOverride" : 0.010000,
           "MassOverride" : 10.000000,
           "MaterialSlots" : [{
@@ -968,20 +706,20 @@
           "bSimulatePhysics" : true,
           "bTickEnabled" : true
         }],
-      "RootComponentId" : 7179,
+      "RootComponentId" : 6996,
       "Tag" : "",
       "Type" : "AStaticMeshActor",
       "bActorHiddenInGame" : false,
       "bActorIsActive" : true
     }
   },
-  "NextUUID" : 7180,
+  "NextUUID" : 7069,
   "PerspectiveCamera" : {
     "FOV" : [60.000000],
     "FarClip" : [2000.000000],
-    "Location" : [-10.017048, -2.134323, 13.425785],
+    "Location" : [-15.258019, -4.177391, 5.792428],
     "NearClip" : [0.100000],
-    "Rotation" : [0.000000, 42.100147, 69.091118]
+    "Rotation" : [0.000000, 15.200123, -0.908829]
   },
   "Version" : 1
 }

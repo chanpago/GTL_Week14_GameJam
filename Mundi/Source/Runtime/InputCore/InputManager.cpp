@@ -188,10 +188,11 @@ void UInputManager::ProcessMessage(HWND hWnd, UINT message, WPARAM wParam, LPARA
         break;
         
     case WM_LBUTTONDOWN:
+        UE_LOG("[InputManager] WM_LBUTTONDOWN received - IsUIHover: %s", IsUIHover ? "TRUE (blocked)" : "FALSE (allowed)");
         if (!IsUIHover)  // ImGui가 마우스를 사용하지 않을 때만
         {
             UpdateMouseButton(LeftButton, true);
-            if (bEnableDebugLogging) UE_LOG("InputManager: Left Mouse Down\n");
+            UE_LOG("[InputManager] Left Mouse Down - MouseButtons[Left] = true");
         }
         break;
         
@@ -277,12 +278,14 @@ void UInputManager::ProcessMessage(HWND hWnd, UINT message, WPARAM wParam, LPARA
 
     case WM_KEYDOWN:
     case WM_SYSKEYDOWN:
-        if (!IsKeyBoardCapture && !IsUIHover)  // ImGui가 키보드를 사용하지 않을 때만
+        // IsKeyBoardCapture만 체크 - 텍스트 입력 중일 때만 차단
+        // IsUIHover는 마우스 위치 기준이므로 키보드 입력은 차단하면 안 됨
+        if (!IsKeyBoardCapture)
         {
             // Virtual Key Code 추출
             int KeyCode = static_cast<int>(wParam);
             UpdateKeyState(KeyCode, true);
-            
+
             // 디버그 출력
             if (bEnableDebugLogging)
             {
@@ -323,20 +326,18 @@ bool UInputManager::IsMouseButtonDown(EMouseButton Button) const
 bool UInputManager::IsMouseButtonPressed(EMouseButton Button) const
 {
     if (Button >= MaxMouseButtons) return false;
-    
+
     bool currentState = MouseButtons[Button];
     bool previousState = PreviousMouseButtons[Button];
     bool isPressed = currentState && !previousState;
-    
-    // 디버그 출력 추가
-    if (bEnableDebugLogging && Button == LeftButton && (currentState || previousState))
+
+    // 좌클릭 상세 로그 (항상 출력)
+    if (Button == LeftButton && isPressed)
     {
-        char debugMsg[128];
-        sprintf_s(debugMsg, "IsPressed: Current=%d, Previous=%d, Result=%d\n", 
-                  currentState, previousState, isPressed);
-        UE_LOG(debugMsg);
+        UE_LOG("[InputManager] IsMouseButtonPressed(Left) = TRUE (Current=%d, Previous=%d)",
+               currentState, previousState);
     }
-    
+
     return isPressed;
 }
 
