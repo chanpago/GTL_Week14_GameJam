@@ -7,6 +7,7 @@
 #include <cmath>
 #include "Character.h"
 #include "CharacterMovementComponent.h"
+#include "Source/Runtime/Game/Player/PlayerCharacter.h"
 
 APlayerController::APlayerController()
 {
@@ -130,15 +131,22 @@ void APlayerController::ProcessMovementInput(float DeltaTime)
 		Pawn->AddMovementInput(WorldDir * (Pawn->GetVelocity() * DeltaTime));
 	}
 
-    // 점프 처리
-    if (InputManager.IsKeyPressed(VK_SPACE)) {          // 눌린 순간 1회
+    // 점프 처리 (F키)
+    if (InputManager.IsKeyPressed('F')) {               // 눌린 순간 1회
         if (auto* Character = Cast<ACharacter>(Pawn)) {
             Character->Jump();
         }
     }
-    if (InputManager.IsKeyReleased(VK_SPACE)) {         // 뗀 순간 1회 (있다면)
+    if (InputManager.IsKeyReleased('F')) {              // 뗀 순간 1회 (있다면)
         if (auto* Character = Cast<ACharacter>(Pawn)) {
             Character->StopJumping();
+        }
+    }
+
+    // 회피 처리 (Space키)
+    if (InputManager.IsKeyPressed(VK_SPACE)) {
+        if (auto* PlayerChar = Cast<APlayerCharacter>(Pawn)) {
+            PlayerChar->Dodge();
         }
     }
 

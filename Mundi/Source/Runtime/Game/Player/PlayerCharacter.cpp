@@ -6,6 +6,7 @@
 #include "CameraComponent.h"
 #include "InputManager.h"
 #include "SkeletalMeshComponent.h"
+#include "CharacterMovementComponent.h"
 #include "World.h"
 #include "GameModeBase.h"
 #include "GameState.h"
@@ -64,6 +65,31 @@ void APlayerCharacter::BeginPlay()
             UE_LOG("[PlayerCharacter] Failed to find animation: %s", LightAttackAnimPath.c_str());
         }
     }
+
+    // 구르기 몽타주 초기화 (8방향)
+    FString* DodgePaths[8] = {
+        &DodgeAnimPath_F, &DodgeAnimPath_FR, &DodgeAnimPath_R, &DodgeAnimPath_BR,
+        &DodgeAnimPath_B, &DodgeAnimPath_BL, &DodgeAnimPath_L, &DodgeAnimPath_FL
+    };
+    const char* DodgeNames[8] = { "F", "FR", "R", "BR", "B", "BL", "L", "FL" };
+
+    for (int32 i = 0; i < 8; ++i)
+    {
+        if (!DodgePaths[i]->empty())
+        {
+            UAnimSequence* DodgeAnim = UResourceManager::GetInstance().Get<UAnimSequence>(*DodgePaths[i]);
+            if (DodgeAnim)
+            {
+                DodgeMontages[i] = NewObject<UAnimMontage>();
+                DodgeMontages[i]->SetSourceSequence(DodgeAnim);
+                UE_LOG("[PlayerCharacter] DodgeMontage[%s] initialized: %s", DodgeNames[i], DodgePaths[i]->c_str());
+            }
+            else
+            {
+                UE_LOG("[PlayerCharacter] Failed to find dodge animation: %s", DodgePaths[i]->c_str());
+            }
+        }
+    }
 }
 
 void APlayerCharacter::Tick(float DeltaSeconds)
@@ -90,6 +116,9 @@ void APlayerCharacter::Tick(float DeltaSeconds)
 
     // 공격 상태일 때 몽타주 종료 체크
     UpdateAttackState(DeltaSeconds);
+
+    // 구르기 상태 업데이트
+    UpdateDodgeState(DeltaSeconds);
 
     // 경직 상태 업데이트
     UpdateStagger(DeltaSeconds);
@@ -278,8 +307,47 @@ void APlayerCharacter::Dodge()
     SetCombatState(ECombatState::Dodging);
     bIsInvincible = true;
 
-    // TODO: 구르기 애니메이션 재생
-    // 애니메이션 노티파이에서 bIsInvincible = false 처리
+    // 입력 방향에 따라 8방향 구르기 몽타주 선택
+    int32 DodgeIndex = GetDodgeDirectionIndex();
+    UAnimMontage* SelectedMontage = DodgeMontages[DodgeIndex];
+
+    if (SelectedMontage)
+    {
+        if (USkeletalMeshComponent* Mesh = GetMesh())
+        {
+            if (UAnimInstance* AnimInst = Mesh->GetAnimInstance())
+            {
+                // 루트 모션 활성화 및 애니메이션 끝 자르기 시간 설정
+                AnimInst->SetRootMotionEnabled(bEnableDodgeRootMotion);
+                AnimInst->SetAnimationCutEndTime(DodgeAnimationCutEndTime);
+
+                AnimInst->Montage_Play(SelectedMontage, 0.1f, 0.1f, 1.0f);
+                const char* DirNames[8] = { "F", "FR", "R", "BR", "B", "BL", "L", "FL" };
+                UE_LOG("[PlayerCharacter] Playing Dodge montage: %s (RootMotion: %s, CutEndTime: %.3fs)",
+                    DirNames[DodgeIndex], bEnableDodgeRootMotion ? "ON" : "OFF", DodgeAnimationCutEndTime);
+            }
+        }
+    }
+    else
+    {
+        // 몽타주가 없으면 기본 Forward로 폴백
+        if (DodgeMontages[0])
+        {
+            if (USkeletalMeshComponent* Mesh = GetMesh())
+            {
+                if (UAnimInstance* AnimInst = Mesh->GetAnimInstance())
+                {
+                    // 루트 모션 활성화 및 애니메이션 끝 자르기 시간 설정
+                    AnimInst->SetRootMotionEnabled(bEnableDodgeRootMotion);
+                    AnimInst->SetAnimationCutEndTime(DodgeAnimationCutEndTime);
+
+                    AnimInst->Montage_Play(DodgeMontages[0], 0.1f, 0.1f, 1.0f);
+                    UE_LOG("[PlayerCharacter] Playing Dodge montage: F (fallback, RootMotion: %s, CutEndTime: %.3fs)",
+                        bEnableDodgeRootMotion ? "ON" : "OFF", DodgeAnimationCutEndTime);
+                }
+            }
+        }
+    }
 }
 
 void APlayerCharacter::StartBlock()
@@ -483,4 +551,72 @@ void APlayerCharacter::HandleStaminaChanged(float CurrentStamina, float MaxStami
 void APlayerCharacter::HandleDeath()
 {
     OnDeath();
+}
+
+int32 APlayerCharacter::GetDodgeDirectionIndex() const
+{
+    // 캐릭터의 실제 이동 속도(Local Velocity) 기준으로 방향 결정
+    FVector LocalVel = FVector::Zero();
+
+    if (UCharacterMovementComponent* Movement = GetCharacterMovement())
+    {
+        // 월드 Velocity를 캐릭터 로컬 좌표계로 변환
+        FVector WorldVel = Movement->GetVelocity();
+        WorldVel.Z = 0.0f;  // 수평 방향만 고려
+
+        // 캐릭터 회전의 역방향으로 회전시켜 로컬 좌표계로 변환
+        FQuat ActorRot = GetActorRotation();
+        LocalVel = ActorRot.Inverse().RotateVector(WorldVel);
+    }
+
+    // 속도가 없으면 Forward (0)
+    if (LocalVel.IsZero() || LocalVel.Size() < 0.1f)
+    {
+        return 0;
+    }
+
+    // 각도 계산 (atan2: Y, X 순서) - 결과는 -PI ~ PI
+    // Forward(+X) = 0도, Right(+Y) = 90도, Backward(-X) = 180도, Left(-Y) = -90도
+    float AngleRad = std::atan2(LocalVel.Y, LocalVel.X);
+    float AngleDeg = AngleRad * (180.0f / PI);
+
+    // 8방향 인덱스 계산 (각 방향은 45도 간격)
+    // 0=F(0°), 1=FR(45°), 2=R(90°), 3=BR(135°), 4=B(180°/-180°), 5=BL(-135°), 6=L(-90°), 7=FL(-45°)
+
+    // 각도를 0~360 범위로 변환
+    if (AngleDeg < 0) AngleDeg += 360.0f;
+
+    // 22.5도 오프셋을 더해서 각 방향의 중심이 경계가 되도록 함
+    AngleDeg += 22.5f;
+    if (AngleDeg >= 360.0f) AngleDeg -= 360.0f;
+
+    // 45도 단위로 나눠서 인덱스 계산
+    int32 Index = static_cast<int32>(AngleDeg / 45.0f);
+    Index = FMath::Clamp(Index, 0, 7);
+
+    return Index;
+}
+
+void APlayerCharacter::UpdateDodgeState(float DeltaTime)
+{
+    // 구르기 상태일 때만 체크
+    if (CombatState != ECombatState::Dodging)
+    {
+        return;
+    }
+
+    // 몽타주가 끝났는지 확인
+    if (USkeletalMeshComponent* Mesh = GetMesh())
+    {
+        if (UAnimInstance* AnimInst = Mesh->GetAnimInstance())
+        {
+            // 몽타주가 재생 중이 아니면 구르기 종료
+            if (!AnimInst->Montage_IsPlaying())
+            {
+                bIsInvincible = false;
+                SetCombatState(ECombatState::Idle);
+                UE_LOG("[PlayerCharacter] Dodge finished, returning to Idle");
+            }
+        }
+    }
 }

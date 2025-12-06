@@ -1,6 +1,15 @@
 {
   "AnimationCutEndTime" : 0.010000,
   "ComboCount" : 0,
+  "DodgeAnimPath_B" : "Data/FBX/Animation/Roll_Combat_B_180_Seq.FBX_Unreal Take",
+  "DodgeAnimPath_BL" : "Data/FBX/Animation/Roll_Combat_B_L_45_Seq.FBX_Unreal Take",
+  "DodgeAnimPath_BR" : "Data/FBX/Animation/Roll_Combat_B_R_45_Seq.FBX_Unreal Take",
+  "DodgeAnimPath_F" : "Data/FBX/Animation/Roll_Combat_F_0_Seq.FBX_Unreal Take",
+  "DodgeAnimPath_FL" : "Data/FBX/Animation/Roll_Combat_F_L_45_Seq.FBX_Unreal Take",
+  "DodgeAnimPath_FR" : "Data/FBX/Animation/Roll_Combat_to_Run_F_R_45_Seq.FBX_Unreal Take",
+  "DodgeAnimPath_L" : "Data/FBX/Animation/Roll_Combat_to_Run_L_Seq.FBX_Unreal Take",
+  "DodgeAnimPath_R" : "Data/FBX/Animation/Roll_Combat_to_Run_R_Seq.FBX_Unreal Take",
+  "DodgeAnimationCutEndTime" : 0.020000,
   "LightAttackAnimPath" : "Data/FBX/Combo_Attack_01_01_Seq.fbx_Unreal Take",
   "MaxComboCount" : 3,
   "MoveSpeed" : 500.000000,
@@ -9,10 +18,10 @@
       "CapsuleHalfHeight" : 0.900000,
       "CapsuleRadius" : 0.300000,
       "CollisionEnabled_Internal" : 2,
-      "Id" : 6813,
+      "Id" : 6977,
       "ObjectName" : "UCapsuleComponent_1",
       "ParentId" : 0,
-      "RelativeLocation" : [-2.962979, -4.691790, 6.815227],
+      "RelativeLocation" : [-2.494267, -2.646594, 3.173138],
       "RelativeRotationEuler" : [0.000000, -0.004071, 0.000000],
       "RelativeScale" : [1.000000, 1.000000, 1.000000],
       "Type" : "UCapsuleComponent",
@@ -27,9 +36,32 @@
       "bShapeIsVisible" : true,
       "bTickEnabled" : true
     }, {
+      "ObjectName" : "UCharacterMovementComponent_1",
+      "Type" : "UCharacterMovementComponent",
+      "bHiddenInGame" : false,
+      "bIsActive" : true,
+      "bTickEnabled" : true
+    }, {
+      "BlockCostPerHit" : 20.000000,
+      "CurrentHealth" : 100.000000,
+      "CurrentStamina" : 85.000000,
+      "DodgeCost" : 25.000000,
+      "HeavyAttackCost" : 30.000000,
+      "LightAttackCost" : 15.000000,
+      "MaxHealth" : 100.000000,
+      "MaxStamina" : 100.000000,
+      "ObjectName" : "UStatsComponent_1",
+      "ParryCost" : 10.000000,
+      "StaminaRegenDelay" : 1.000000,
+      "StaminaRegenRate" : 20.000000,
+      "Type" : "UStatsComponent",
+      "bHiddenInGame" : false,
+      "bIsActive" : true,
+      "bTickEnabled" : true
+    }, {
       "BoxExtent" : [0.000000, 0.000000, 0.000000],
       "CollisionEnabled_Internal" : 2,
-      "Id" : 6878,
+      "Id" : 6979,
       "ObjectName" : "UHitboxComponent_1",
       "ParentId" : 0,
       "RelativeLocation" : [0.000000, 0.000000, 0.000000],
@@ -49,7 +81,7 @@
     }, {
       "AnimGraphPath" : "Data/Graphs/Shinobi.graph",
       "CollisionEnabled_Internal" : 2,
-      "Id" : 6814,
+      "Id" : 6980,
       "MaterialSlots" : [{
           "Type" : "None"
         }, {
@@ -206,7 +238,7 @@
           "Type" : "UMaterialInstanceDynamic"
         }],
       "ObjectName" : "USkeletalMeshComponent_3",
-      "ParentId" : 6813,
+      "ParentId" : 6977,
       "PhysicsAssetOverridePath" : "Data/Physics/Shinobi.phys",
       "RelativeLocation" : [0.000000, 0.000000, -0.900000],
       "RelativeRotationEuler" : [0.000000, -0.000000, 0.000000],
@@ -221,32 +253,9 @@
       "bIsVisible" : true,
       "bOverrideCollisionSetting" : false,
       "bTickEnabled" : true
-    }, {
-      "BlockCostPerHit" : 20.000000,
-      "CurrentHealth" : 100.000000,
-      "CurrentStamina" : 100.000000,
-      "DodgeCost" : 25.000000,
-      "HeavyAttackCost" : 30.000000,
-      "LightAttackCost" : 15.000000,
-      "MaxHealth" : 100.000000,
-      "MaxStamina" : 100.000000,
-      "ObjectName" : "UStatsComponent_1",
-      "ParryCost" : 10.000000,
-      "StaminaRegenDelay" : 1.000000,
-      "StaminaRegenRate" : 20.000000,
-      "Type" : "UStatsComponent",
-      "bHiddenInGame" : false,
-      "bIsActive" : true,
-      "bTickEnabled" : true
-    }, {
-      "ObjectName" : "UCharacterMovementComponent_1",
-      "Type" : "UCharacterMovementComponent",
-      "bHiddenInGame" : false,
-      "bIsActive" : true,
-      "bTickEnabled" : true
     }],
   "ParryWindowDuration" : 0.200000,
-  "RootComponentId" : 6813,
+  "RootComponentId" : 6977,
   "RotationSpeed" : 10.000000,
   "Tag" : "",
   "Type" : "APlayerCharacter",
@@ -256,6 +265,7 @@
   "bActorHiddenInGame" : false,
   "bActorIsActive" : true,
   "bEnableAttackRootMotion" : true,
+  "bEnableDodgeRootMotion" : true,
   "bIsBlocking" : false,
   "bIsInvincible" : false,
   "bIsParrying" : false

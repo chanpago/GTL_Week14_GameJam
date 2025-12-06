@@ -92,6 +92,10 @@ protected:
     void UpdateAttackState(float DeltaTime);
     void UpdateParryWindow(float DeltaTime);
     void UpdateStagger(float DeltaTime);
+    void UpdateDodgeState(float DeltaTime);
+
+    /** 입력 방향을 기반으로 8방향 인덱스 반환 (0=F, 1=FR, 2=R, 3=BR, 4=B, 5=BL, 6=L, 7=FL) */
+    int32 GetDodgeDirectionIndex() const;
 
 protected:
     // ========== 컴포넌트 ==========
@@ -137,6 +141,50 @@ protected:
 
     /** 공격 몽타주 */
     UAnimMontage* LightAttackMontage = nullptr;
+
+    // ========== 구르기 몽타주 (8방향) ==========
+    /** 구르기 애니메이션 경로 - Forward */
+    UPROPERTY(EditAnywhere, Category = "Animation|Dodge")
+    FString DodgeAnimPath_F;
+
+    /** 구르기 애니메이션 경로 - Forward-Right */
+    UPROPERTY(EditAnywhere, Category = "Animation|Dodge")
+    FString DodgeAnimPath_FR;
+
+    /** 구르기 애니메이션 경로 - Right */
+    UPROPERTY(EditAnywhere, Category = "Animation|Dodge")
+    FString DodgeAnimPath_R;
+
+    /** 구르기 애니메이션 경로 - Backward-Right */
+    UPROPERTY(EditAnywhere, Category = "Animation|Dodge")
+    FString DodgeAnimPath_BR;
+
+    /** 구르기 애니메이션 경로 - Backward */
+    UPROPERTY(EditAnywhere, Category = "Animation|Dodge")
+    FString DodgeAnimPath_B;
+
+    /** 구르기 애니메이션 경로 - Backward-Left */
+    UPROPERTY(EditAnywhere, Category = "Animation|Dodge")
+    FString DodgeAnimPath_BL;
+
+    /** 구르기 애니메이션 경로 - Left */
+    UPROPERTY(EditAnywhere, Category = "Animation|Dodge")
+    FString DodgeAnimPath_L;
+
+    /** 구르기 애니메이션 경로 - Forward-Left */
+    UPROPERTY(EditAnywhere, Category = "Animation|Dodge")
+    FString DodgeAnimPath_FL;
+
+    /** 구르기 몽타주 배열 (8방향) - 인덱스: 0=F, 1=FR, 2=R, 3=BR, 4=B, 5=BL, 6=L, 7=FL */
+    UAnimMontage* DodgeMontages[8] = { nullptr };
+
+    /** 구르기 시 루트 모션 활성화 여부 */
+    UPROPERTY(EditAnywhere, Category = "Animation|Dodge")
+    bool bEnableDodgeRootMotion = true;
+
+    /** 구르기 애니메이션 끝에서 자를 시간 (초 단위) */
+    UPROPERTY(EditAnywhere, Category = "Animation|Dodge")
+    float DodgeAnimationCutEndTime = 0.0f;
 
     /** 공격 시 루트 모션 활성화 여부 */
     UPROPERTY(EditAnywhere, Category = "Animation")
