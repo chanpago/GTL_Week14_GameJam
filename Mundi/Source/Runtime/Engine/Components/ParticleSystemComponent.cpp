@@ -1480,12 +1480,13 @@ void UParticleSystemComponent::BuildBeamParticleBatch(TArray<FDynamicEmitterData
             FVector End = *BeamTarget;
             float RandomSeed = *BeamRandomSeed;
 
-            if (BeamData->bUseLocalSpace)
+            const FMatrix& WorldMatrix = GetWorldMatrix();
+            Start = WorldMatrix.TransformPosition(Start);
+            End = WorldMatrix.TransformPosition(End);
+            /*if (BeamData->bUseLocalSpace)
             {
-                const FMatrix& WorldMatrix = GetWorldMatrix();
-                Start = WorldMatrix.TransformPosition(Start);
-                End = WorldMatrix.TransformPosition(End);
-            }
+                
+            }*/
 
             FVector BeamDir = (End - Start).GetSafeNormal();
             if (BeamDir.IsZero()) continue;

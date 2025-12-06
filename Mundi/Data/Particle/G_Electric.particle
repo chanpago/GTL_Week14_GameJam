@@ -15,13 +15,13 @@
                     "Type" : "Size",
                     "bEnabled" : true
                   }, {
-                    "BeamWidth" : 0.100000,
-                    "NoiseAmplitude" : 2.000000,
+                    "BeamWidth" : 0.050000,
+                    "NoiseAmplitude" : 5.000000,
                     "NoiseFrequency" : 1.000000,
                     "SourceOffset" : [0.100000, 0.100000, 0.100000],
                     "SourcePoint" : [0.000000, 0.000000, 0.000000],
                     "TargetOffset" : [0.000000, 20.000000, 20.000000],
-                    "TargetPoint" : [5.000000, 0.000000, 0.000000],
+                    "TargetPoint" : [2.000000, 0.000000, 0.000000],
                     "TessellationFactor" : 10,
                     "Type" : "Beam",
                     "bEnabled" : true,
@@ -43,7 +43,7 @@
                     "bUseColorOverLife" : true
                   }],
                 "RequiredModule" : {
-                  "BlendMode" : 1,
+                  "BlendMode" : 2,
                   "DiffuseTexture" : "Data/Textures/A_Trace3.png",
                   "EmitterDelay" : 0.000000,
                   "EmitterDuration" : 1.000000,
@@ -96,13 +96,13 @@
                     "Type" : "Size",
                     "bEnabled" : true
                   }, {
-                    "BeamWidth" : 0.100000,
-                    "NoiseAmplitude" : 2.000000,
-                    "NoiseFrequency" : 1.000000,
+                    "BeamWidth" : 0.020000,
+                    "NoiseAmplitude" : 5.000000,
+                    "NoiseFrequency" : 1.200000,
                     "SourceOffset" : [0.100000, 0.100000, 0.100000],
                     "SourcePoint" : [0.000000, 0.000000, 0.000000],
                     "TargetOffset" : [0.000000, 20.000000, 20.000000],
-                    "TargetPoint" : [5.000000, 0.000000, 0.000000],
+                    "TargetPoint" : [2.000000, 0.000000, 0.000000],
                     "TessellationFactor" : 10,
                     "Type" : "Beam",
                     "bEnabled" : true,
@@ -116,7 +116,7 @@
                     "AlphaPoint2Time" : 0.835580,
                     "AlphaPoint2Value" : 0.000000,
                     "ColorOverLife_Max" : [0.000000, 0.000000, 0.000000, 1.000000],
-                    "ColorOverLife_Min" : [0.505792, 0.778570, 1.000000, 1.000000],
+                    "ColorOverLife_Min" : [0.293436, 0.683424, 1.000000, 1.000000],
                     "ColorOverLife_bUseRange" : true,
                     "Type" : "ColorOverLife",
                     "bEnabled" : true,
@@ -165,14 +165,14 @@
             "LODLevels" : [{
                 "LODIndex" : 0,
                 "Modules" : [{
-                    "Lifetime_Max" : 0.200000,
-                    "Lifetime_Min" : 0.100000,
+                    "Lifetime_Max" : 1.000000,
+                    "Lifetime_Min" : 0.500000,
                     "Lifetime_bUseRange" : true,
                     "Type" : "Lifetime",
                     "bEnabled" : true
                   }, {
                     "StartSize_Max" : [10.000000, 10.000000, 10.000000],
-                    "StartSize_Min" : [0.010000, 0.010000, 0.010000],
+                    "StartSize_Min" : [0.050000, 0.050000, 0.050000],
                     "StartSize_bUseRange" : false,
                     "Type" : "Size",
                     "bEnabled" : true
@@ -195,20 +195,9 @@
                     "bMultiplyZ" : true
                   }, {
                     "StartColor_Max" : [1.000000, 1.000000, 1.000000, 1.000000],
-                    "StartColor_Min" : [0.606178, 0.977192, 1.000000, 1.000000],
+                    "StartColor_Min" : [0.215262, 0.391374, 0.733591, 1.000000],
                     "StartColor_bUseRange" : false,
                     "Type" : "Color",
-                    "bEnabled" : true
-                  }, {
-                    "BoxExtent" : [100.000000, 100.000000, 100.000000],
-                    "CylinderHeight" : 200.000000,
-                    "CylinderRadius" : 100.000000,
-                    "DistributionType" : 0,
-                    "SphereRadius" : 100.000000,
-                    "StartLocation_Max" : [2.000000, 2.000000, 2.000000],
-                    "StartLocation_Min" : [-2.000000, -2.000000, -2.000000],
-                    "StartLocation_bUseRange" : true,
-                    "Type" : "Location",
                     "bEnabled" : true
                   }],
                 "RequiredModule" : {
@@ -237,18 +226,14 @@
                 },
                 "SpawnModule" : {
                   "BurstList" : [{
-                      "Count" : 10,
-                      "CountRange" : 2,
-                      "Time" : 0.000000
-                    }, {
-                      "Count" : 10,
-                      "CountRange" : 2,
-                      "Time" : 10000.000000
+                      "Count" : 30,
+                      "CountRange" : 0,
+                      "Time" : 0.500000
                     }],
                   "SpawnRateOverTime_Max" : 50.000000,
                   "SpawnRateOverTime_Min" : 10.000000,
                   "SpawnRateOverTime_bUseRange" : true,
-                  "SpawnRateType" : 0,
+                  "SpawnRateType" : 2,
                   "SpawnRate_Max" : 20.000000,
                   "SpawnRate_Min" : 20.000000,
                   "SpawnRate_bUseRange" : false
@@ -261,34 +246,23 @@
             "LODLevels" : [{
                 "LODIndex" : 0,
                 "Modules" : [{
-                    "Lifetime_Max" : 0.200000,
-                    "Lifetime_Min" : 0.100000,
+                    "Lifetime_Max" : 0.500000,
+                    "Lifetime_Min" : 0.300000,
                     "Lifetime_bUseRange" : true,
                     "Type" : "Lifetime",
                     "bEnabled" : true
                   }, {
                     "StartSize_Max" : [10.000000, 10.000000, 10.000000],
-                    "StartSize_Min" : [0.010000, 0.010000, 0.010000],
+                    "StartSize_Min" : [0.050000, 0.050000, 0.050000],
                     "StartSize_bUseRange" : false,
                     "Type" : "Size",
                     "bEnabled" : true
                   }, {
                     "Gravity" : [0.000000, 0.000000, -4.000000],
-                    "StartVelocity_Max" : [-2.000000, -2.000000, -2.000000],
-                    "StartVelocity_Min" : [2.000000, 2.000000, 2.000000],
+                    "StartVelocity_Max" : [-3.000000, -3.000000, -3.000000],
+                    "StartVelocity_Min" : [3.000000, 3.000000, 3.000000],
                     "StartVelocity_bUseRange" : true,
                     "Type" : "Velocity",
-                    "bEnabled" : true
-                  }, {
-                    "BoxExtent" : [100.000000, 100.000000, 100.000000],
-                    "CylinderHeight" : 200.000000,
-                    "CylinderRadius" : 100.000000,
-                    "DistributionType" : 0,
-                    "SphereRadius" : 100.000000,
-                    "StartLocation_Max" : [2.000000, 2.000000, 2.000000],
-                    "StartLocation_Min" : [-2.000000, -2.000000, -2.000000],
-                    "StartLocation_bUseRange" : false,
-                    "Type" : "Location",
                     "bEnabled" : true
                   }, {
                     "Point1Time" : 0.000000,
@@ -302,7 +276,7 @@
                     "bMultiplyZ" : true
                   }, {
                     "StartColor_Max" : [1.000000, 1.000000, 1.000000, 1.000000],
-                    "StartColor_Min" : [0.607843, 0.976471, 1.000000, 1.000000],
+                    "StartColor_Min" : [0.438187, 0.631032, 0.822394, 1.000000],
                     "StartColor_bUseRange" : false,
                     "Type" : "Color",
                     "bEnabled" : true
@@ -310,6 +284,95 @@
                 "RequiredModule" : {
                   "BlendMode" : 2,
                   "DiffuseTexture" : "Data/Textures/FakeLight.png",
+                  "EmitterDelay" : 0.000000,
+                  "EmitterDuration" : 1.000000,
+                  "EmitterLoops" : 0,
+                  "InitialColor_Max" : [1.000000, 1.000000, 1.000000, 1.000000],
+                  "InitialColor_Min" : [1.000000, 1.000000, 1.000000, 1.000000],
+                  "InitialColor_bUseRange" : false,
+                  "InitialRotation_Max" : [0.000000, 0.000000, 0.000000],
+                  "InitialRotation_Min" : [0.000000, 0.000000, 0.000000],
+                  "InitialRotation_bUseRange" : false,
+                  "InitialSize_Max" : [50.000000, 50.000000, 1.000000],
+                  "InitialSize_Min" : [50.000000, 50.000000, 1.000000],
+                  "InitialSize_bUseRange" : false,
+                  "Material" : "GatlingGun_Turret_Mat",
+                  "MaxParticles" : 1000,
+                  "ScreenAlignment" : 1,
+                  "SortMode" : 1,
+                  "SpawnRateBase" : 10.000000,
+                  "SubImages_Horizontal" : 1,
+                  "SubImages_Vertical" : 1,
+                  "bUseLocalSpace" : false
+                },
+                "SpawnModule" : {
+                  "BurstList" : [{
+                      "Count" : 70,
+                      "CountRange" : 0,
+                      "Time" : 0.500000
+                    }],
+                  "SpawnRateOverTime_Max" : 50.000000,
+                  "SpawnRateOverTime_Min" : 10.000000,
+                  "SpawnRateOverTime_bUseRange" : true,
+                  "SpawnRateType" : 2,
+                  "SpawnRate_Max" : 20.000000,
+                  "SpawnRate_Min" : 20.000000,
+                  "SpawnRate_bUseRange" : false
+                },
+                "bEnabled" : true
+              }],
+            "Name" : "UParticleEmitter_69",
+            "RenderType" : 0
+          }, {
+            "LODLevels" : [{
+                "LODIndex" : 0,
+                "Modules" : [{
+                    "Lifetime_Max" : 1.000000,
+                    "Lifetime_Min" : 1.000000,
+                    "Lifetime_bUseRange" : false,
+                    "Type" : "Lifetime",
+                    "bEnabled" : true
+                  }, {
+                    "StartSize_Max" : [10.000000, 10.000000, 10.000000],
+                    "StartSize_Min" : [5.000000, 1.000000, 1.000000],
+                    "StartSize_bUseRange" : false,
+                    "Type" : "Size",
+                    "bEnabled" : true
+                  }, {
+                    "AlphaOverLife_Max" : 0.100000,
+                    "AlphaOverLife_Min" : 0.000000,
+                    "AlphaOverLife_bUseRange" : true,
+                    "AlphaPoint1Time" : 0.000000,
+                    "AlphaPoint1Value" : 0.413223,
+                    "AlphaPoint2Time" : 1.000000,
+                    "AlphaPoint2Value" : 0.000000,
+                    "ColorOverLife_Max" : [1.000000, 1.000000, 1.000000, 1.000000],
+                    "ColorOverLife_Min" : [0.544163, 0.667406, 0.814672, 1.000000],
+                    "ColorOverLife_bUseRange" : false,
+                    "Type" : "ColorOverLife",
+                    "bEnabled" : true,
+                    "bUseAlphaOverLife" : true,
+                    "bUseColorOverLife" : true
+                  }, {
+                    "StartColor_Max" : [1.000000, 1.000000, 1.000000, 1.000000],
+                    "StartColor_Min" : [0.625483, 0.839493, 1.000000, 1.000000],
+                    "StartColor_bUseRange" : false,
+                    "Type" : "Color",
+                    "bEnabled" : true
+                  }, {
+                    "Point1Time" : 0.000000,
+                    "Point1Value" : [5.000000, 5.000000, 5.000000],
+                    "Point2Time" : 1.000000,
+                    "Point2Value" : [10.000000, 10.000000, 10.000000],
+                    "Type" : "SizeMultiplyLife",
+                    "bEnabled" : true,
+                    "bMultiplyX" : true,
+                    "bMultiplyY" : true,
+                    "bMultiplyZ" : true
+                  }],
+                "RequiredModule" : {
+                  "BlendMode" : 2,
+                  "DiffuseTexture" : "Data/Textures/A_Smoke_B.PNG",
                   "EmitterDelay" : 0.000000,
                   "EmitterDuration" : 1.000000,
                   "EmitterLoops" : 0,
@@ -332,13 +395,17 @@
                   "bUseLocalSpace" : false
                 },
                 "SpawnModule" : {
-                  "BurstList" : [],
+                  "BurstList" : [{
+                      "Count" : 1,
+                      "CountRange" : 0,
+                      "Time" : 0.500000
+                    }],
                   "SpawnRateOverTime_Max" : 50.000000,
                   "SpawnRateOverTime_Min" : 10.000000,
                   "SpawnRateOverTime_bUseRange" : true,
-                  "SpawnRateType" : 0,
-                  "SpawnRate_Max" : 20.000000,
-                  "SpawnRate_Min" : 20.000000,
+                  "SpawnRateType" : 2,
+                  "SpawnRate_Max" : 0.330000,
+                  "SpawnRate_Min" : 0.330000,
                   "SpawnRate_bUseRange" : false
                 },
                 "bEnabled" : true

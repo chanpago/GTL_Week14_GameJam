@@ -16,6 +16,7 @@
 #include "Source/Runtime/Engine/Animation/AnimNotify/AnimNotify_EnableHitbox.h"
 #include "Source/Runtime/Engine/Animation/AnimNotify/AnimNotify_PlaySound.h"
 #include "Source/Runtime/Engine/Animation/AnimNotify/AnimNotify_PlayParticle.h"
+#include "Source/Runtime/Engine/Animation/AnimNotify/AnimNotify_PlayCamera.h"
 #include "Source/Runtime/AssetManagement/ResourceManager.h"
 #include "Source/Editor/PlatformProcess.h"
 #include "Source/Runtime/Core/Misc/PathUtils.h"
@@ -2393,6 +2394,19 @@ void SSkeletalMeshViewerWindow::DrawAnimationPanel(ViewerState* State)
                             }
                         }
                     }
+                    else if (ImGui::MenuItem("Camera Notify"))
+                    {
+                        if (bHasAnimation && State->CurrentAnimation)
+                        {
+                            float ClickFrame = RightClickFrame;
+                            float TimeSec = ImClamp(ClickFrame * FrameDuration, 0.0f, PlayLength);
+                            UAnimNotify_PlayCamera* NewNotify = NewObject<UAnimNotify_PlayCamera>();
+                            if (NewNotify)
+                            {
+                                State->CurrentAnimation->AddPlayCameraNotify(TimeSec, NewNotify, 0.0f);
+                            }
+                        }
+                    }
                     if (ImGui::MenuItem("Hitbox Notify"))
                     {
                         if (bHasAnimation && State->CurrentAnimation)
@@ -2515,6 +2529,10 @@ void SSkeletalMeshViewerWindow::DrawAnimationPanel(ViewerState* State)
                             else if (Notify.Notify && Notify.Notify->IsA<UAnimNotify_PlayParticle>())
                             {
                                 Label = "PlayParticle";
+                            }
+                            else if (Notify.Notify && Notify.Notify->IsA<UAnimNotify_PlayCamera>())
+                            {
+                                Label = "PlayCamera";
                             }
                             else if (Notify.Notify && Notify.Notify->IsA<UAnimNotify_EnableHitbox>())
                             {
@@ -2820,6 +2838,90 @@ void SSkeletalMeshViewerWindow::DrawAnimationPanel(ViewerState* State)
                         {
                             AttachBoneBuffer[0] = '\0';
                             ParticleNotify->AttachBoneName = FName();
+                        }
+                    }
+                    else if (Evt.Notify && Evt.Notify->IsA<UAnimNotify_PlayCamera>())
+                    {
+                        UAnimNotify_PlayCamera* CameraNotify = static_cast<UAnimNotify_PlayCamera*>(Evt.Notify);
+
+                        static const char* CameraEffectNames[] = { "Shake", "Fade", "LetterBox", "Vignette", "Gamma", "DOF" };
+                        int EffectIndex = static_cast<int>(CameraNotify->EffectType);
+                        if (ImGui::Combo("Camera Effect", &EffectIndex, CameraEffectNames, IM_ARRAYSIZE(CameraEffectNames)))
+                        {
+                            CameraNotify->EffectType = static_cast<ECameraNotifyEffect>(EffectIndex);
+                        }
+
+                        ImGui::Separator();
+                        switch (CameraNotify->EffectType)
+                        {
+                        case ECameraNotifyEffect::Shake:
+                            ImGui::TextUnformatted("Shake Settings");
+                            ImGui::DragFloat("Duration##Shake", &CameraNotify->ShakeSettings.Duration, 0.01f, 0.0f, 60.0f, "%.2f");
+                            ImGui::DragFloat("Amplitude Loc", &CameraNotify->ShakeSettings.AmplitudeLocation, 0.01f, 0.0f, 10.0f, "%.2f");
+                            ImGui::DragFloat("Amplitude Rot (deg)", &CameraNotify->ShakeSettings.AmplitudeRotationDeg, 0.01f, 0.0f, 45.0f, "%.2f");
+                            ImGui::DragFloat("Frequency", &CameraNotify->ShakeSettings.Frequency, 0.5f, 0.0f, 200.0f, "%.1f");
+                            ImGui::InputInt("Priority##Shake", &CameraNotify->ShakeSettings.Priority);
+                            break;
+                        case ECameraNotifyEffect::Fade:
+                        {
+                            ImGui::TextUnformatted("Fade Settings");
+                            ImGui::DragFloat("Duration##Fade", &CameraNotify->FadeSettings.Duration, 0.01f, 0.0f, 60.0f, "%.2f");
+                            ImGui::DragFloat("From Alpha", &CameraNotify->FadeSettings.FromAlpha, 0.01f, 0.0f, 1.0f, "%.2f");
+                            ImGui::DragFloat("To Alpha", &CameraNotify->FadeSettings.ToAlpha, 0.01f, 0.0f, 1.0f, "%.2f");
+                            float FadeColor[4] = { CameraNotify->FadeSettings.Color.R, CameraNotify->FadeSettings.Color.G, CameraNotify->FadeSettings.Color.B, CameraNotify->FadeSettings.Color.A };
+                            if (ImGui::ColorEdit4("Fade Color", FadeColor))
+                            {
+                                CameraNotify->FadeSettings.Color = FLinearColor(FadeColor[0], FadeColor[1], FadeColor[2], FadeColor[3]);
+                            }
+                            ImGui::InputInt("Priority##Fade", &CameraNotify->FadeSettings.Priority);
+                            break;
+                        }
+                        case ECameraNotifyEffect::LetterBox:
+                        {
+                            ImGui::TextUnformatted("LetterBox Settings");
+                            ImGui::DragFloat("Duration##Letter", &CameraNotify->LetterBoxSettings.Duration, 0.01f, 0.0f, 60.0f, "%.2f");
+                            ImGui::DragFloat("Aspect Ratio", &CameraNotify->LetterBoxSettings.Aspect, 0.01f, 0.5f, 4.0f, "%.2f");
+                            ImGui::DragFloat("Bar Height", &CameraNotify->LetterBoxSettings.BarHeight, 0.01f, 0.0f, 1.0f, "%.2f");
+                            float BoxColor[4] = { CameraNotify->LetterBoxSettings.Color.R, CameraNotify->LetterBoxSettings.Color.G, CameraNotify->LetterBoxSettings.Color.B, CameraNotify->LetterBoxSettings.Color.A };
+                            if (ImGui::ColorEdit4("Bar Color", BoxColor))
+                            {
+                                CameraNotify->LetterBoxSettings.Color = FLinearColor(BoxColor[0], BoxColor[1], BoxColor[2], BoxColor[3]);
+                            }
+                            ImGui::InputInt("Priority##Letter", &CameraNotify->LetterBoxSettings.Priority);
+                            break;
+                        }
+                        case ECameraNotifyEffect::Vignette:
+                        {
+                            ImGui::TextUnformatted("Vignette Settings");
+                            ImGui::DragFloat("Duration##Vignette", &CameraNotify->VignetteSettings.Duration, 0.01f, 0.0f, 60.0f, "%.2f");
+                            ImGui::DragFloat("Radius", &CameraNotify->VignetteSettings.Radius, 0.01f, 0.0f, 5.0f, "%.2f");
+                            ImGui::DragFloat("Softness", &CameraNotify->VignetteSettings.Softness, 0.01f, 0.0f, 5.0f, "%.2f");
+                            ImGui::DragFloat("Intensity", &CameraNotify->VignetteSettings.Intensity, 0.01f, 0.0f, 5.0f, "%.2f");
+                            ImGui::DragFloat("Roundness", &CameraNotify->VignetteSettings.Roundness, 0.01f, 0.0f, 5.0f, "%.2f");
+                            float VignetteColor[4] = { CameraNotify->VignetteSettings.Color.R, CameraNotify->VignetteSettings.Color.G, CameraNotify->VignetteSettings.Color.B, CameraNotify->VignetteSettings.Color.A };
+                            if (ImGui::ColorEdit4("Vignette Color", VignetteColor))
+                            {
+                                CameraNotify->VignetteSettings.Color = FLinearColor(VignetteColor[0], VignetteColor[1], VignetteColor[2], VignetteColor[3]);
+                            }
+                            ImGui::InputInt("Priority##Vignette", &CameraNotify->VignetteSettings.Priority);
+                            break;
+                        }
+                        case ECameraNotifyEffect::Gamma:
+                            ImGui::TextUnformatted("Gamma Settings");
+                            ImGui::DragFloat("Gamma", &CameraNotify->GammaSettings.Gamma, 0.01f, 0.1f, 5.0f, "%.2f");
+                            break;
+                        case ECameraNotifyEffect::DOF:
+                            ImGui::TextUnformatted("Depth of Field Settings");
+                            ImGui::DragFloat("Focal Distance", &CameraNotify->DOFSettings.FocalDistance, 0.01f, 0.0f, 100.0f, "%.2f");
+                            ImGui::DragFloat("Focal Region", &CameraNotify->DOFSettings.FocalRegion, 0.01f, 0.0f, 50.0f, "%.2f");
+                            ImGui::DragFloat("Near Transition", &CameraNotify->DOFSettings.NearTransition, 0.01f, 0.0f, 50.0f, "%.2f");
+                            ImGui::DragFloat("Far Transition", &CameraNotify->DOFSettings.FarTransition, 0.01f, 0.0f, 50.0f, "%.2f");
+                            ImGui::DragFloat("Max Near Blur", &CameraNotify->DOFSettings.MaxNearBlur, 0.1f, 0.0f, 256.0f, "%.1f");
+                            ImGui::DragFloat("Max Far Blur", &CameraNotify->DOFSettings.MaxFarBlur, 0.1f, 0.0f, 256.0f, "%.1f");
+                            ImGui::InputInt("Priority##DOF", &CameraNotify->DOFSettings.Priority);
+                            break;
+                        default:
+                            break;
                         }
                     }
                     else

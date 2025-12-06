@@ -1,9 +1,10 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include "AnimSequenceBase.h"
 #include "ObjectFactory.h"
 #include "AnimSequence.h"
 #include "AnimationRuntime.h"
 #include "AnimNotify/AnimNotify_PlaySound.h"
+#include "AnimNotify/AnimNotify_PlayCamera.h"
 #include "AnimNotify/AnimNotify_PlayParticle.h"
 #include "AnimTypes.h"
 #include "JsonSerializer.h"
@@ -14,6 +15,33 @@
 #include <filesystem>
 
 
+
+namespace
+{
+    FString CameraEffectToString(ECameraNotifyEffect Type)
+    {
+        switch (Type)
+        {
+        case ECameraNotifyEffect::Shake: return "Shake";
+        case ECameraNotifyEffect::Fade: return "Fade";
+        case ECameraNotifyEffect::LetterBox: return "LetterBox";
+        case ECameraNotifyEffect::Vignette: return "Vignette";
+        case ECameraNotifyEffect::Gamma: return "Gamma";
+        case ECameraNotifyEffect::DOF: return "DOF";
+        default: return "Shake";
+        }
+    }
+
+    ECameraNotifyEffect CameraEffectFromString(const FString& Str)
+    {
+        if (Str == "Fade") return ECameraNotifyEffect::Fade;
+        if (Str == "LetterBox") return ECameraNotifyEffect::LetterBox;
+        if (Str == "Vignette") return ECameraNotifyEffect::Vignette;
+        if (Str == "Gamma") return ECameraNotifyEffect::Gamma;
+        if (Str == "DOF") return ECameraNotifyEffect::DOF;
+        return ECameraNotifyEffect::Shake;
+    }
+}
 IMPLEMENT_CLASS(UAnimSequenceBase)
 
 UAnimSequenceBase::UAnimSequenceBase()
@@ -283,6 +311,11 @@ void UAnimSequenceBase::AddPlayParticleNotify(float Time, UAnimNotify* Notify, f
     AddPlaySoundNotify(Time, Notify, Duration);
 }
 
+void UAnimSequenceBase::AddPlayCameraNotify(float Time, UAnimNotify* Notify, float Duration)
+{
+    AddPlaySoundNotify(Time, Notify, Duration);
+}
+
 bool UAnimSequenceBase::SaveMeta(const FString& MetaPathUTF8) const
 {
     if (MetaPathUTF8.empty())
@@ -350,6 +383,62 @@ bool UAnimSequenceBase::SaveMeta(const FString& MetaPathUTF8) const
             Data["AttachBone"] = ParticleNotify->AttachBoneName.ToString().c_str();
             Data["AttachToOwner"] = ParticleNotify->bAttachToOwner;
             Data["LifeTime"] = ParticleNotify->LifeTime;
+        }
+
+        else if (Evt.Notify && Evt.Notify->IsA<UAnimNotify_PlayCamera>())
+        {
+            const UAnimNotify_PlayCamera* CameraNotify = static_cast<const UAnimNotify_PlayCamera*>(Evt.Notify);
+            JSON CameraData = JSON::Make(JSON::Class::Object);
+            CameraData["Type"] = CameraEffectToString(CameraNotify->EffectType).c_str();
+            switch (CameraNotify->EffectType)
+            {
+            case ECameraNotifyEffect::Shake:
+                CameraData["Duration"] = CameraNotify->ShakeSettings.Duration;
+                CameraData["AmpLoc"] = CameraNotify->ShakeSettings.AmplitudeLocation;
+                CameraData["AmpRot"] = CameraNotify->ShakeSettings.AmplitudeRotationDeg;
+                CameraData["Frequency"] = CameraNotify->ShakeSettings.Frequency;
+                CameraData["Priority"] = CameraNotify->ShakeSettings.Priority;
+                break;
+            case ECameraNotifyEffect::Fade:
+                CameraData["Duration"] = CameraNotify->FadeSettings.Duration;
+                CameraData["FromAlpha"] = CameraNotify->FadeSettings.FromAlpha;
+                CameraData["ToAlpha"] = CameraNotify->FadeSettings.ToAlpha;
+                CameraData["Color"] = FJsonSerializer::Vector4ToJson(CameraNotify->FadeSettings.Color.ToFVector4());
+                CameraData["Priority"] = CameraNotify->FadeSettings.Priority;
+                break;
+            case ECameraNotifyEffect::LetterBox:
+                CameraData["Duration"] = CameraNotify->LetterBoxSettings.Duration;
+                CameraData["Aspect"] = CameraNotify->LetterBoxSettings.Aspect;
+                CameraData["BarHeight"] = CameraNotify->LetterBoxSettings.BarHeight;
+                CameraData["Color"] = FJsonSerializer::Vector4ToJson(CameraNotify->LetterBoxSettings.Color.ToFVector4());
+                CameraData["Priority"] = CameraNotify->LetterBoxSettings.Priority;
+                break;
+            case ECameraNotifyEffect::Vignette:
+                CameraData["Duration"] = CameraNotify->VignetteSettings.Duration;
+                CameraData["Radius"] = CameraNotify->VignetteSettings.Radius;
+                CameraData["Softness"] = CameraNotify->VignetteSettings.Softness;
+                CameraData["Intensity"] = CameraNotify->VignetteSettings.Intensity;
+                CameraData["Roundness"] = CameraNotify->VignetteSettings.Roundness;
+                CameraData["Color"] = FJsonSerializer::Vector4ToJson(CameraNotify->VignetteSettings.Color.ToFVector4());
+                CameraData["Priority"] = CameraNotify->VignetteSettings.Priority;
+                break;
+            case ECameraNotifyEffect::Gamma:
+                CameraData["Gamma"] = CameraNotify->GammaSettings.Gamma;
+                break;
+            case ECameraNotifyEffect::DOF:
+                CameraData["FocalDistance"] = CameraNotify->DOFSettings.FocalDistance;
+                CameraData["FocalRegion"] = CameraNotify->DOFSettings.FocalRegion;
+                CameraData["NearTransition"] = CameraNotify->DOFSettings.NearTransition;
+                CameraData["FarTransition"] = CameraNotify->DOFSettings.FarTransition;
+                CameraData["MaxNearBlur"] = CameraNotify->DOFSettings.MaxNearBlur;
+                CameraData["MaxFarBlur"] = CameraNotify->DOFSettings.MaxFarBlur;
+                CameraData["Priority"] = CameraNotify->DOFSettings.Priority;
+                break;
+            default:
+                break;
+            }
+
+            Data["Camera"] = CameraData;
         }
         Item["Data"] = Data;
 
@@ -480,6 +569,85 @@ bool UAnimSequenceBase::LoadMeta(const FString& MetaPathUTF8)
             }
 
             Evt.Notify = ParticleNotify;
+            Evt.NotifyState = nullptr;
+        }
+        else if (ClassStr == "UAnimNotify_PlayCamera" || ClassStr == "PlayCamera")
+        {
+            UAnimNotify_PlayCamera* CameraNotify = NewObject<UAnimNotify_PlayCamera>();
+            if (CameraNotify && DataPtr)
+            {
+                const JSON* CameraJson = DataPtr;
+                if (CameraJson->hasKey("Camera"))
+                {
+                    CameraJson = &CameraJson->at("Camera");
+                }
+
+                if (CameraJson)
+                {
+                    FString TypeStr = CameraJson->hasKey("Type") ? CameraJson->at("Type").ToString() : "Shake";
+                    CameraNotify->EffectType = CameraEffectFromString(TypeStr);
+
+                    FVector4 ColorVec(0, 0, 0, 1);
+                    switch (CameraNotify->EffectType)
+                    {
+                    case ECameraNotifyEffect::Shake:
+                        FJsonSerializer::ReadFloat(*CameraJson, "Duration", CameraNotify->ShakeSettings.Duration, CameraNotify->ShakeSettings.Duration, false);
+                        FJsonSerializer::ReadFloat(*CameraJson, "AmpLoc", CameraNotify->ShakeSettings.AmplitudeLocation, CameraNotify->ShakeSettings.AmplitudeLocation, false);
+                        FJsonSerializer::ReadFloat(*CameraJson, "AmpRot", CameraNotify->ShakeSettings.AmplitudeRotationDeg, CameraNotify->ShakeSettings.AmplitudeRotationDeg, false);
+                        FJsonSerializer::ReadFloat(*CameraJson, "Frequency", CameraNotify->ShakeSettings.Frequency, CameraNotify->ShakeSettings.Frequency, false);
+                        { float TempPriority = static_cast<float>(CameraNotify->ShakeSettings.Priority); FJsonSerializer::ReadFloat(*CameraJson, "Priority", TempPriority, TempPriority, false); CameraNotify->ShakeSettings.Priority = static_cast<int32>(TempPriority); }
+                        break;
+                    case ECameraNotifyEffect::Fade:
+                        FJsonSerializer::ReadFloat(*CameraJson, "Duration", CameraNotify->FadeSettings.Duration, CameraNotify->FadeSettings.Duration, false);
+                        FJsonSerializer::ReadFloat(*CameraJson, "FromAlpha", CameraNotify->FadeSettings.FromAlpha, CameraNotify->FadeSettings.FromAlpha, false);
+                        FJsonSerializer::ReadFloat(*CameraJson, "ToAlpha", CameraNotify->FadeSettings.ToAlpha, CameraNotify->FadeSettings.ToAlpha, false);
+                        if (FJsonSerializer::ReadVector4(*CameraJson, "Color", ColorVec, CameraNotify->FadeSettings.Color.ToFVector4(), false))
+                        {
+                            CameraNotify->FadeSettings.Color = FLinearColor(ColorVec.X, ColorVec.Y, ColorVec.Z, ColorVec.W);
+                        }
+                        { float TempPriority = static_cast<float>(CameraNotify->FadeSettings.Priority); FJsonSerializer::ReadFloat(*CameraJson, "Priority", TempPriority, TempPriority, false); CameraNotify->FadeSettings.Priority = static_cast<int32>(TempPriority); }
+                        break;
+                    case ECameraNotifyEffect::LetterBox:
+                        FJsonSerializer::ReadFloat(*CameraJson, "Duration", CameraNotify->LetterBoxSettings.Duration, CameraNotify->LetterBoxSettings.Duration, false);
+                        FJsonSerializer::ReadFloat(*CameraJson, "Aspect", CameraNotify->LetterBoxSettings.Aspect, CameraNotify->LetterBoxSettings.Aspect, false);
+                        FJsonSerializer::ReadFloat(*CameraJson, "BarHeight", CameraNotify->LetterBoxSettings.BarHeight, CameraNotify->LetterBoxSettings.BarHeight, false);
+                        if (FJsonSerializer::ReadVector4(*CameraJson, "Color", ColorVec, CameraNotify->LetterBoxSettings.Color.ToFVector4(), false))
+                        {
+                            CameraNotify->LetterBoxSettings.Color = FLinearColor(ColorVec.X, ColorVec.Y, ColorVec.Z, ColorVec.W);
+                        }
+                        { float TempPriority = static_cast<float>(CameraNotify->LetterBoxSettings.Priority); FJsonSerializer::ReadFloat(*CameraJson, "Priority", TempPriority, TempPriority, false); CameraNotify->LetterBoxSettings.Priority = static_cast<int32>(TempPriority); }
+                        break;
+                    case ECameraNotifyEffect::Vignette:
+                        FJsonSerializer::ReadFloat(*CameraJson, "Duration", CameraNotify->VignetteSettings.Duration, CameraNotify->VignetteSettings.Duration, false);
+                        FJsonSerializer::ReadFloat(*CameraJson, "Radius", CameraNotify->VignetteSettings.Radius, CameraNotify->VignetteSettings.Radius, false);
+                        FJsonSerializer::ReadFloat(*CameraJson, "Softness", CameraNotify->VignetteSettings.Softness, CameraNotify->VignetteSettings.Softness, false);
+                        FJsonSerializer::ReadFloat(*CameraJson, "Intensity", CameraNotify->VignetteSettings.Intensity, CameraNotify->VignetteSettings.Intensity, false);
+                        FJsonSerializer::ReadFloat(*CameraJson, "Roundness", CameraNotify->VignetteSettings.Roundness, CameraNotify->VignetteSettings.Roundness, false);
+                        if (FJsonSerializer::ReadVector4(*CameraJson, "Color", ColorVec, CameraNotify->VignetteSettings.Color.ToFVector4(), false))
+                        {
+                            CameraNotify->VignetteSettings.Color = FLinearColor(ColorVec.X, ColorVec.Y, ColorVec.Z, ColorVec.W);
+                        }
+                        { float TempPriority = static_cast<float>(CameraNotify->VignetteSettings.Priority); FJsonSerializer::ReadFloat(*CameraJson, "Priority", TempPriority, TempPriority, false); CameraNotify->VignetteSettings.Priority = static_cast<int32>(TempPriority); }
+                        break;
+                    case ECameraNotifyEffect::Gamma:
+                        FJsonSerializer::ReadFloat(*CameraJson, "Gamma", CameraNotify->GammaSettings.Gamma, CameraNotify->GammaSettings.Gamma, false);
+                        break;
+                    case ECameraNotifyEffect::DOF:
+                        FJsonSerializer::ReadFloat(*CameraJson, "FocalDistance", CameraNotify->DOFSettings.FocalDistance, CameraNotify->DOFSettings.FocalDistance, false);
+                        FJsonSerializer::ReadFloat(*CameraJson, "FocalRegion", CameraNotify->DOFSettings.FocalRegion, CameraNotify->DOFSettings.FocalRegion, false);
+                        FJsonSerializer::ReadFloat(*CameraJson, "NearTransition", CameraNotify->DOFSettings.NearTransition, CameraNotify->DOFSettings.NearTransition, false);
+                        FJsonSerializer::ReadFloat(*CameraJson, "FarTransition", CameraNotify->DOFSettings.FarTransition, CameraNotify->DOFSettings.FarTransition, false);
+                        FJsonSerializer::ReadFloat(*CameraJson, "MaxNearBlur", CameraNotify->DOFSettings.MaxNearBlur, CameraNotify->DOFSettings.MaxNearBlur, false);
+                        FJsonSerializer::ReadFloat(*CameraJson, "MaxFarBlur", CameraNotify->DOFSettings.MaxFarBlur, CameraNotify->DOFSettings.MaxFarBlur, false);
+                        { float TempPriority = static_cast<float>(CameraNotify->DOFSettings.Priority); FJsonSerializer::ReadFloat(*CameraJson, "Priority", TempPriority, TempPriority, false); CameraNotify->DOFSettings.Priority = static_cast<int32>(TempPriority); }
+                        break;
+                    default:
+                        break;
+                    }
+                }
+            }
+
+            Evt.Notify = CameraNotify;
             Evt.NotifyState = nullptr;
         }
         else
