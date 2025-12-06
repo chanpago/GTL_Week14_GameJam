@@ -3,6 +3,7 @@
 #include "EnemyAIController.h"
 #include "StatsComponent.h"
 #include "HitboxComponent.h"
+#include "BillboardComponent.h"
 #include "World.h"
 #include "PlayerController.h"
 #include "GameModeBase.h"
@@ -25,6 +26,24 @@ AEnemyBase::AEnemyBase()
 void AEnemyBase::BeginPlay()
 {
     Super::BeginPlay();
+
+    // Find lock-on indicator billboard from prefab
+    int32 BillboardCount = 0;
+    for (UActorComponent* Comp : GetOwnedComponents())
+    {
+        if (Cast<UBillboardComponent>(Comp))
+        {
+            BillboardCount++;
+        }
+    }
+
+    LockOnIndicator = Cast<UBillboardComponent>(GetComponent(UBillboardComponent::StaticClass()));
+    if (LockOnIndicator)
+    {
+        LockOnIndicator->SetHiddenInGame(true);
+        LockOnIndicator->SetRenderInPIE(true);
+        LockOnIndicator->SetAlwaysOnTop(true);
+    }
 
     // 델리게이트 바인딩
     if (StatsComponent)
@@ -414,11 +433,23 @@ FVector AEnemyBase::GetTargetLocation() const
 void AEnemyBase::OnTargetLocked()
 {
     bIsCurrentlyTargeted = true;
+
+    // Show lock-on indicator
+    if (LockOnIndicator)
+    {
+        LockOnIndicator->SetHiddenInGame(false);
+    }
 }
 
 void AEnemyBase::OnTargetUnlocked()
 {
     bIsCurrentlyTargeted = false;
+
+    // Hide lock-on indicator
+    if (LockOnIndicator)
+    {
+        LockOnIndicator->SetHiddenInGame(true);
+    }
 }
 
 void AEnemyBase::NotifyAttackFinished()

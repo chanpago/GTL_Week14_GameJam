@@ -21,6 +21,22 @@ struct FHealthState
     void Set(float InCurrent, float InMax) { Current = InCurrent; Max = InMax; }
 };
 
+struct FStaminaState
+{
+    float Current = 0.0f;
+    float Max = 0.0f;
+    float GetPercent() const { return (Max > 0.0f) ? (Current / Max) : 0.0f; }
+    void Set(float InCurrent, float InMax) { Current = InCurrent; Max = InMax; }
+};
+
+struct FFocusState
+{
+    float Current = 0.0f;
+    float Max = 0.0f;
+    float GetPercent() const { return (Max > 0.0f) ? (Current / Max) : 0.0f; }
+    void Set(float InCurrent, float InMax) { Current = InCurrent; Max = InMax; }
+};
+
 class AGameState : public AGameStateBase
 {
 public:
@@ -46,6 +62,14 @@ public:
     // Player health updates
     void OnPlayerHealthChanged(float Current, float Max);
     const FHealthState& GetPlayerHealth() const { return PlayerHealth; }
+
+    // Player stamina updates
+    void OnPlayerStaminaChanged(float Current, float Max);
+    const FStaminaState& GetPlayerStamina() const { return PlayerStamina; }
+
+    // Player focus updates
+    void OnPlayerFocusChanged(float Current, float Max);
+    const FFocusState& GetPlayerFocus() const { return PlayerFocus; }
 
     // Boss info and health
     void RegisterBoss(const FString& InBossName, float BossMaxHealth);
@@ -73,6 +97,8 @@ protected:
 
     // Player
     FHealthState PlayerHealth;
+    FStaminaState PlayerStamina;
+    FFocusState PlayerFocus;
     bool bPlayerAlive = true;
 
     // Boss

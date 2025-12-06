@@ -96,6 +96,9 @@ void APlayerCharacter::Tick(float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
 
+    // SubWeapon 트랜스폼 업데이트 (PlayerCharacter만 사용)
+    UpdateSubWeaponTransform();
+
     // Only process gameplay when in Fighting state
     if (AGameModeBase* GM = GWorld ? GWorld->GetGameMode() : nullptr)
     {

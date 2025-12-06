@@ -43,6 +43,7 @@ public:
 	/** 무기 충돌 컴포넌트 (칼날 히트박스) */
 	UCapsuleComponent* WeaponCollider = nullptr;
 
+	
 	/** 무기가 부착될 본 이름 */
 	UPROPERTY(EditAnywhere, Category = "Weapon")
 	FString WeaponBoneName = "hand_r";
@@ -55,8 +56,28 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Weapon")
 	FVector WeaponRotationOffset = FVector::Zero();
 
+
+	/** 서브 무기 메시 컴포넌트 (컴포넌트는 별도 직렬화됨) */
+	UStaticMeshComponent* SubWeaponMeshComp = nullptr;
+	
+	/** 서브 무기가 부착될 본 이름 */
+	UPROPERTY(EditAnywhere, Category = "SubWeapon")
+	FString SubWeaponBoneName = "hand_l";
+
+	/** 서브 무기 오프셋 (본 기준 로컬) */
+	UPROPERTY(EditAnywhere, Category = "SubWeapon")
+	FVector SubWeaponOffset = FVector::Zero();
+
+	/** 서브 무기 회전 오프셋 (본 기준 로컬, 오일러 각도) */
+	UPROPERTY(EditAnywhere, Category = "SubWeapon")
+	FVector SubWeaponRotationOffset = FVector::Zero();
+	
+
 	/** 무기 위치를 본에 맞춰 업데이트 */
 	void UpdateWeaponTransform();
+
+	/** 서브 무기 위치를 본에 맞춰 업데이트 */
+	void UpdateSubWeaponTransform();
 
 	/** 무기 충돌 활성화/비활성화 */
 	void EnableWeaponCollision(bool bEnable);

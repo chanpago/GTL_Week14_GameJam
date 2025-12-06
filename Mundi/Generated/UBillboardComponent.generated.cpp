@@ -36,6 +36,8 @@ const bool UBillboardComponent::bPropertiesRegistered = []() {
 BEGIN_PROPERTIES(UBillboardComponent)
     MARK_AS_COMPONENT("빌보드 컴포넌트", "항상 카메라를 향하는 스프라이트 컴포넌트입니다")
     ADD_PROPERTY_TEXTURE(UTexture*, Texture, "Billboard", true)
+    ADD_PROPERTY(bool, bRenderInPIE, "Billboard", true)
+    ADD_PROPERTY(bool, bAlwaysOnTop, "Billboard", true)
 END_PROPERTIES()
 
 // ===== Lua Binding =====

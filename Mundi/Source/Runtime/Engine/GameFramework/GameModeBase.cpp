@@ -131,8 +131,8 @@ void AGameModeBase::PostLogin(APlayerController* NewPlayer)
 		if (UActorComponent* SpringArmComp = NewPawn->AddNewComponent(USpringArmComponent::StaticClass(), NewPawn->GetRootComponent()))
 		{
 			SpringArm = Cast<USpringArmComponent>(SpringArmComp);
-			SpringArm->SetRelativeLocation(FVector(0, 0, 2.0f));  // 캐릭터 머리 위쪽
-			SpringArm->SetTargetArmLength(10.0f);                  // 카메라 거리 (스프링 암에서 카메라 컴포넌트까지의)
+			SpringArm->SetRelativeLocation(FVector(0, 0, 0.8f));  // 캐릭터 머리 위쪽
+			SpringArm->SetTargetArmLength(3.0f);                  // 카메라 거리 (스프링 암에서 카메라 컴포넌트까지의)
 			SpringArm->SetDoCollisionTest(true);                  // 충돌 체크 활성화
 			SpringArm->SetUsePawnControlRotation(true);           // 컨트롤러 회전 사용
 		}

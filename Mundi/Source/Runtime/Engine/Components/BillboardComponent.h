@@ -28,6 +28,14 @@ public:
     UQuad* GetStaticMesh() const { return Quad; }
     FString& GetFilePath() { return TexturePath; }
 
+    // PIE 모드에서 렌더링 여부 설정
+    void SetRenderInPIE(bool bInRenderInPIE) { bRenderInPIE = bInRenderInPIE; }
+    bool GetRenderInPIE() const { return bRenderInPIE; }
+
+    // Always on top (depth test disabled)
+    void SetAlwaysOnTop(bool bInAlwaysOnTop) { bAlwaysOnTop = bInAlwaysOnTop; }
+    bool IsAlwaysOnTop() const { return bAlwaysOnTop; }
+
     UMaterialInterface* GetMaterial(uint32 InSectionIndex) const override;
     void SetMaterial(uint32 InElementIndex, UMaterialInterface* InNewMaterial) override;
 
@@ -42,6 +50,14 @@ private:
 
     UPROPERTY(EditAnywhere, Category="Billboard")
     UTexture* Texture = nullptr;  // 리플렉션 시스템용 Texture 포인터
+
+    // PIE 모드에서도 렌더링할지 여부 (bHiddenInGame을 무시)
+    UPROPERTY(EditAnywhere, Category="Billboard")
+    bool bRenderInPIE = false;
+
+    // Always render on top (depth test disabled)
+    UPROPERTY(EditAnywhere, Category="Billboard")
+    bool bAlwaysOnTop = false;
 
     UMaterialInterface* Material = nullptr;
     UQuad* Quad = nullptr;

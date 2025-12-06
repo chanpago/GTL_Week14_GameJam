@@ -683,7 +683,22 @@ void FSceneRenderer::GatherVisibleProxies()
 
 			for (USceneComponent* Component : Actor->GetSceneComponents())
 			{
-				if (!Component || !Component->IsVisible())
+				if (!Component)
+				{
+					continue;
+				}
+
+				// Billboard with bRenderInPIE bypasses normal visibility check
+				bool bIsPIEBillboard = false;
+				if (UBillboardComponent* Billboard = Cast<UBillboardComponent>(Component))
+				{
+					if (Billboard->GetRenderInPIE() && Billboard->IsActive())
+					{
+						bIsPIEBillboard = true;
+					}
+				}
+
+				if (!bIsPIEBillboard && !Component->IsVisible())
 				{
 					continue;
 				}
@@ -938,9 +953,13 @@ void FSceneRenderer::RenderOpaquePass(EViewMode InRenderViewMode)
 		MeshComponent->CollectMeshBatches(MeshBatchElements, View);
 	}
 
+	// Collect normal billboards (not always-on-top)
 	for (UBillboardComponent* BillboardComponent : Proxies.Billboards)
 	{
-		BillboardComponent->CollectMeshBatches(MeshBatchElements, View);
+		if (!BillboardComponent->IsAlwaysOnTop())
+		{
+			BillboardComponent->CollectMeshBatches(MeshBatchElements, View);
+		}
 	}
 
 	for (UTextRenderComponent* TextRenderComponent : Proxies.Texts)
@@ -956,6 +975,22 @@ void FSceneRenderer::RenderOpaquePass(EViewMode InRenderViewMode)
 	{
 		GPU_TIME_PROFILE("GPUSkinning")
 		DrawMeshBatches(MeshBatchElements, true);
+	}
+
+	// --- 4. Always-on-top billboards (depth test disabled) ---
+	MeshBatchElements.Empty();
+	for (UBillboardComponent* BillboardComponent : Proxies.Billboards)
+	{
+		if (BillboardComponent->IsAlwaysOnTop())
+		{
+			BillboardComponent->CollectMeshBatches(MeshBatchElements, View);
+		}
+	}
+	if (!MeshBatchElements.empty())
+	{
+		RHIDevice->OMSetDepthStencilState(EComparisonFunc::Disable);
+		DrawMeshBatches(MeshBatchElements, true);
+		RHIDevice->OMSetDepthStencilState(EComparisonFunc::LessEqual);
 	}
 }
 
